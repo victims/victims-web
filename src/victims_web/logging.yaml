@@ -1,0 +1,32 @@
+version: 1
+formatters:
+    simpleFormatter:
+        format: '%(asctime)s - %(levelname)s: %(message)s'
+        datefmt: '%Y-%m-%d %H:%M:%S'
+    jsonFormatter:
+        format: "{'level': '%(levelname)s', 'date': '%(asctime)s', 'message': '%(message)s'}"
+        datefmt: '%a %b %d %Y %H:%M:%S %Z'
+
+handlers:
+    console:
+        class: logging.StreamHandler
+        formatter: simpleFormatter
+        level: DEBUG
+        stream: ext://sys.stdout
+    file:
+        class : logging.FileHandler
+        formatter: simpleFormatter
+        level: DEBUG
+        filename: logs/server.log
+    jsonfile:
+        class : logging.FileHandler
+        formatter: jsonFormatter
+        level: DEBUG
+        filename: logs/server.json
+loggers:
+    victims_web:
+        level: DEBUG
+        handlers: [jsonfile, file]
+
+root:
+    level: DEBUG

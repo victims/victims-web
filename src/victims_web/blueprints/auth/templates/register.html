@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}register{% endblock %}
+
+{% block content %}
+
+<form method="POST" action="{{ url_for('.register_user') }}">
+Username: <input name="username" /><br>
+Password: <input name="password" type="password" /><br>
+Verify Password: <input name="verify_password" type="password" /><br>
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+<input type="submit" value="Register" />
+</form>
+{% endblock %}

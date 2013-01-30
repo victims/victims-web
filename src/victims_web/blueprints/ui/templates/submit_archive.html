@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form method="POST" enctype="multipart/form-data" action="{{ url_for('ui.submit_archive') }}">
+<table>
+  <tr>
+    <th>CVEs</th>
+    <td><input name="cves" /></td>
+  </tr>
+  <tr>
+    <th>Archive File</th>
+    <td><input name="archive" type="file" /></td>
+  </tr>
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+</table>
+<input type="submit" name="submit" value="Submit" />
+</form>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}About{% endblock %}
+
+{% block content %}
+<h1>Why Does This Exist?</h1>
+
+<p>As many things do, it started with Java. Many developers are against copying and pasting code from one file to another, and rightfully so, but some of the same developers were doing nearly the same thing on the filesystem level. It was not pretty nor elegant but it was manageable if you had enough folks making sure the developers were not stuffing out of date or bad jars in applications by accident. Then came <a href="http://maven.apache.org/" target="_blank">Maven</a> which developers slowly but surely started using. From the point of view of the builder it was easy. You no longer had to go hunt down 10's (or 100's :-/) of JAR's. The developers loved it because it meant that the internet brought their 'packages' to them. This convenience ended up bringing a major problem: what versions of libraries are you distributing? Many developers no longer really knew. The most common answer became "The latest in maven".</p>
+<br />
+<p>I decided to attempt to write a simple scanner which could look at the JAR metadata and get version information so it could be matched up against vulnerability databases. Sadly, I found out the hard way many JAR's don't include much information. Here is an example of one JAR I was looking at:
+<pre>
+
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Created-By: Apache Maven
+Built-By: someguy
+Build-Jdk: 1.6.0_06
+
+</pre>
+I spent a bit of time talking with other developers about how one could have a JAR with similar metadata yet somehow find out it's version and security status. One idea was syncing maven repositories and looking for the same sha1sum which is included with many (not all) JAR's. It was <a href="http://repl.ca" target="_blank">James Bowes</a> who said something about matching against known hashes and I added in the community driven data part and thus victims was born.
+</p>
+{% endblock %}

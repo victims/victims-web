@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>{% block title %}victims: don't be one{% endblock %}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('ui.static', filename='css/style.css') }}" media="screen" />
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+<div id="wrap">
+    <div id="header">
+        <h1><a href="{{ url_for('ui.index') }}">victims</a></h1>
+        <h2>don't be one</h2>
+        <h2>Version 2 ALPHA</h2>
+    </div>
+    <div id="menu">
+        <a href="{{ url_for('ui.index') }}">Main</a>
+        <a href="{{ url_for('ui.static_page', page='client') }}">Client</a>
+        <a href="{{ url_for('ui.static_page', page='about') }}">About</a>
+        <a href="{{ url_for('ui.static_page', page='bugs') }}">Bugs</a>
+        {% if current_user.is_authenticated() %}
+        <a href="{{ url_for('ui.submit_archive') }}">Submit an archive</a>
+        <a href="{{ url_for('auth.logout_user') }}">Logout</a>
+        {# if current_user.has_endorsement('moderator') or current_user.has_endorsement('admin') #}
+        <a href="{# url_for('admin.index') #}">Admin</a>
+        {# endif #}
+        {% else %}
+        <a href="{{ url_for('auth.login_user') }}">Login</a>
+        <a href="{{ url_for('auth.register_user') }}">Register</a>
+        {% endif %}
+    </div>
+
+    <div id="content">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul class="flashes">
+    {% for category, message in messages %}
+      <li class="{{ category }}">{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+    {% block content %}{% endblock %}
+    </div>
+
+    <div id="footer">
+        <p>&copy; 2009-2012 Steve 'Ashcrow' Milner. Server licensed under the <a href="http://www.gnu.org/licenses/agpl-3.0.html">AGPL 3.0 License</a> (<a href="https://github.com/victims/victims-web/">Source</a>)</p>
+        <p><img src="{{ url_for('ui.static', filename='images/victims-button.png') }}" /></p>
+    </div> 
+</div>
+</body>
+</html>

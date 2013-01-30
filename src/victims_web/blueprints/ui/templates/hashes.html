@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Hashes{% endblock %}
+
+{% block content %}
+<table>
+  <tr>
+    <th>Name-Version</th>
+    <th>SHA512 Hash</th>
+  </tr>
+  {% for hash in hashes %}
+  <tr>
+    <td>{{ hash.name }}-{{ hash.version }}</td>
+    <td><a href="{{ url_for('.hash', hash=hash.hashes.sha512.combined) }}">{{ hash.hashes.sha512.combined[0:50] }}...</a></td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

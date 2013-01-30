@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="main">
+  <p class="fat">
+    <span class="huge"><a href="{{ url_for('.hashes') }}">{{ hashes }}</a></span> unique hashes
+    (<span class="huge">{{ pending }}</span> pending review).
+  </p>
+  <p class="fat">
+    <span class="huge"><a href="{{ url_for('.hashes', format='Jar') }}">{{ jars }}</a></span> JAR hashes
+    (<span class="huge">{{ pending_jars }}</span> pending review).
+  </p>
+  <p class="fat">
+    <span class="huge"><a href="{{ url_for('.hashes', format='Egg') }}">{{ eggs }}</a></span> EGG hashes
+    (<span class="huge">{{ pending_eggs }}</span> pending review).
+  </p>
+</div>
+{% endblock %}

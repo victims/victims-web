@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Client{% endblock %}
+
+{% block content %}
+<h1>The Client</h1>
+<h2>Downloading and Installing</h2>
+<p>
+You can find the latest client downloads at our <a href="https://github.com/victims/victims-client" target="_blank">client development site</a>. Since the code is written in the <a href="http://www.python.org">Python Programming Language</a> it should be usable anywhere that Python is installed.
+</p>
+<br />
+<p>
+To install the client you require the following Python libraries to be available:
+<pre>
+
+- setuptools 0.6c9+
+- sqlalchemy 5.8+
+
+</pre>
+
+If possible, it's best to install these libraries through your Operating Systems package manager. Next you must extract the files from the archive. Depending on what OS you use the operation will be different. Then you must run ./setup.py install as a root/Administrator user. The last thing you must do is copy the conf/example.cfg to the location you would like to keep the config file and edit it to your liking.
+</p>
+<br />
+
+<h2>Using</h2>
+Upon first use you should update the local database. To do this you can run victims-update-db and pass it the location of your configuration file. Here is an example on my <a href="http://www.fedoraproject.org" target="_blank">Fedora</a> laptop:
+<pre>
+
+[steve@oa .~]$ victims-update-db -c ~/example.cfg 
+[steve@oa .~]$
+
+</pre>
+<br />
+In normal Unix fashion, no output means everything went well! The command you have just done should be executed from time to time to make sure you have all the latest hashes to check against. Now it's time to scan with victims-scan!
+<pre>
+
+[steve@oa ~]$ victims-scan -l -c ~/example.cfg /tmp/
+apache-tomcat-5.5.12/server/lib/catalina.jar (inside /tmp/apache-tomcat-5.5.12.zip):
+    CVE-2009-2693,CVE-2009-2901,CVE-2009-2902
+/tmp/apache-tomcat-5.5.12/server/lib/catalina.jar:
+    CVE-2009-2693,CVE-2009-2901,CVE-2009-2902
+Scanned 92 packages
+[steve@oa ~]$ 
+
+</pre>
+<br />
+For more information on the available switches for each command, simply run the command with no options (or use --help).
+{% endblock %}
