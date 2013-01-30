@@ -10,6 +10,7 @@ from flask.ext import login
 from mongokit import ValidationError
 
 from victims_hash.fingerprint import fingerprint
+from victims_hash.metadata import extract_metadata
 #from victims_web import errors
 
 
@@ -99,6 +100,9 @@ def submit_archive():
            new_hash.status = 'SUBMITTED'
            new_hash.submitter = login.current_user.username
            new_hash.hashes = hashes
+           # Reset the location in the stream
+           archive.stream.seek(0)
+           new_hash.meta = extract_metadata(filename, io=archive.stream)['meta']
            new_hash.validate()
            new_hash.save()
 
