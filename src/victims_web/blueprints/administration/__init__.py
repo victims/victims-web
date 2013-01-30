@@ -1,3 +1,5 @@
+import datetime
+
 from flask.ext.admin import Admin, AdminIndexView
 from flask.ext import wtf
 from flask.ext.admin.contrib.pymongo import ModelView
@@ -49,6 +51,14 @@ class HashForm(wtf.Form):
     status = wtf.SelectField('status', choices=[
         ('SUBMITTED', 'SUBMITTED'), ('RELEASED', 'RELEASED')])
 
+    def validate_status(form, field):
+        """
+        Set release date when moved to RELEASED status.
+        """
+        if form.status.data == 'RELEASED':
+            form.date.data = datetime.datetime.utcnow()
+        else:
+            form.date.data = None
 
 class AccountForm(wtf.Form):
     """
