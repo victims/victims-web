@@ -47,11 +47,12 @@ class Hash(Document):
     }
     use_dot_notation = True
     required_fields = ['name', 'version', 'format',
-        'hashes', 'cves', 'submitter']
+        'status', 'cves', 'submitter']
     default_values = {
         'status': u'SUBMITTED',
         'vendor': u'Unknown',
 #        'db_version': None,
+        'hashes': {},
         'submittedon': datetime.datetime.utcnow(),
     }
     validators = {

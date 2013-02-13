@@ -1,4 +1,5 @@
 import datetime
+import os.path
 import re
 
 from flask import (Blueprint, current_app, render_template, helpers,
@@ -11,7 +12,6 @@ from mongokit import ValidationError
 
 from victims_hash.fingerprint import fingerprint
 from victims_hash.metadata import extract_metadata
-#from victims_web import errors
 
 
 ui = Blueprint('ui', __name__,
@@ -77,39 +77,35 @@ def hash(hash):
 def submit_archive():
     # If a file is submitted
     if request.method == "POST":
-       archive = request.files['archive']
-       # TODO: vvvvvvvvvvvvvvvvvvvvvvvvv
-       #if archive and allowed_file(archive.filename):
-       filename = secure_filename(archive.filename)
-       try:
-           if current_app.db.Hash.find({
-                        'name': filename,
-                        'version': '1.0.0',
-                    }).count() > 0:
-               raise ValidationError('The hash already exists.')
+       if 'archive' in request.files.keys():
+           archive = request.files['archive']
+           try:
+               suffix = archive.filename[archive.filename.rindex('.')+1:]
+               if suffix in current_app.config['ALLOWED_EXTENSIONS']:
+                   filename = secure_filename(archive.filename)
+                   archive.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+                   cves = request.form['cves'].split(',')
+                   new_hash = current_app.db.Hash()
+                   new_hash.name = filename
+                   new_hash.date = datetime.datetime.utcnow()
+                   new_hash.version = '1.0.0'
+                   new_hash.format = suffix.capitalize()
+                   new_hash.cves = cves
+                   new_hash.status = 'SUBMITTED'
+                   new_hash.submitter = login.current_user.username
+                   new_hash.hashes = {}
+                   new_hash.validate()
+                   new_hash.save()
+                   flash('Archive Submitted. It will be processed shortly.', 'info')
+               else:
+                   raise ValueError('No suffix')
+           except ValueError:
+               flash('Not a valid archive type.', 'error')
+           except ValidationError, ve:
+                flash(ve.message, 'error')
 
-           hashes = fingerprint(filename, io=archive.stream)['hashes']
-           cves = request.form['cves'].split(',')
-
-           new_hash = current_app.db.Hash()
-           new_hash.name = filename
-           new_hash.date = datetime.datetime.utcnow()
-           new_hash.version = '1.0.0'
-           new_hash.format = filename[filename.rfind('.') + 1:].capitalize()
-           new_hash.cves = cves
-           new_hash.status = 'SUBMITTED'
-           new_hash.submitter = login.current_user.username
-           new_hash.hashes = hashes
-           # Reset the location in the stream
-           archive.stream.seek(0)
-           new_hash.meta = extract_metadata(filename, io=archive.stream)['meta']
-           new_hash.validate()
-           new_hash.save()
-
-           flash('Archive Submitted.', 'info')
-       except ValidationError, ve:
-            flash(ve.message, 'error')
-
+       else:
+           flash('Unable to process the archive.', 'error')
     return render_template('submit_archive.html')
 
 

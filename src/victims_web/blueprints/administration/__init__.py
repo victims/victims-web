@@ -126,8 +126,8 @@ class TracebackView(ModelView):
 # Bind and expose the views
 administration = Admin(name="Victims Admin", index_view=SafeAdminIndexView())
 administration.add_view(HashView(
-    Connection().victims.hashes, name='Hashes', url='hashes'))
+    Connection('127.0.0.1').victims.hashes, name='Hashes', url='hashes'))
 administration.add_view(AccountView(
-    Connection().victims.users, name='Accounts', url='accounts'))
+    Connection('127.0.0.1').victims.users, name='Accounts', url='accounts'))
 administration.add_view(TracebackView(
-    Connection().victims.tracebacks, name='Tracebacks', url='tracebacks'))
+    Connection('127.0.0.1').victims.tracebacks, name='Tracebacks', url='tracebacks'))
