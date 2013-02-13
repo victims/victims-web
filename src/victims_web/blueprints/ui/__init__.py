@@ -10,9 +10,6 @@ from flask.ext import login
 
 from mongokit import ValidationError
 
-from victims_hash.fingerprint import fingerprint
-from victims_hash.metadata import extract_metadata
-
 
 ui = Blueprint('ui', __name__,
     template_folder='templates',
