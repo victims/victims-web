@@ -23,11 +23,6 @@ def serialize_results(items):
         item.pop('_id')
         item['date'] = item['date'].isoformat()
         item['submittedon'] = item['submittedon'].isoformat()
-        # Replace [dot]'s with .'s.
-        for hash_type in ['sha1', 'sha512']:
-            for key, value in item['hashes'][hash_type]['files'].items():
-                item['hashes'][hash_type]['files'][key.replace('[dot]', '.')] = value
-                del item['hashes'][hash_type]['files'][key]
         result.append({'fields': item})
     return json.dumps(result)
 
