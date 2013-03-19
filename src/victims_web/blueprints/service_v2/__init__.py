@@ -54,7 +54,7 @@ def update(since):
         return serialize_results(current_app.db.Hash.find(
             {'date': {'$gt': datetime.datetime.strptime(since, "%Y-%m-%dT%H:%M:%S")}}))
     except Exception, ex:
-        return json.dumps([{'error': 'Could not understand request.'}])
+        return json.dumps([{'error': 'Could not understand request.'}]), 400
 
 
 @v2.route('/remove/<since>/')
@@ -66,4 +66,8 @@ def remove(since):
     :Parameters:
        - `since`: a specific date in utc
     """
-    return json.dumps([])
+    try:
+        datetime.datetime.strptime(since, "%Y-%m-%dT%H:%M:%S")
+        return json.dumps([])
+    except:
+        return json.dumps([{'error': 'Could not understand request.'}]), 400
