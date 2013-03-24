@@ -27,7 +27,6 @@ class TestServiceV1(FlaskTestCase):
         for kind in self.points:
             for badtype in [0, 'NotAnInt', 10.436, 0x80, u'bleh']:
                 resp = self.app.get('/service/v2/%s/%s/' % (kind, badtype))
-                print kind, badtype, resp.status_code, resp.data
                 assert resp.status_code == 400
 
     def test_data_structure(self):

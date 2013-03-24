@@ -5,9 +5,11 @@ services:
   - mongodb
 before_script:
   - mongoimport -d victims -c hashes test/mongo_test.json
-#  - pip install pep8 Flask Flask-Login Flask-Bcrypt Flask-SeaSurf Flask-Cache Flask-Admin pymongo mongokit Flask-MongoKit blinker PyYAML pygments --use-mirrors
+  - pip install pep8 --use-mirrors
 install:
   - pip install -e . --use-mirrors
 script:
   - pep8 --repeat src/
-  - nosetests test/*
+  - nosetests test/*.py
+notifications:
+  email: false

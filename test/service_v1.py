@@ -26,7 +26,6 @@ class TestServiceV1(FlaskTestCase):
         # Anything that is not an int should be a 404
         for kind in self.points:
             for badtype in ['NotAnInt', 10.436, u'bleh']:
-                print badtype
                 resp = self.app.get('/service/v1/%s/%s/' % (kind, badtype))
                 assert resp.status_code == 404
 
