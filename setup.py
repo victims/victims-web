@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='victims_web',
-    version='1.0.0',
+    version='1.9.0',
     description='The victi.ms language package to CVE service.',
     author='Steve Milner',
     url='http://www.victi.ms',
