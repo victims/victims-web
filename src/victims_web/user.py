@@ -12,6 +12,7 @@ from flask.ext.bcrypt import check_password_hash, generate_password_hash
 
 # Helper functions
 
+
 def authenticate(app, username, password):
     user = app.db.Account.find_one({'username': str(username)})
     if user:
@@ -44,7 +45,7 @@ def endorsements_required(endorsements, always_allow=['admin']):
            least one applied to their user let's them access the resource.
     """
     def wraps(fn):
-        
+
         def decorated_view(*args, **kwargs):
             approved = False
             for always_allowed in always_allow:
@@ -63,13 +64,12 @@ def endorsements_required(endorsements, always_allow=['admin']):
 
 def user_allowed(user, endorsements):
     approved = False
-    if user.has_endorsement('admin'): 
+    if user.has_endorsement('admin'):
         return True
     for endorsement in endorsements:
         if current_user.has_endorsement(endorsement):
             return True
     return redirect(url_for('auth.login_user'))
-
 
 
 class User(object):

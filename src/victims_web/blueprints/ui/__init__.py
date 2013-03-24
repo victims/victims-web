@@ -2,7 +2,8 @@ import datetime
 import os.path
 import re
 
-from flask import (Blueprint, current_app, render_template, helpers,
+from flask import (
+    Blueprint, current_app, render_template, helpers,
     url_for, request, redirect, flash)
 from werkzeug import secure_filename
 
@@ -11,7 +12,8 @@ from flask.ext import login
 from mongokit import ValidationError
 
 
-ui = Blueprint('ui', __name__,
+ui = Blueprint(
+    'ui', __name__,
     template_folder='templates',
     static_folder='static',
     static_url_path='/static/')  # Last argument needed since we register on /
@@ -33,10 +35,12 @@ def index():
         'pending': current_app.db.Hash.find({'status': 'Pending'}).count(),
         'jars': current_app.db.Hash.find(
             {'format': 'Jar'}).count(),
-        'pending_jars': current_app.db.Hash.find({'format': 'Jar', 'status': 'PENDING'}).count(),
+        'pending_jars': current_app.db.Hash.find(
+            {'format': 'Jar', 'status': 'PENDING'}).count(),
         'eggs': current_app.db.Hash.find(
             {'format': 'Egg'}).count(),
-        'pending_eggs': current_app.db.Hash.find({'format': 'Egg', 'status': 'PENDING'}).count(),
+        'pending_eggs': current_app.db.Hash.find(
+            {'format': 'Egg', 'status': 'PENDING'}).count(),
     }
     return render_template('index.html',  **kwargs)
 
@@ -63,7 +67,8 @@ def hashes(format=None):
 @ui.route('/hash/<hash>/', methods=['GET'])
 def hash(hash):
     if _is_hash(hash):
-        a_hash = current_app.db.Hash.find_one_or_404({'hashes.sha512.combined': hash})
+        a_hash = current_app.db.Hash.find_one_or_404(
+            {'hashes.sha512.combined': hash})
         return render_template('onehash.html', hash=a_hash)
     flash('Not a valid hash', 'error')
     return redirect(url_for('ui.hashes'))
@@ -74,35 +79,35 @@ def hash(hash):
 def submit_archive():
     # If a file is submitted
     if request.method == "POST":
-       if 'archive' in request.files.keys():
-           archive = request.files['archive']
-           try:
-               suffix = archive.filename[archive.filename.rindex('.')+1:]
-               if suffix in current_app.config['ALLOWED_EXTENSIONS']:
-                   filename = secure_filename(archive.filename)
-                   archive.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
-                   cves = request.form['cves'].split(',')
-                   new_hash = current_app.db.Hash()
-                   new_hash.name = filename
-                   new_hash.date = datetime.datetime.utcnow()
-                   new_hash.version = '1.0.0'
-                   new_hash.format = suffix.capitalize()
-                   new_hash.cves = cves
-                   new_hash.status = 'SUBMITTED'
-                   new_hash.submitter = login.current_user.username
-                   new_hash.hashes = {}
-                   new_hash.validate()
-                   new_hash.save()
-                   flash('Archive Submitted. It will be processed shortly.', 'info')
-               else:
-                   raise ValueError('No suffix')
-           except ValueError:
-               flash('Not a valid archive type.', 'error')
-           except ValidationError, ve:
+        if 'archive' in request.files.keys():
+            archive = request.files['archive']
+            try:
+                suffix = archive.filename[archive.filename.rindex('.')+1:]
+                if suffix in current_app.config['ALLOWED_EXTENSIONS']:
+                    filename = secure_filename(archive.filename)
+                    archive.save(os.path.join(
+                        current_app.config['UPLOAD_FOLDER'], filename))
+                    cves = request.form['cves'].split(',')
+                    new_hash = current_app.db.Hash()
+                    new_hash.name = filename
+                    new_hash.date = datetime.datetime.utcnow()
+                    new_hash.version = '1.0.0'
+                    new_hash.format = suffix.capitalize()
+                    new_hash.cves = cves
+                    new_hash.status = 'SUBMITTED'
+                    new_hash.submitter = login.current_user.username
+                    new_hash.hashes = {}
+                    new_hash.validate()
+                    new_hash.save()
+                    flash('Archive Submitted for processing', 'info')
+                else:
+                    raise ValueError('No suffix')
+            except ValueError:
+                flash('Not a valid archive type.', 'error')
+            except ValidationError, ve:
                 flash(ve.message, 'error')
-
-       else:
-           flash('Unable to process the archive.', 'error')
+        else:
+            flash('Unable to process the archive.', 'error')
     return render_template('submit_archive.html')
 
 

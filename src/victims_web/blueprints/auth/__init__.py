@@ -1,4 +1,5 @@
-from flask import (Blueprint, current_app, flash, render_template, request,
+from flask import (
+    Blueprint, current_app, flash, render_template, request,
     url_for, redirect)
 
 from flask.ext import login
@@ -20,7 +21,8 @@ def login_user():
 
     if request.method == 'POST':
         username = request.form.get('username', '')
-        user_data = authenticate(current_app, username,
+        user_data = authenticate(
+            current_app, username,
             request.form.get('password', ''))
         if user_data:
             if login.login_user(User(username)):
@@ -51,8 +53,9 @@ def register_user():
             for char in request.form['password']:
                 cnt = request.form['password'].count(char)
                 if cnt/float(len(request.form['password'])) > 0.3:
-                    raise errors.ValidationError('You can not use the same '
-                        'char for more than 30% of the password')
+                    raise errors.ValidationError((
+                        'You can not use the same '
+                        'char for more than 30% of the password'))
             if request.form['password'] == request.form['username']:
                 raise errors.ValidationError(
                     'Password can not be the same as the username.')
@@ -65,7 +68,8 @@ def register_user():
                     {'username': request.form['username']}):
                 raise errors.ValidationError('Username is not available.')
 
-            user = create_user(current_app, request.form['username'],
+            user = create_user(
+                current_app, request.form['username'],
                 request.form['password'])
             login.login_user(user)
             return redirect(url_for('ui.index'))

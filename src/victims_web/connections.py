@@ -24,9 +24,10 @@ def store_exception(app, exception):
         tb['username'] = 'AnonymousUser'
 
     try:
-       tb['ip'] = flask.request.headers.getlist('X-Forwarded-For')[0]
+        tb['ip'] = flask.request.headers.getlist(
+            'X-Forwarded-For')[0]
     except:
-       tb['ip'] = flask.request.remote_addr
+        tb['ip'] = flask.request.remote_addr
 
     tb['type'] = exc_info[1].__class__.__name__
     tb['traceback'] = str(exc_str)

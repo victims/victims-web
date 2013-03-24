@@ -34,7 +34,6 @@ class SafeAdminIndexView(ViewRequiresAuthorization, AdminIndexView):
 from flask.ext.mongokit import Connection
 
 
-
 class HashForm(wtf.Form):
     """
     Defines a Hash's form.
@@ -59,6 +58,7 @@ class HashForm(wtf.Form):
             form.date.data = datetime.datetime.utcnow()
         else:
             form.date.data = None
+
 
 class AccountForm(wtf.Form):
     """
@@ -130,4 +130,5 @@ administration.add_view(HashView(
 administration.add_view(AccountView(
     Connection('127.0.0.1').victims.users, name='Accounts', url='accounts'))
 administration.add_view(TracebackView(
-    Connection('127.0.0.1').victims.tracebacks, name='Tracebacks', url='tracebacks'))
+    Connection('127.0.0.1').victims.tracebacks,
+    name='Tracebacks', url='tracebacks'))

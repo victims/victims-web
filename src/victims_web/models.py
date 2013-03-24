@@ -15,24 +15,24 @@ class RegExValidator(object):
         self.__is_list = is_list
 
     def _validate(self, item):
-         if bool(self.__rx.match(item)):
-             return True
-         raise ValidationError('%s must match ' + self.__rx_str)
+        if bool(self.__rx.match(item)):
+            return True
+        raise ValidationError('%s must match ' + self.__rx_str)
 
     def __call__(self, value):
-         if self.__is_list:
-             for item in value:
-                 self._validate(item)
-         else:
-             self._validate(value)
-         return True
+        if self.__is_list:
+            for item in value:
+                self._validate(item)
+        else:
+            self._validate(value)
+        return True
 
 
 class Hash(Document):
     __collection__ = 'hashes'
 
     structure = {
-#        'id': int,
+        #'id': int,
         'date': datetime.datetime,
         'name': basestring,
         'version': basestring,
@@ -46,12 +46,13 @@ class Hash(Document):
         'submittedon': datetime.datetime
     }
     use_dot_notation = True
-    required_fields = ['name', 'version', 'format',
+    required_fields = [
+        'name', 'version', 'format',
         'status', 'cves', 'submitter']
     default_values = {
         'status': u'SUBMITTED',
         'vendor': u'Unknown',
-#        'db_version': None,
+        #'db_version': None,
         'hashes': {},
         'submittedon': datetime.datetime.utcnow(),
     }
