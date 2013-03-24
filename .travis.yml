@@ -10,6 +10,6 @@ install:
   - pip install -e . --use-mirrors
 script:
   - pep8 --repeat src/
-  - nosetests test/*.py
+  - nosetests -v test/*.py
 notifications:
   email: false
