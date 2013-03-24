@@ -4,7 +4,8 @@ python:
 services:
   - mongodb
 before_script:
-  - pip install pep8 Flask Flask-Login Flask-Bcrypt Flask-SeaSurf Flask-Cache Flask-Admin pymongo mongokit Flask-MongoKit blinker PyYAML pygments --use-mirrors
+  - mongoimport -d victims -c hashes test/mongo_test.json
+#  - pip install pep8 Flask Flask-Login Flask-Bcrypt Flask-SeaSurf Flask-Cache Flask-Admin pymongo mongokit Flask-MongoKit blinker PyYAML pygments --use-mirrors
 install:
   - pip install -e . --use-mirrors
 script:

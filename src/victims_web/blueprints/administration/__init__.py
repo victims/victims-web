@@ -123,12 +123,13 @@ class TracebackView(ModelView):
     form = TracebackForm
 
 
+HOST = '127.0.0.1'
 # Bind and expose the views
 administration = Admin(name="Victims Admin", index_view=SafeAdminIndexView())
 administration.add_view(HashView(
-    Connection('127.0.0.1').victims.hashes, name='Hashes', url='hashes'))
+    Connection(HOST).victims.hashes, name='Hashes', url='hashes'))
 administration.add_view(AccountView(
-    Connection('127.0.0.1').victims.users, name='Accounts', url='accounts'))
+    Connection(HOST).victims.users, name='Accounts', url='accounts'))
 administration.add_view(TracebackView(
-    Connection('127.0.0.1').victims.tracebacks,
+    Connection(HOST).victims.tracebacks,
     name='Tracebacks', url='tracebacks'))

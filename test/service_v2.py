@@ -39,23 +39,23 @@ class TestServiceV1(FlaskTestCase):
         assert len(result) > 0
 
         expected = {
-            'date': str,
-            'name': str,
-            'version': str,
-            'format': str,
+            'date': basestring,
+            'name': basestring,
+            'version': basestring,
+            'format': basestring,
             'hashes': dict,
-            'vendor': str,
+            'vendor': basestring,
             'cves': list,
-            'status': str,
+            'status': basestring,
             'meta': dict,
-            'submitter': str,
-            'submittedon': str,
+            'submitter': basestring,
+            'submittedon': basestring,
         }
 
         for item in result:
             assert 'fields' in item.keys()
             for key, testtype in expected.items():
-                assert isinstance(testtype, item['fields'][key])
+                assert isinstance(item['fields'][key], testtype)
 
     def test_status(self):
         """

@@ -25,7 +25,8 @@ class TestServiceV1(FlaskTestCase):
 
         # Anything that is not an int should be a 404
         for kind in self.points:
-            for badtype in ['NotAnInt', 10.436, 0x80, u'bleh']:
+            for badtype in ['NotAnInt', 10.436, u'bleh']:
+                print badtype
                 resp = self.app.get('/service/v1/%s/%s/' % (kind, badtype))
                 assert resp.status_code == 404
 
@@ -39,21 +40,21 @@ class TestServiceV1(FlaskTestCase):
         assert len(result) > 0
 
         expected = {
-            'status': str,
+            'status': basestring,
             'db_version': int,
-            'vendor': str,
-            'name': str,
-            'format': str,
-            'version': str,
-            'submitter': str,
-            'hash': str,
-            'cves': str,
+            'vendor': basestring,
+            'name': basestring,
+            'format': basestring,
+            'version': basestring,
+            'submitter': basestring,
+            'hash': basestring,
+            'cves': basestring,
         }
 
         for item in result:
             assert 'fields' in item.keys()
             for key, testtype in expected.items():
-                assert isinstance(testtype, item['fields'][key])
+                assert isinstance(item['fields'][key], testtype)
 
     def test_status(self):
         """
