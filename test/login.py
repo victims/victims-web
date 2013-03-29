@@ -91,6 +91,6 @@ class TestLogin(FlaskTestCase):
         assert resp.location == 'http://localhost/'
 
         # Since we are already logged in it should pass us to /
-        resp = self.get('/login')
+        resp = self.app.get('/login')
         assert resp.status_code == 302
         assert resp.location == 'http://localhost/'
