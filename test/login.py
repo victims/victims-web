@@ -36,7 +36,7 @@ class TestLogin(FlaskTestCase):
         """
         Test a unknown username does not work.
         """
-        resp = self.login('idonotexist', 'r9uqwha!ksjdlBBa))kgj')
+        resp = self._login('idonotexist', 'r9uqwha!ksjdlBBa))kgj')
         assert resp.status_code == 200
         assert 'Invalid username/password' in resp.data
 
@@ -59,6 +59,7 @@ class TestLogin(FlaskTestCase):
         }
         resp = self.app.post(
             '/register', data=form_data, follow_redirects=False)
+        self.app.get('/logout', follow_redirects=True)
 
         resp = self._login(username, 'WRONGPASSWORD')
         assert resp.status_code == 200
@@ -83,6 +84,7 @@ class TestLogin(FlaskTestCase):
         }
         resp = self.app.post(
             '/register', data=form_data, follow_redirects=False)
+        self.app.get('/logout', follow_redirects=True)
 
         resp = self._login(username, password)
         assert resp.status_code == 302
