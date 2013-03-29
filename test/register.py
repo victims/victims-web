@@ -9,7 +9,7 @@ class TestRegister(FlaskTestCase):
     Tests user registration.
     """
 
-    def _create_user(username, password, password_confirm=None):
+    def _create_user(self, username, password, password_confirm=None):
         """
         Shortcut for creating users.
         """
@@ -50,13 +50,35 @@ class TestRegister(FlaskTestCase):
         Test to make sure if a bad or duplicate username is used
         we get do not create a new user.
         """
-
-        # Since we do it 2x let's use an inner function
-
         self._create_user('duplicateuser', 'arj/^fakhsDDASm491')
         resp = self._create_user('duplicateuser', 'arj/^fakhsDDASm491')
         assert resp.status_code == 200
         assert 'Username is not available.' in resp.data
+
+    def test_password_does_not_match_registration(self):
+        """
+        Verify passwords must match on registration.
+        """
+        resp = self._create_user(
+            'shouldnotwork', 'arj/^fakhsDDASm491', '4oTiuIsd@fgdjfa')
+        assert resp.status_code == 200
+        assert 'Passwords do not match.' in resp.data
+
+    def test_password_same_as_user_registration(self):
+        """
+        Verify passwords and username can not be the same.
+        """
+        resp = self._create_user('shouldNotwork', 'shouldNotwork')
+        assert resp.status_code == 200
+        assert 'Password can not be the same as the username' in resp.data
+
+    def test_password_too_simple_registration(self):
+        """
+        Verify password is not too simple.
+        """
+        resp = self._create_user('shouldNotwork', 'aaaaaaAaaaa/V')
+        assert resp.status_code == 200
+        assert 'char for more than 30% of the password' in resp.data
 
     def test_good_registration(self):
         """

@@ -62,7 +62,7 @@ def register_user():
             if len(request.form['password']) <= 8:
                 raise errors.ValidationError('Password to simple.')
             if request.form['password'] != request.form['verify_password']:
-                raise errors.ValidationError('Passwords to not match.')
+                raise errors.ValidationError('Passwords do not match.')
 
             if current_app.db.users.find_one(
                     {'username': request.form['username']}):
