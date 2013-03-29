@@ -47,10 +47,10 @@ class TestRegister(FlaskTestCase):
 
     def test_duplicate_username_registration(self):
         """
-        Test to make sure if a bad or duplicate username is used
-        we get do not create a new user.
+        Don't allow duplicate usernames.
         """
         self._create_user('duplicateuser', 'arj/^fakhsDDASm491')
+        self.app.get('/logout', follow_redirects=True)
         resp = self._create_user('duplicateuser', 'arj/^fakhsDDASm491')
         assert resp.status_code == 200
         assert 'Username is not available.' in resp.data
@@ -80,6 +80,36 @@ class TestRegister(FlaskTestCase):
         assert resp.status_code == 200
         assert 'char for more than 30% of the password' in resp.data
 
+        resp = self._create_user('shouldNotwork', '1234567')
+        assert resp.status_code == 200
+        assert 'Password to simple' in resp.data
+
+    def test_all_data_is_required_registration(self):
+        """
+        Make sure all data is required.
+        """
+        # Inner function to test multiple cases
+        def try_to_create_user(empty_item):
+            resp = self.app.get('/register')
+            csrf_token = re.search(
+                '_csrf_token" value="([^"]*)">', resp.data).group(1)
+
+            form_data = {
+                'username': 'willnotwork',
+                'password': 'rfguw^^^efDFamh3',
+                'verify_password': 'rfguw^^^efDFamh3',
+                '_csrf_token': csrf_token
+            }
+            form_data[empty_item] = ''
+            resp = self.app.post(
+                '/register', data=form_data, follow_redirects=False)
+            return resp
+
+        for item in ['username', 'password', 'verify_password']:
+            resp = try_to_create_user(item)
+            assert resp.status_code == 200
+            assert 'Missing information.' in resp.data
+
     def test_good_registration(self):
         """
         Makes sure a good registration works.
@@ -87,3 +117,4 @@ class TestRegister(FlaskTestCase):
         resp = self._create_user('goodreguser', 'this_/is_OUR_secret')
         assert resp.status_code == 302
         assert resp.location == 'http://localhost/'
+        self.app.get('/logout', follow_redirects=True)
