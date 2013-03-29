@@ -49,6 +49,9 @@ def register_user():
     # Request to make a new user
     if request.method == 'POST':
         try:
+            for key in request.form.keys():
+                if request.form[key] == '':
+                    raise KeyError('Empty values not allowed.')
             # Password checks to make sure they are at least somewhat sane
             for char in request.form['password']:
                 cnt = request.form['password'].count(char)
