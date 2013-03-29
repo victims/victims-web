@@ -117,9 +117,9 @@ class TestRegister(FlaskTestCase):
         resp = self._create_user('goodreguser', 'this_/is_OUR_secret')
         assert resp.status_code == 302
         assert resp.location == 'http://localhost/'
-        self.app.get('/logout', follow_redirects=True)
 
         # Since we are already logged in it should pass us to /
         resp = self.app.get('/register')
-        assert resp.status_code == 200
+        assert resp.status_code == 302
         assert resp.location == 'http://localhost/'
+        self.app.get('/logout', follow_redirects=True)
