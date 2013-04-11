@@ -1,11 +1,4 @@
-
-import hashlib
-import random
-import string
-
-from functools import wraps
-
-from flask import Flask, current_app, redirect, url_for
+from flask import current_app, redirect, url_for
 
 from flask.ext.login import current_user
 from flask.ext.bcrypt import check_password_hash, generate_password_hash
@@ -63,7 +56,6 @@ def endorsements_required(endorsements, always_allow=['admin']):
 
 
 def user_allowed(user, endorsements):
-    approved = False
     if user.has_endorsement('admin'):
         return True
     for endorsement in endorsements:

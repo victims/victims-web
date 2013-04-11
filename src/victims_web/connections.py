@@ -9,7 +9,6 @@ from flask.ext import login
 def store_exception(app, exception):
     exc_info = sys.exc_info()
     exc_str = ''.join(traceback.format_exception(*exc_info))
-    line_no = traceback.tb_lineno(exc_info[2])
     # Log the exception
     app.logger.warn(str(exc_str))
 

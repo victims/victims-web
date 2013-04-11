@@ -1,4 +1,3 @@
-import json
 import re
 
 from test import FlaskTestCase

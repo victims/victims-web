@@ -55,7 +55,7 @@ def register_user():
             # Password checks to make sure they are at least somewhat sane
             for char in request.form['password']:
                 cnt = request.form['password'].count(char)
-                if cnt/float(len(request.form['password'])) > 0.3:
+                if cnt / float(len(request.form['password'])) > 0.3:
                     raise errors.ValidationError((
                         'You can not use the same '
                         'char for more than 30% of the password'))
@@ -78,7 +78,7 @@ def register_user():
             return redirect(url_for('ui.index'))
         except errors.ValidationError, ve:
             flash(ve.message, category='error')
-        except (KeyError, IndexError), ke:
+        except (KeyError, IndexError):
             flash('Missing information.', category='error')
         except Exception, ex:
             print ex

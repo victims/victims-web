@@ -3,10 +3,7 @@ import os
 
 from flask import Flask
 from flask.ext.mongokit import MongoKit
-try:
-    from flaskext.seasurf import SeaSurf
-except ImportError:
-    from flask.ext.seasurf import SeaSurf
+from flask.ext.seasurf import SeaSurf
 from flask.ext import login
 
 from victims_web.blueprints.service_v1 import v1
@@ -18,7 +15,7 @@ from victims_web.blueprints.administration import administration
 from victims_web.cache import cache
 from victims_web.user import User
 from victims_web.models import MODELS
-from victims_web import connections
+
 # Set up the application
 app = Flask('victims_web')
 

@@ -42,7 +42,7 @@ def index():
         'pending_eggs': current_app.db.Hash.find(
             {'format': 'Egg', 'status': 'PENDING'}).count(),
     }
-    return render_template('index.html',  **kwargs)
+    return render_template('index.html', **kwargs)
 
 
 @ui.route('/hashes/', methods=['GET'])
@@ -82,7 +82,7 @@ def submit_archive():
         if 'archive' in request.files.keys():
             archive = request.files['archive']
             try:
-                suffix = archive.filename[archive.filename.rindex('.')+1:]
+                suffix = archive.filename[archive.filename.rindex('.') + 1:]
                 if suffix in current_app.config['ALLOWED_EXTENSIONS']:
                     filename = secure_filename(archive.filename)
                     archive.save(os.path.join(
