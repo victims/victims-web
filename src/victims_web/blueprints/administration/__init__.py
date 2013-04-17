@@ -30,10 +30,6 @@ class SafeAdminIndexView(ViewRequiresAuthorization, AdminIndexView):
     pass
 
 
-# TODO: Fix me :-)
-from flask.ext.mongokit import Connection
-
-
 class HashForm(wtf.Form):
     """
     Defines a Hash's form.
@@ -123,13 +119,33 @@ class TracebackView(ModelView):
     form = TracebackForm
 
 
-HOST = '127.0.0.1'
-# Bind and expose the views
-administration = Admin(name="Victims Admin", index_view=SafeAdminIndexView())
-administration.add_view(HashView(
-    Connection(HOST).victims.hashes, name='Hashes', url='hashes'))
-administration.add_view(AccountView(
-    Connection(HOST).victims.users, name='Accounts', url='accounts'))
-administration.add_view(TracebackView(
-    Connection(HOST).victims.tracebacks,
-    name='Tracebacks', url='tracebacks'))
+def administration_setup(app):
+    """
+    Hack to use the backend administration.
+    """
+    # TODO: Fix me :-)
+    from flask.ext.mongokit import Connection
+
+    db = getattr(
+        Connection(
+            host=app.config['MONGODB_HOST'], port=app.config['MONGODB_PORT']),
+        app.config['MONGODB_DATABASE'])
+
+    if app.config.get('MONGODB_USERNAME', None):
+        db.authenticate(
+            app.config['MONGODB_USERNAME'],
+            app.config['MONGODB_PASSWORD'])
+
+    # Bind and expose the views
+    administration = Admin(
+        name="Victims Admin", index_view=SafeAdminIndexView())
+    administration.init_app(app)
+
+    administration.add_view(HashView(
+        db.hashes, name='Hashes', url='hashes'))
+    administration.add_view(AccountView(
+        db.users, name='Accounts', url='accounts'))
+    administration.add_view(TracebackView(
+        db.tracebacks,
+        name='Tracebacks', url='tracebacks'))
+    return administration

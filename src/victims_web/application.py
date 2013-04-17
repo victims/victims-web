@@ -10,7 +10,7 @@ from victims_web.blueprints.service_v1 import v1
 from victims_web.blueprints.service_v2 import v2
 from victims_web.blueprints.ui import ui
 from victims_web.blueprints.auth import auth
-from victims_web.blueprints.administration import administration
+from victims_web.blueprints.administration import administration_setup
 
 from victims_web.cache import cache
 from victims_web.user import User
@@ -32,8 +32,8 @@ csrf = SeaSurf(app)
 app.config.from_pyfile('application.cfg')
 app.db = MongoKit(app)
 cache.init_app(app)
-administration.init_app(app)
 app.db.register(MODELS)
+administration_setup(app)
 
 # Login manager
 login_manager = login.LoginManager()
