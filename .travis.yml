@@ -5,11 +5,11 @@ services:
   - mongodb
 before_script:
   - mongoimport -d victims -c hashes test/mongo_test.json
-  - pip install pep8 --use-mirrors
+  - pip install coverage pep8 --use-mirrors
 install:
   - pip install -e . --use-mirrors
 script:
   - pep8 --repeat src/
-  - nosetests -v test/*.py
+  - nosetests --with-coverage --cover-package=victims_web --cover-min-percentage=0 -v test/*.py
 notifications:
   email: false
