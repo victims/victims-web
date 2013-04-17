@@ -22,9 +22,9 @@
         {% if current_user.is_authenticated() %}
         <a href="{{ url_for('ui.submit_archive') }}">Submit an archive</a>
         <a href="{{ url_for('auth.logout_user') }}">Logout</a>
-        {# if current_user.has_endorsement('moderator') or current_user.has_endorsement('admin') #}
-        <a href="{# url_for('admin.index') #}">Admin</a>
-        {# endif #}
+            {% if current_user.has_endorsement('moderator') or current_user.has_endorsement('admin') %}
+        <a href="{{ url_for('admin.index') }}">Admin</a>
+            {% endif %}
         {% else %}
         <a href="{{ url_for('auth.login_user') }}">Login</a>
         <a href="{{ url_for('auth.register_user') }}">Register</a>

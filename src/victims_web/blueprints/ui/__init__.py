@@ -31,16 +31,16 @@ def _is_hash(data):
 @ui.route('/', methods=['GET'])
 def index():
     kwargs = {
-        'hashes': current_app.db.Hash.find().count(),
-        'pending': current_app.db.Hash.find({'status': 'Pending'}).count(),
+        'hashes': current_app.db.Hash.find({'status': 'RELEASED'}).count(),
+        'pending': current_app.db.Hash.find({'status': 'SUBMITTED'}).count(),
         'jars': current_app.db.Hash.find(
-            {'format': 'Jar'}).count(),
+            {'format': 'Jar', 'status': 'RELEASED'}).count(),
         'pending_jars': current_app.db.Hash.find(
-            {'format': 'Jar', 'status': 'PENDING'}).count(),
+            {'format': 'Jar', 'status': 'SUBMITTED'}).count(),
         'eggs': current_app.db.Hash.find(
-            {'format': 'Egg'}).count(),
+            {'format': 'Egg', 'status': 'RELEASED'}).count(),
         'pending_eggs': current_app.db.Hash.find(
-            {'format': 'Egg', 'status': 'PENDING'}).count(),
+            {'format': 'Egg', 'status': 'SUBMITTED'}).count(),
     }
     return render_template('index.html', **kwargs)
 
