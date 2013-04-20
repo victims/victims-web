@@ -41,7 +41,7 @@ login_manager.setup_app(app)
 
 
 @app.errorhandler(500)
-def error_500():
+def error_500(e):
     return render_template('500.html'), 500
 
 

@@ -18,5 +18,6 @@ setup(
         'mongokit>=0.8.1',
         'Flask-MongoKit',
         'blinker>=1.2',
-        'PyYAML'],
+        'PyYAML',
+        'recaptcha-client'],
 )

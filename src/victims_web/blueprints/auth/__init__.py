@@ -3,6 +3,7 @@ from flask import (
     url_for, redirect)
 
 from flask.ext import login
+from recaptcha.client import captcha
 
 from victims_web.user import authenticate, create_user, User
 from victims_web.blueprints.auth.connections import *
@@ -48,7 +49,18 @@ def register_user():
 
     # Request to make a new user
     if request.method == 'POST':
+
         try:
+            # First things first, test the captcha
+            response = captcha.submit(
+                request.form['recaptcha_challenge_field'],
+                request.form['recaptcha_response_field'],
+                current_app.config['RECAPTCHA_PRIVATE_KEY'],
+                request.remote_addr,
+            )
+            if not response.is_valid:
+                raise errors.ValidationError('Captcha did not match.')
+
             for key in request.form.keys():
                 if request.form[key] == '':
                     raise KeyError('Empty values not allowed.')
@@ -85,4 +97,8 @@ def register_user():
             flash('An unknown error has occured.', category='error')
 
     # Default
-    return render_template('register.html')
+    recaptcha = {
+        'public_key': current_app.config['RECAPTCHA_PUBLIC_KEY'],
+        'theme': current_app.config['RECAPTCHA_THEME'],
+    }
+    return render_template('register.html', recaptcha=recaptcha)

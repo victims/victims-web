@@ -3,12 +3,24 @@
 {% block title %}register{% endblock %}
 
 {% block content %}
+<script type="text/javascript">
+ var RecaptchaOptions = {
+    theme : '{{ recaptcha.theme }}'
+ };
+</script>
 
 <form method="POST" action="{{ url_for('.register_user') }}">
 Username: <input name="username" /><br>
 Password: <input name="password" type="password" /><br>
 Verify Password: <input name="verify_password" type="password" /><br>
 <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+<script type="text/javascript" src="https://www.google.com/recaptcha/api/challenge?k={{ recaptcha.public_key }}"></script>
+<noscript>
+  <iframe src="https://www.google.com/recaptcha/api/noscript?k={{ recaptcha.public_key }}" height="300" width="500" frameborder="0"></iframe><br />
+  <textarea name="recaptcha_challenge_field" rows="3" cols="40"></textarea>
+  <input type='hidden' name='recaptcha_response_field' value='manual_challenge' />
+</noscript>
+
 <input type="submit" value="Register" />
 </form>
 {% endblock %}
