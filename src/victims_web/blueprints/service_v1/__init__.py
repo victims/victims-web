@@ -34,7 +34,7 @@ def update(revision):
         newitem['name'] = item['name']
         newitem['vendor'] = item['vendor']
         newitem['status'] = 'In Database'
-        newitem['format'] = item['format']
+        newitem['format'] = item['format'].upper()
         newitem['version'] = item['version']
         newitem['submitter'] = item['submitter']
         newitem['hash'] = item['hashes']['sha512']['combined']
