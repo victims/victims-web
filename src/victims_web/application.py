@@ -1,7 +1,7 @@
 import logging.config
 import os
 
-from flask import Flask
+from flask import Flask, render_template
 from flask.ext.mongokit import MongoKit
 from flask.ext.seasurf import SeaSurf
 from flask.ext import login
@@ -38,6 +38,11 @@ administration_setup(app)
 # Login manager
 login_manager = login.LoginManager()
 login_manager.setup_app(app)
+
+
+@app.errorhandler(500)
+def error_500():
+    return render_template('500.html'), 500
 
 
 @login_manager.user_loader
