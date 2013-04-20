@@ -51,15 +51,17 @@ def register_user():
     if request.method == 'POST':
 
         try:
-            # First things first, test the captcha
-            response = captcha.submit(
-                request.form['recaptcha_challenge_field'],
-                request.form['recaptcha_response_field'],
-                current_app.config['RECAPTCHA_PRIVATE_KEY'],
-                request.remote_addr,
-            )
-            if not response.is_valid:
-                raise errors.ValidationError('Captcha did not match.')
+            if (not current_app.config['DEBUG'] or
+                    not current_app.config['TESTING']):
+                # First things first, test the captcha
+                response = captcha.submit(
+                    request.form['recaptcha_challenge_field'],
+                    request.form['recaptcha_response_field'],
+                    current_app.config['RECAPTCHA_PRIVATE_KEY'],
+                    request.remote_addr,
+                )
+                if not response.is_valid:
+                    raise errors.ValidationError('Captcha did not match.')
 
             for key in request.form.keys():
                 if request.form[key] == '':
