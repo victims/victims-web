@@ -46,7 +46,7 @@ class TestServiceV1(FlaskTestCase):
             'vendor': basestring,
             'cves': list,
             'status': basestring,
-            'meta': dict,
+            'meta': list,
             'submitter': basestring,
             'submittedon': basestring,
         }
