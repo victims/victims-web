@@ -68,21 +68,6 @@ class AccountForm(wtf.Form):
     lastip = wtf.TextField('lastip')
 
 
-class TracebackForm(wtf.Form):
-    """
-    Defines a Traceback's form.
-    """
-    uid = wtf.TextField('uid')
-    ip = wtf.TextField('ip')
-    acknowledged = wtf.BooleanField('acknowledged')
-    timestamp = wtf.DateTimeField('timestamp')
-    type = wtf.TextField('type')
-    traceback = wtf.TextAreaField('traceback')
-    # FIXME: Doesn't shot properly
-    headers = wtf.FieldList(wtf.TextField('headers'))
-    username = wtf.TextField('username')
-
-
 class HashView(ModelView):
     """
     Admin view for Hahes using it's form.
@@ -107,16 +92,6 @@ class AccountView(ModelView):
         FilterEqual('username', 'username'), )
 
     form = AccountForm
-
-
-class TracebackView(ModelView):
-    """
-    Admin view for Tracebacks using it's form.
-    """
-    column_list = ('timestamp', 'type', 'ip', 'username')
-    column_sortable_list = ('timestamp', 'type', 'ip', 'username')
-
-    form = TracebackForm
 
 
 def administration_setup(app):
@@ -145,7 +120,4 @@ def administration_setup(app):
         db.hashes, name='Hashes', url='hashes'))
     administration.add_view(AccountView(
         db.users, name='Accounts', url='accounts'))
-    administration.add_view(TracebackView(
-        db.tracebacks,
-        name='Tracebacks', url='tracebacks'))
     return administration

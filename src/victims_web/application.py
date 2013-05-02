@@ -56,6 +56,10 @@ app.register_blueprint(v2, url_prefix='/service/v2')
 app.register_blueprint(ui)
 app.register_blueprint(auth)
 
+if app.config.get('SENTRY_DSN', None):
+    from raven.contrib.flask import Sentry
+    sentry = Sentry(app)
+
 
 if __name__ == '__main__':
     # If we are called locally run with debug on
