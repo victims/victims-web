@@ -38,6 +38,7 @@ def status():
         'supported': True,
         'version': '2',
         'recommended': True,
+        'endpoint': '/service/v2/'
     })
 
 

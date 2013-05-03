@@ -21,6 +21,7 @@ def status():
         'supported': datetime.datetime.now() <= EOL,
         'version': '1',
         'recommended': False,
+        'endpoint': '/service/v1/'
     })
 
 

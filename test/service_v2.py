@@ -3,9 +3,9 @@ import json
 from test import FlaskTestCase
 
 
-class TestServiceV1(FlaskTestCase):
+class TestServiceV2(FlaskTestCase):
     """
-    Tests for version 1 of the web service.
+    Tests for version 2 of the web service.
     """
 
     points = ['update', 'remove']
@@ -67,3 +67,4 @@ class TestServiceV1(FlaskTestCase):
         assert result['recommended'] is True
         assert result['eol'] is None
         assert result['supported'] is True
+        assert result['endpoint'] == '/service/v2/'

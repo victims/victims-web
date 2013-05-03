@@ -69,3 +69,4 @@ class TestServiceV1(FlaskTestCase):
         assert result['recommended'] is False
         assert result['eol'] == EOL.isoformat()
         assert result['supported'] == (datetime.datetime.now() <= EOL)
+        assert result['endpoint'] == '/service/v1/'
