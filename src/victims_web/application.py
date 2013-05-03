@@ -53,6 +53,7 @@ def load_user(userid):
 # Register blueprints
 app.register_blueprint(v1, url_prefix='/service/v1')
 app.register_blueprint(v2, url_prefix='/service/v2')
+app.register_blueprint(v2, url_prefix='/service')
 app.register_blueprint(ui)
 app.register_blueprint(auth)
 
