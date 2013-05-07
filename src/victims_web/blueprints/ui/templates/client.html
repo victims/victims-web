@@ -3,10 +3,11 @@
 {% block title %}Client{% endblock %}
 
 {% block content %}
-<h1>The Client</h1>
-<h2>Downloading and Installing</h2>
+<h1>Victims Clients</h1>
+<h2>Client</h2>
+<h3>Downloading and Installing</h3>
 <p>
-You can find the latest client downloads at our <a href="https://github.com/victims/victims-client" target="_blank">client development site</a>. Since the code is written in the <a href="http://www.python.org">Python Programming Language</a> it should be usable anywhere that Python is installed.
+You can find the latest client downloads at our <a href="https://github.com/victims/victims-client" target="_blank">client development site</a>. Since the code is written in <a href="http://www.python.org">python</a>, it should be usable anywhere that python is installed.
 </p>
 <br />
 <p>
@@ -18,31 +19,29 @@ To install the client you require the following Python libraries to be available
 
 </pre>
 
-If possible, it's best to install these libraries through your Operating Systems package manager. Next you must extract the files from the archive. Depending on what OS you use the operation will be different. Then you must run ./setup.py install as a root/Administrator user. The last thing you must do is copy the conf/example.cfg to the location you would like to keep the config file and edit it to your liking.
+If possible, install these libraries using your operating system's package manager. Next, extract the files from the client archive and run the <b>setup.py</b> script as the root/Administrator use. Finally, copy <b>conf/example.cfg</b> to the preferred location and edit it to apply your settings.
 </p>
 <br />
 
-<h2>Using</h2>
-Upon first use you should update the local database. To do this you can run victims-update-db and pass it the location of your configuration file. Here is an example on my <a href="http://www.fedoraproject.org" target="_blank">Fedora</a> laptop:
+<h3>Using</h3>
+Upon first use you should update the local database. To do this you can run <b>victims-update-db</b> and pass it the location of your configuration file. For example:
 <pre>
-
-[steve@oa .~]$ victims-update-db -c ~/example.cfg 
-[steve@oa .~]$
-
+$ victims-update-db -c ~/example.cfg 
 </pre>
 <br />
-In normal Unix fashion, no output means everything went well! The command you have just done should be executed from time to time to make sure you have all the latest hashes to check against. Now it's time to scan with victims-scan!
+If there is no output, the command completed successfully. This command should be repeated periodically to keep your local database up to date with the master database. Now you're ready to perform a scan using <b>victims-scan</b>:
 <pre>
 
-[steve@oa ~]$ victims-scan -l -c ~/example.cfg /tmp/
+$ victims-scan -l -c ~/example.cfg /tmp/
 apache-tomcat-5.5.12/server/lib/catalina.jar (inside /tmp/apache-tomcat-5.5.12.zip):
     CVE-2009-2693,CVE-2009-2901,CVE-2009-2902
 /tmp/apache-tomcat-5.5.12/server/lib/catalina.jar:
     CVE-2009-2693,CVE-2009-2901,CVE-2009-2902
 Scanned 92 packages
-[steve@oa ~]$ 
 
 </pre>
 <br />
-For more information on the available switches for each command, simply run the command with no options (or use --help).
+For more information on the available switches for each command, run the command with no options (or use --help).
+<h2>Maven Plugin</h2>
+A maven plugin is also available to identify known vulnerable dependencies at build time. See the <a href="https://github.com/victims/victims-enforcer">maven plugin site</a> for more details, including a sample project that uses the plugin.
 {% endblock %}

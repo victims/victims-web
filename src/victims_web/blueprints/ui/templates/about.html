@@ -4,19 +4,42 @@
 
 {% block content %}
 <h1>Why Does This Exist?</h1>
-
-<p>As many things do, it started with Java. Many developers are against copying and pasting code from one file to another, and rightfully so, but some of the same developers were doing nearly the same thing on the filesystem level. It was not pretty nor elegant but it was manageable if you had enough folks making sure the developers were not stuffing out of date or bad jars in applications by accident. Then came <a href="http://maven.apache.org/" target="_blank">Maven</a> which developers slowly but surely started using. From the point of view of the builder it was easy. You no longer had to go hunt down 10's (or 100's :-/) of JAR's. The developers loved it because it meant that the internet brought their 'packages' to them. This convenience ended up bringing a major problem: what versions of libraries are you distributing? Many developers no longer really knew. The most common answer became "The latest in maven".</p>
-<br />
-<p>I decided to attempt to write a simple scanner which could look at the JAR metadata and get version information so it could be matched up against vulnerability databases. Sadly, I found out the hard way many JAR's don't include much information. Here is an example of one JAR I was looking at:
+<h2>The problem</h2>
+<p>
+Maven is currently the dominant build tool for enterprise Java applications. It has been rapidly adopted by developers, as it offers a powerful solution to the problem of dependency management, coupled with a huge public repository of open source components called maven central. From a developer's perspective, maven makes things very easy: just add a reference to a particular component in pom.xml. For example, to include Spring 2.5.6 in your project, just add:
+</p>
 <pre>
-
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+      &lt;artifactId&gt;spring&lt;/artifactId&gt;
+      &lt;version&gt;2.5.6&lt;/version&gt;
+    &lt;/dependency&gt;
+</pre>
+<p>
+From a security perspective however, there is a big problem. What happens if Spring 2.5.6 has a major security flaw (which it does)? The project needs to be rebuilt with an updated reference to the patched version of Spring - in this case, Spring 2.5.6.SEC03, since there have been 3 major security flaws found in Spring 2.5.6. Sonatype, the company behind maven, has <a href="http://www.sonatype.com/content/download/1025/10060/file/sonatype_executive_security_brief_final.pdf">publicly acknowleged</a> that managing such dependency updates is a major problem. One of the key recommendations of Sonatype's study is to enforce scans of dependencies against a known vulnerability database. Victims is an open source known vulnerability database for Java components.
+</p>
+<p>
+Sonatype's study highlights that this problem is both endemic and fractal. For example, 1447 projects rely on spring, all of which need to be updated with a reference to a patched version when one is made available. At the same time, there are no good mechanisms for people to know when a component needs to be updated. This problem is particularly acute because of the design of Java packaging and dependency management systems.
+</p>
+<p>
+All Linux distributions have a package management system that ensures a single version of a component is shared by all applications which depend on it. You patch that one component, and you're done. The maven approach is analogous to having a Linux distribution where every package is statically compiled against all of its dependencies. This makes things easy for a developer of a given package - they can choose to base on particular dependency versions. It makes things very difficult for system administrators trying to handle patch management. Victims aims to address this problem by making it possible to scan for known vulnerable dependencies at build time, and to analyze compiled Java applications to determine whether they include known vulnerable dependencies.
+</p>
+<h2>The solution</h2>
+<p>
+Java components are provided as JAR files. JARs are zip files with a standard layout, consisting of individual compiled classes and metadata in META-INF/MANIFEST.MF. An example MANIFEST.MF file follows:
+<pre>
 Manifest-Version: 1.0
 Archiver-Version: Plexus Archiver
 Created-By: Apache Maven
 Built-By: someguy
 Build-Jdk: 1.6.0_06
-
 </pre>
-I spent a bit of time talking with other developers about how one could have a JAR with similar metadata yet somehow find out it's version and security status. One idea was syncing maven repositories and looking for the same sha1sum which is included with many (not all) JAR's. It was <a href="http://repl.ca" target="_blank">James Bowes</a> who said something about matching against known hashes and I added in the community driven data part and thus victims was born.
+A simple approach would be to fingerprint known vulnerable JARs based purely on their metadata. This approach has limited use, since the metadata elements are not mandatory. Many JARs omit them entirely, and others fail to increment the version when a security patch is applied. Victims can identify known vulnerable JARs based on metadata, but this is secondary to the main hashing mechanism.
+</p>
+<p>
+Version 1 of victims used SHA checksums of JAR files to identify known vulnerable versions. This also turned out to have limited use, as any recompile of a JAR from the same source code would result in a different checksum. Version 2 of victims now uses a more advanced hashing mechanism, which is able to identify rebuilds based on a single canonical hash.
+</p>
+<p>
+The victims database is primarily maintained by the Red Hat Security Response Team, who populate it for vulnerabilities that affect Java components shipped in Red Hat products. Community contributions to the database are welcome and encouraged.
 </p>
 {% endblock %}
