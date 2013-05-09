@@ -53,7 +53,7 @@ def check_for_auth(view):
 
 @v2.route('/status.json')
 @check_for_auth
-@cache.cached()
+@cache.memoize()
 def status():
     """
     Return the status of the service.
@@ -69,7 +69,7 @@ def status():
 
 @v2.route('/update/<since>/')
 @check_for_auth
-@cache.cached()
+@cache.memoize()
 def update(since):
     """
     Returns all items to add past a specific date in utc.
@@ -87,7 +87,7 @@ def update(since):
 
 @v2.route('/remove/<since>/')
 @check_for_auth
-@cache.cached()
+@cache.memoize()
 def remove(since):
     """
     Returns all items to remove past a specific date in utc.
