@@ -1,6 +1,6 @@
 import datetime
 
-from flask.ext.admin import Admin, AdminIndexView
+from flask.ext.admin.base import Admin, AdminIndexView, MenuLink
 from flask.ext import wtf
 from flask.ext.admin.contrib.pymongo import ModelView
 from flask_admin.contrib.pymongo.filters import FilterEqual
@@ -116,6 +116,12 @@ def administration_setup(app):
         name="Victims Admin", index_view=SafeAdminIndexView())
     administration.init_app(app)
 
+    # Add links
+    administration.add_link(MenuLink(name='Front End', endpoint='ui.index'))
+    administration.add_link(MenuLink(
+        name='Logout', endpoint='auth.logout_user'))
+
+    # Add views
     administration.add_view(HashView(
         db.hashes, name='Hashes', url='hashes'))
     administration.add_view(AccountView(
