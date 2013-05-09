@@ -1,8 +1,10 @@
 import datetime
 
-from flask import Blueprint, current_app, json
+from functools import wraps
+from flask import Blueprint, current_app, json, request
 
 from victims_web.cache import cache
+from victims_web.user import authenticate
 
 v2 = Blueprint('service_v2', __name__)
 
@@ -27,7 +29,30 @@ def serialize_results(items):
     return json.dumps(result)
 
 
+def check_for_auth(view):
+    """
+    Checks for basic auth in calls and returns a 403 if it's not a
+    valid account. Does not stop anonymous users or throttle at this
+    point.
+    """
+
+    @wraps(view)
+    def decorated(*args, **kwargs):
+        if request.authorization:
+            valid = authenticate(
+                current_app,
+                request.authorization.username,
+                request.authorization.password)
+            if not valid:
+                return 'Forbidden', 403
+
+        return view(*args, **kwargs)
+
+    return decorated
+
+
 @v2.route('/status.json')
+@check_for_auth
 @cache.cached()
 def status():
     """
@@ -43,6 +68,7 @@ def status():
 
 
 @v2.route('/update/<since>/')
+@check_for_auth
 @cache.cached()
 def update(since):
     """
@@ -60,6 +86,7 @@ def update(since):
 
 
 @v2.route('/remove/<since>/')
+@check_for_auth
 @cache.cached()
 def remove(since):
     """
