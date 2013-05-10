@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='victims_web',
-    version='1.9.0',
+    version='1.9.9',
     description='The victi.ms language package to CVE service.',
     author='Steve Milner',
     url='http://www.victi.ms',
@@ -14,6 +14,7 @@ setup(
         'Flask-SeaSurf',
         'Flask-Cache',
         'Flask-Admin',
+        'Flask-Restful',
         'pymongo>=2.3',
         'mongokit>=0.8.1',
         'Flask-MongoKit',
