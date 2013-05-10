@@ -12,6 +12,7 @@ v2 = Blueprint('service_v2', __name__)
 # Module globals
 EOL = None
 
+
 def serialize_results(items):
     """
     Serializes results based on query results.
@@ -27,6 +28,7 @@ def serialize_results(items):
         item['submittedon'] = item['submittedon'].isoformat()
         result.append({'fields': item})
     return json.dumps(result)
+
 
 def filter_item(item, filter):
     """
@@ -56,7 +58,7 @@ def filter_item(item, filter):
                 algorithms = []
                 hashKeys = {}
                 if (isinstance(filter[key], dict)
-                and len(filter[key].keys()) > 0):
+                        and len(filter[key].keys()) > 0):
                     for alg in filter[key].keys():
                         # hash type required (files, combined)
                         if alg in item[key].keys():
@@ -68,13 +70,14 @@ def filter_item(item, filter):
 
                 # populate hashes for enabled algorithms
                 for alg in algorithms:
-                    result[key] = {alg:{}}
+                    result[key] = {alg: {}}
                     for hkey in item[key][alg].keys():
                         if len(hashKeys[alg]) == 0 or hkey in hashKeys[alg]:
                             result[key][alg][hkey] = item[key][alg][hkey]
             else:
                 result[key] = item[key]
     return result
+
 
 def filter_results(items, filter):
     """
@@ -89,6 +92,7 @@ def filter_results(items, filter):
     for item in items:
         result.append({'fields': filter_item(item, filter)})
     return json.dumps(result)
+
 
 def check_for_auth(view):
     """
@@ -127,8 +131,13 @@ def status():
         'endpoint': '/service/v2/'
     })
 
+
 def isPost():
+    """
+    Tests if the current request is of type 'POST'
+    """
     return request.method == 'POST'
+
 
 @v2.route('/update/<since>/', methods=['GET', 'POST'])
 @check_for_auth
