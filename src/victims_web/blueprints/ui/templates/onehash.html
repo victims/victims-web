@@ -21,14 +21,12 @@
       <th><label>Format</label></th>
       <td>{{ hash.format }}</td>
     </tr>
+    {% for alg in hash.hashes.keys() %}
     <tr>
-      <th><label>SHA1 Hash</label></th>
-      <td>{{ hash.hashes.sha1.combined }}</td>
+      <th><label>{{ alg.upper() }}</label></th>
+      <td>{{ hash.hashes[alg].combined }}</td>
     </tr>
-    <tr>
-      <th><label>SHA512 Hash</label></th>
-      <td>{{ hash.hashes.sha512.combined|wordwrap }}</td>
-    </tr>
+    {% endfor %}
     <tr>
       <th><label>Submitter</label></th>
       <td>{{ hash.submitter }}</td>
