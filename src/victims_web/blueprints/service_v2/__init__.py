@@ -5,12 +5,12 @@ from flask import Blueprint, current_app, json, request
 
 from victims_web.cache import cache
 from victims_web.user import authenticate
+from victims_web.models import Hash
 
 v2 = Blueprint('service_v2', __name__)
 
 # Module globals
 EOL = None
-
 
 def serialize_results(items):
     """
@@ -28,6 +28,67 @@ def serialize_results(items):
         result.append({'fields': item})
     return json.dumps(result)
 
+def filter_item(item, filter):
+    """
+    Filter out fields not required. The filter is expected to be a python
+    object created by json.loads().
+
+    An example filter would be:
+    {'hash':'', 'cves':[], 'hashes':{'sha512':{'combined':''}}}
+
+    This will filter the given item to have only the hash, list of cves, and
+    combined sha512. Note that all values are currently ignored, filtering
+    is only done on keys. Currently only the 'hashes' field supports
+    deep-matching.
+
+    :Parameters:
+        - `item` : The item to filter
+        - `filter` : The filter object.
+    """
+    result = {}
+
+    # Test for all keys available in the model
+    for key in Hash.structure.keys():
+        if key in filter.keys():
+            # match deep keys for 'hashes'
+            if key == 'hashes':
+                # identify required algorithms
+                algorithms = []
+                hashKeys = {}
+                if (isinstance(filter[key], dict)
+                and len(filter[key].keys()) > 0):
+                    for alg in filter[key].keys():
+                        # hash type required (files, combined)
+                        if alg in item[key].keys():
+                            algorithms.append(alg)
+                            hashKeys[alg] = filter[key][alg].keys()
+                else:
+                    # default is all available
+                    algorithms = item[key].keys()
+
+                # populate hashes for enabled algorithms
+                for alg in algorithms:
+                    result[key] = {alg:{}}
+                    for hkey in item[key][alg].keys():
+                        if len(hashKeys[alg]) == 0 or hkey in hashKeys[alg]:
+                            result[key][alg][hkey] = item[key][alg][hkey]
+            else:
+                result[key] = item[key]
+    return result
+
+def filter_results(items, filter):
+    """
+    Filters and serializes results based on query results.
+
+    :Parameters:
+       - `items`: The items to serialize.
+       - `filter` : The filter object. (Same as the filter in
+       filter_item method.)
+    """
+    result = []
+    for item in items:
+        result.append({'fields': filter_item(item, filter)})
+    return json.dumps(result)
 
 def check_for_auth(view):
     """
@@ -66,10 +127,12 @@ def status():
         'endpoint': '/service/v2/'
     })
 
+def isPost():
+    return request.method == 'POST'
 
-@v2.route('/update/<since>/')
+@v2.route('/update/<since>/', methods=['GET', 'POST'])
 @check_for_auth
-@cache.memoize()
+@cache.memoize(unless=isPost)
 def update(since):
     """
     Returns all items to add past a specific date in utc.
@@ -78,9 +141,13 @@ def update(since):
        - `since`: a specific date in utc
     """
     try:
-        return serialize_results(current_app.db.Hash.find(
+        items = current_app.db.Hash.find(
             {'date': {'$gt': datetime.datetime.strptime(
-                since, "%Y-%m-%dT%H:%M:%S")}}))
+                since, "%Y-%m-%dT%H:%M:%S")}})
+        if isPost():
+            return filter_results(items, json.loads(request.data))
+        else:
+            return serialize_results(items)
     except Exception:
         return json.dumps([{'error': 'Could not understand request.'}]), 400
 

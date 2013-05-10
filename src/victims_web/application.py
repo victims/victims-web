@@ -7,7 +7,7 @@ from flask.ext.seasurf import SeaSurf
 from flask.ext import login
 
 from victims_web.blueprints.service_v1 import v1
-from victims_web.blueprints.service_v2 import v2
+from victims_web.blueprints.service_v2 import v2, update
 from victims_web.blueprints.ui import ui
 from victims_web.blueprints.auth import auth
 from victims_web.blueprints.administration import administration_setup
@@ -34,6 +34,9 @@ app.db = MongoKit(app)
 cache.init_app(app)
 app.db.register(MODELS)
 administration_setup(app)
+
+# CSRF exemptions
+csrf.exempt(update)
 
 # Login manager
 login_manager = login.LoginManager()
