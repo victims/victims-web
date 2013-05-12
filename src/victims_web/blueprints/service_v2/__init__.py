@@ -95,7 +95,11 @@ def filter_item(item, filter):
                         if len(hashKeys[alg]) == 0 or hkey in hashKeys[alg]:
                             result[key][alg][hkey] = item[key][alg][hkey]
             else:
-                result[key] = item[key]
+                value = item[key]
+                # serialize datetime.datetime objects
+                if isinstance(obj, datetime.datetime):
+                    value = value.isoformat()
+                result[key] = value
     return result
 
 
