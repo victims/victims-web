@@ -49,13 +49,19 @@ class TestServiceV2(FlaskTestCase):
                 resp = self.app.get('/service/v2/%s/%s/' % (kind, badtype))
                 assert resp.status_code == 400
 
-    def test_data_structure(self):
+    def verify_data_structure(self, result, expected):
+        assert len(result) > 0
+        for item in result:
+            assert 'fields' in item.keys()
+            for key, testtype in expected.items():
+                assert isinstance(item['fields'][key], testtype)
+
+    def test_data_structure_get(self):
         """
-        Ensures the response structure is correct.
+        Ensures the response structure is correct for a GET request.
         """
         resp = self.app.get('/service/v2/update/1970-01-01T00:00:00/')
         result = json.loads(resp.data)
-        assert len(result) > 0
 
         expected = {
             'date': basestring,
@@ -70,11 +76,39 @@ class TestServiceV2(FlaskTestCase):
             'submitter': basestring,
             'submittedon': basestring,
         }
+        self.verify_data_structure(result, expected)
 
+    def test_data_structure_post(self):
+        """
+        Ensures the response structure is correct for a POST request.
+        """
+        testhash = dict(combined="")
+        testhashes = dict(sha512=testhash)
+        testdata = dict(name="", hashes=testhashes)
+        testdata = json.dumps(testdata)
+        resp = self.app.post('/service/v2/update/1970-01-01T00:00:00/',
+                             data=testdata, follow_redirects=True)
+        result = json.loads(resp.data)
+        print(result)
+
+        expected = {
+            'name': basestring,
+            'hashes': dict
+        }
+        self.verify_data_structure(result, expected)
+
+        # additional verifications
         for item in result:
-            assert 'fields' in item.keys()
-            for key, testtype in expected.items():
-                assert isinstance(item['fields'][key], testtype)
+            hashes = item['fields']['hashes']
+            assert isinstance(hashes, dict)
+            assert len(hashes) == len(testhashes)
+            for alg in hashes.keys():
+                assert alg in testhashes.keys()
+                hash = hashes[alg]
+                assert isinstance(hash, dict)
+                assert len(hash) == len(testhash)
+                for htype in hash.keys():
+                    assert htype in testhash.keys()
 
     def test_status(self):
         """
