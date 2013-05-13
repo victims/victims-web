@@ -21,7 +21,8 @@ application versions.
 import datetime
 
 from functools import wraps
-from flask import Blueprint, current_app, json, request, Response
+from flask import Blueprint, Response
+from flask import current_app, json, request, stream_with_context
 
 from victims_web.cache import cache
 from victims_web.user import authenticate
@@ -142,7 +143,7 @@ class StreamedSerialResponseValue():
 
 
 @cache.memoize()
-def serialize_results(items, filter=None):
+def serialize_results(since, filter=None):
     """
     Serializes results based on query results. If a filter is provided,
     it is applied.
@@ -152,6 +153,9 @@ def serialize_results(items, filter=None):
        - `filter` : The filter object. (Same as the filter in
        filter_item method.)
     """
+    items = current_app.db.Hash.find(
+            {'date': {'$gt': datetime.datetime.strptime(
+                since, "%Y-%m-%dT%H:%M:%S")}})
     result = []
     if filter is None:
         result = clean_results(items)
@@ -216,11 +220,8 @@ def update(since):
        - `since`: a specific date in utc
     """
     try:
-        items = current_app.db.Hash.find(
-            {'date': {'$gt': datetime.datetime.strptime(
-                since, "%Y-%m-%dT%H:%M:%S")}})
         filter = json.loads(request.data) if isPost() else None
-        return Response(serialize_results(items, filter),
+        return Response(stream_with_context(serialize_results(since, filter)),
                         mimetype='application/json')
     except Exception:
         return json.dumps([{'error': 'Could not understand request.'}]), 400
