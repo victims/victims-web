@@ -24,6 +24,7 @@ function vitualize {
     else
         source ${ENV_DIR}/bin/activate
     fi
+    export PYTHONPATH=$PYTHONPATH:$(pwd)/src
 
 }
 

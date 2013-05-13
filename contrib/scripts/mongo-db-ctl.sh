@@ -11,7 +11,7 @@ if [ $# -ne 1 ]; then
 fi
 ARG=$1
 
-BASE=$(dirname $(dirname $0))
+BASE=$(pwd)
 TEST_DBPATH=$BASE/testdb
 LOGFILE=$TEST_DBPATH/victims.mongo.log
 LOCKFILE="${TEST_DBPATH}/mongod.lock"
