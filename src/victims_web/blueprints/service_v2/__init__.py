@@ -119,6 +119,29 @@ def clean_results(items):
     return result
 
 
+class StreamedSerialResponseValue():
+    """
+    A think wrapper class around the cleaned/filtered results to enable
+    streaming and caching simultaneously.
+    """
+    def __init__(self, result):
+        self.result = result
+
+    def __getstate__(self):
+        """The state returned is just the json string of the object"""
+        return json.dumps(self.result)
+
+    def __setstate__(self, state):
+        """When unpickling, convert the json string into an py-object"""
+        self.result = json.loads(state)
+
+    def __iter__(self):
+        """The iterator implementing result to json string generator"""
+        for chunk in json.JSONEncoder().iterencode(self.result):
+            yield chunk
+
+
+@cache.memoize()
 def serialize_results(items, filter=None):
     """
     Serializes results based on query results. If a filter is provided,
@@ -135,8 +158,7 @@ def serialize_results(items, filter=None):
     else:
         result = filter_results(items, filter)
 
-    for chunk in json.JSONEncoder().iterencode(result):
-        yield chunk
+    return StreamedSerialResponseValue(result)
 
 
 def check_for_auth(view):
@@ -186,7 +208,6 @@ def isPost():
 
 @v2.route('/update/<since>/', methods=['GET', 'POST'])
 @check_for_auth
-# @cache.memoize(unless=isPost)
 def update(since):
     """
     Returns all items to add past a specific date in utc.
