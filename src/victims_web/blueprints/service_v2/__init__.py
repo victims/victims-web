@@ -183,6 +183,7 @@ def isPost():
     """
     return request.method == 'POST'
 
+
 @v2.route('/update/<since>/', methods=['GET', 'POST'])
 @check_for_auth
 # @cache.memoize(unless=isPost)
@@ -195,8 +196,8 @@ def update(since):
     """
     try:
         items = current_app.db.Hash.find(
-        {'date': {'$gt': datetime.datetime.strptime(
-            since, "%Y-%m-%dT%H:%M:%S")}})
+            {'date': {'$gt': datetime.datetime.strptime(
+                since, "%Y-%m-%dT%H:%M:%S")}})
         filter = json.loads(request.data) if isPost() else None
         return Response(serialize_results(items, filter),
                         mimetype='application/json')
