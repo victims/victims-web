@@ -200,8 +200,7 @@ def update(since):
         filter = json.loads(request.data) if isPost() else None
         return Response(serialize_results(items, filter),
                         mimetype='application/json')
-    except Exception as e:
-        print(e)
+    except Exception:
         return json.dumps([{'error': 'Could not understand request.'}]), 400
 
 
