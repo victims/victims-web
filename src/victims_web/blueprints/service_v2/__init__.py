@@ -154,8 +154,8 @@ def serialize_results(since, filter=None):
        filter_item method.)
     """
     items = current_app.db.Hash.find(
-            {'date': {'$gt': datetime.datetime.strptime(
-                since, "%Y-%m-%dT%H:%M:%S")}})
+        {'date': {'$gt': datetime.datetime.strptime(
+            since, "%Y-%m-%dT%H:%M:%S")}})
     result = []
     if filter is None:
         result = clean_results(items)
