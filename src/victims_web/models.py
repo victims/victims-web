@@ -61,7 +61,7 @@ class Hash(Document):
         'vendor': basestring,
         'cves': list,
         'status': basestring,
-        'meta': dict,
+        'meta': list,
         'submitter': basestring,
         'submittedon': datetime.datetime
     }
@@ -71,10 +71,10 @@ class Hash(Document):
         'status', 'cves', 'submitter']
     default_values = {
         'status': u'SUBMITTED',
-        'vendor': u'Unknown',
-        #'db_version': None,
+        'vendor': u'UNKNOWN',
         'hashes': {},
         'submittedon': datetime.datetime.utcnow(),
+        'meta': [],
     }
     validators = {
         'name': RegExValidator('^[a-zA-Z0-9_\-\.]*$'),
