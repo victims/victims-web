@@ -114,28 +114,5 @@ class Account(Document):
     }
 
 
-class Traceback(Document):
-    __collection__ = 'tracebacks'
-
-    structure = {
-        'uid': basestring,
-        'ip': basestring,
-        'timestamp': datetime.datetime,
-        'type': basestring,
-        'traceback': basestring,
-        'headers': dict,
-        'username': basestring,
-        'acknowledged': bool,
-    }
-
-    default_values = {
-        'timestamp': datetime.datetime.utcnow(),
-        'acknowledged': False,
-        'uid': hashlib.sha1(str(datetime.datetime.utcnow())).hexdigest(),
-    }
-
-    required_fields = ['traceback', 'type', 'uid']
-
-
 # Place all models that should get registered in MODELS
-MODELS = [Hash, Account, Traceback]
+MODELS = [Hash, Account]
