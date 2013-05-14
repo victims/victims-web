@@ -19,7 +19,6 @@ Data models.
 """
 
 import datetime
-import hashlib
 import re
 
 from mongokit import ValidationError
@@ -72,6 +71,7 @@ class Hash(Document):
     default_values = {
         'status': u'SUBMITTED',
         'vendor': u'UNKNOWN',
+        'version': u"",
         'hashes': {},
         'submittedon': datetime.datetime.utcnow(),
         'meta': [],
