@@ -116,6 +116,7 @@ def clean_results(items):
         item.pop('_id')
         item['date'] = item['date'].isoformat()
         item['submittedon'] = item['submittedon'].isoformat()
+        item['cves'] = item['cves'].keys()
         result.append({'fields': item})
     return result
 

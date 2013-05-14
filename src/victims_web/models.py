@@ -28,7 +28,7 @@ from flask.ext.mongokit import Document
 
 class RegExValidator(object):
 
-    def __init__(self, rx, is_list=False):
+    def __init__(self, rx, is_list=False, is_dict=False):
         self.__rx_str = rx
         self.__rx = re.compile(rx)
         self.__is_list = is_list
@@ -42,6 +42,12 @@ class RegExValidator(object):
         if self.__is_list:
             for item in value:
                 self._validate(item)
+        elif self.__is_dict:
+            for k, v in value.items():
+                if self.__is_dict.lower() == 'key':
+                    self._validate(k)
+                else:
+                    self._validate(v)
         else:
             self._validate(value)
         return True
@@ -51,7 +57,6 @@ class Hash(Document):
     __collection__ = 'hashes'
 
     structure = {
-        #'id': int,
         'date': datetime.datetime,
         'name': basestring,
         'version': basestring,
@@ -81,7 +86,7 @@ class Hash(Document):
         'version': RegExValidator('^[a-zA-Z0-9_\-\.]*$'),
         'format': RegExValidator('^[a-zA-Z0-9\-]*$'),
         'vendor': RegExValidator('^[a-zA-Z0-9_ \-]*$'),
-        'cves': RegExValidator('^CVE-\d{4}-\d{4}$', True),
+        'cves': RegExValidator('^CVE-\d{4}-\d{4}$', is_dict='key'),
         'submitter': RegExValidator('^[a-zA-Z0-9]*$'),
     }
 

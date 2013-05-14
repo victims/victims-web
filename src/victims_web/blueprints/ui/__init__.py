@@ -107,7 +107,10 @@ def submit_archive():
                     filename = secure_filename(archive.filename)
                     archive.save(os.path.join(
                         current_app.config['UPLOAD_FOLDER'], filename))
-                    cves = request.form['cves'].split(',')
+                    cves = {}
+                    now = datetime.datetime.utcnow()
+                    for cve in request.form['cves'].split(','):
+                        cves[cve] = now
                     new_hash = current_app.db.Hash()
                     new_hash.name = filename
                     new_hash.date = datetime.datetime.utcnow()
