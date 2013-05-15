@@ -70,7 +70,7 @@ class TestServiceV2(FlaskTestCase):
             'format': basestring,
             'hashes': dict,
             'vendor': basestring,
-            'cves': dict,
+            'cves': list,
             'status': basestring,
             'meta': list,
             'submitter': basestring,

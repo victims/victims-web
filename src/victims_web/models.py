@@ -32,6 +32,7 @@ class RegExValidator(object):
         self.__rx_str = rx
         self.__rx = re.compile(rx)
         self.__is_list = is_list
+        self.__is_dict = is_dict
 
     def _validate(self, item):
         if bool(self.__rx.match(item)):

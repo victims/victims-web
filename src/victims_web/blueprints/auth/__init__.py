@@ -104,7 +104,6 @@ def register_user():
             if current_app.db.users.find_one(
                     {'username': request.form['username']}):
                 raise errors.ValidationError('Username is not available.')
-
             user = create_user(
                 current_app, request.form['username'],
                 request.form['password'])
@@ -114,8 +113,7 @@ def register_user():
             flash(ve.message, category='error')
         except (KeyError, IndexError):
             flash('Missing information.', category='error')
-        except Exception, ex:
-            print ex
+        except Exception:
             flash('An unknown error has occured.', category='error')
 
     # Default

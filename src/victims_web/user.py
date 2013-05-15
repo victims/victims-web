@@ -42,6 +42,7 @@ def create_user(app, username, password, endorsements=[]):
     new_user.password = passhash
     new_user.endorsements = endorsements
     new_user.active = True
+
     new_user.save()
 
     return User(username)
