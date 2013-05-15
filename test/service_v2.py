@@ -70,7 +70,7 @@ class TestServiceV2(FlaskTestCase):
             'format': basestring,
             'hashes': dict,
             'vendor': basestring,
-            'cves': list,
+            'cves': dict,
             'status': basestring,
             'meta': list,
             'submitter': basestring,
@@ -89,7 +89,6 @@ class TestServiceV2(FlaskTestCase):
         resp = self.app.post('/service/v2/update/1970-01-01T00:00:00/',
                              data=testdata, follow_redirects=True)
         result = json.loads(resp.data)
-        print(result)
 
         expected = {
             'name': basestring,
