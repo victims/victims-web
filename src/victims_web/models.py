@@ -64,7 +64,7 @@ class Hash(Document):
         'format': basestring,
         'hashes': dict,
         'vendor': basestring,
-        'cves': list,
+        'cves': dict,
         'status': basestring,
         'meta': list,
         'submitter': basestring,
@@ -77,7 +77,7 @@ class Hash(Document):
     default_values = {
         'status': u'SUBMITTED',
         'vendor': u'UNKNOWN',
-        'version': u"",
+        'version': u'UNKNOWN',
         'hashes': {},
         'submittedon': datetime.datetime.utcnow(),
         'meta': [],
