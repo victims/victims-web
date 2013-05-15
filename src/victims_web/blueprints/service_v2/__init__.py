@@ -201,7 +201,7 @@ def search_cve_combined(algorithm, arg):
     """
     items = current_app.db.Hash.find(
         {'hashes': {algorithm: {'combined': arg}}},
-        make_projection({'cves': []})
+        make_projection({'cves': {}})
     )
     cves = []
     for item in items:
