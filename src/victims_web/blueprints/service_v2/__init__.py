@@ -34,93 +34,6 @@ v2 = Blueprint('service_v2', __name__)
 EOL = None
 
 
-def filter_item(item, filter):
-    """
-    Filter out fields not required. The filter is expected to be a python
-    object created by json.loads().
-
-    An example filter would be:
-    {'hash':'', 'cves':[], 'hashes':{'sha512':{'combined':''}}}
-
-    This will filter the given item to have only the hash, list of cves, and
-    combined sha512. Note that all values are currently ignored, filtering
-    is only done on keys. Currently only the 'hashes' field supports
-    deep-matching.
-
-    :Parameters:
-        - `item` : The item to filter
-        - `filter` : The filter object.
-    """
-    result = {}
-
-    # Test for all keys available in the model
-    for key in Hash.structure.keys():
-        if key in filter.keys():
-            # match deep keys for 'hashes'
-            if key == 'hashes':
-                # identify required algorithms
-                algorithms = []
-                hashKeys = {}
-                if (isinstance(filter[key], dict)
-                        and len(filter[key].keys()) > 0):
-                    for alg in filter[key].keys():
-                        # hash type required (files, combined)
-                        if alg in item[key].keys():
-                            algorithms.append(alg)
-                            hashKeys[alg] = filter[key][alg].keys()
-                else:
-                    # default is all available
-                    algorithms = item[key].keys()
-
-                # populate hashes for enabled algorithms
-                for alg in algorithms:
-                    result[key] = {alg: {}}
-                    for hkey in item[key][alg].keys():
-                        if len(hashKeys[alg]) == 0 or hkey in hashKeys[alg]:
-                            result[key][alg][hkey] = item[key][alg][hkey]
-            else:
-                value = item[key]
-                # serialize datetime.datetime objects
-                if isinstance(value, datetime.datetime):
-                    value = value.isoformat()
-                result[key] = value
-    return result
-
-
-def filter_results(items, filter):
-    """
-    Filters and serializes results based on query results.
-
-    :Parameters:
-       - `items`: The items to serialize.
-       - `filter` : The filter object. (Same as the filter in
-       filter_item method.)
-    """
-    result = []
-    for item in items:
-        result.append({'fields': filter_item(item, filter)})
-    return result
-
-
-def clean_results(items):
-    """
-    Removes fields that are not required from the query results and handles
-    objects that not serializable by the json encoder.
-
-    :Parameters:
-       - `items`: The items to clean.
-    """
-    result = []
-    for item in items:
-        # Drop the mongodb _id from the service
-        item.pop('_id')
-        item['date'] = item['date'].isoformat()
-        item['submittedon'] = item['submittedon'].isoformat()
-        item['cves'] = item['cves'].keys()
-        result.append({'fields': item})
-    return result
-
-
 class StreamedSerialResponseValue():
     """
     A think wrapper class around the cleaned/filtered results to enable
@@ -143,25 +56,53 @@ class StreamedSerialResponseValue():
             yield chunk
 
 
-@cache.memoize()
-def serialize_results(since, filter=None):
+def make_projection(obj, root=True):
     """
-    Serializes results based on query results. If a filter is provided,
-    it is applied.
+    Creates a mongodb projection from a json-like object. If the object
+    provided is None, a default projection {'_id': False} is returned.
+
+    :Parameters:
+       - `obj`: A dict like object representing a json object.
+       - `first`: Flag to indicate if this is the root object.
+    """
+    projection = {}
+    if obj is not None and len(obj) > 0:
+        for key in obj.keys():
+            field = obj[key]
+            if isinstance(field, dict) and len(field) > 0:
+                for child in make_projection(field, False):
+                    projection['%s.%s' % (key, child)] = True
+            else:
+                projection[key] = True
+    if root:
+        # if this is the root set, filter _id
+        projection['_id'] = False
+    return projection
+
+
+@cache.memoize()
+def serialize_results(since, jsons=None):
+    """
+    Serializes results based on query results. If a filter is provided as a
+    json string as request data, only the specified fields are returned.
 
     :Parameters:
        - `items`: The items to serialize.
-       - `filter` : The filter object. (Same as the filter in
-       filter_item method.)
+       - `data` : A json string indicating the projection to be applied on the
+       db query. An example filter would be:
+       {'hash':'', 'cves':[], 'hashes':{'sha512':{'combined':''}}}
     """
+    obj = json.loads(jsons) if jsons else None
     items = current_app.db.Hash.find(
         {'date': {'$gt': datetime.datetime.strptime(
-            since, "%Y-%m-%dT%H:%M:%S")}})
+            since, "%Y-%m-%dT%H:%M:%S")}}, make_projection(obj))
+
+    # handle special fields
     result = []
-    if filter is None:
-        result = clean_results(items)
-    else:
-        result = filter_results(items, filter)
+    for item in items:
+        if 'cves' in item:
+            item['cves'] = item['cves'].keys()
+        result.append({'fields': item})
 
     return StreamedSerialResponseValue(result)
 
@@ -204,11 +145,15 @@ def status():
     })
 
 
-def isPost():
+def error(msg='Could not understand request.', code=400):
     """
-    Tests if the current request is of type 'POST'
+    Returns an error json response.
+
+    :Parameters:
+        - `msg`: Error message to be returned in json string.
+        - `code`: The code to return as status code for the response.
     """
-    return request.method == 'POST'
+    return json.dumps([{'error': msg}]), code
 
 
 @v2.route('/update/<since>/', methods=['GET', 'POST'])
@@ -221,11 +166,11 @@ def update(since):
        - `since`: a specific date in utc
     """
     try:
-        filter = json.loads(request.data) if isPost() else None
-        return Response(stream_with_context(serialize_results(since, filter)),
+        return Response(stream_with_context(serialize_results(since,
+                                                              request.data)),
                         mimetype='application/json')
-    except Exception:
-        return json.dumps([{'error': 'Could not understand request.'}]), 400
+    except:
+        return error()
 
 
 @v2.route('/remove/<since>/')
@@ -242,4 +187,54 @@ def remove(since):
         datetime.datetime.strptime(since, "%Y-%m-%dT%H:%M:%S")
         return json.dumps([])
     except:
-        return json.dumps([{'error': 'Could not understand request.'}]), 400
+        return error()
+
+
+def search_cve_combined(algorithm, arg):
+    """
+    Searches the database for any matches for an algorithm/combined-hash
+    combination.
+
+    :Parameters:
+       - `algorithm`: Fingerprinting algorithm.
+       - `arg`: The fingerprint.
+    """
+    items = current_app.db.Hash.find(
+        {'hashes': {algorithm: {'combined': arg}}},
+        make_projection({'cves': {}})
+    )
+    cves = []
+    for item in items:
+        cves += item['cves'].keys()
+    return cves
+
+
+@v2.route('/cves/<algorithm>/<arg>/', methods=['GET'])
+@check_for_auth
+@cache.memoize()
+def cves(algorithm, arg):
+    """
+    Returns any cves that match the given the request.
+
+    If GET, we check only the combined hashes for the given algorithm for
+    matches.
+
+    If POST, we check combined first, then check content fingerprints too for
+    matches.
+
+    :Parameters:
+       - `algorithm`: Fingerprinting algorithm.
+       - `arg`: The fingerprint.
+    """
+    try:
+        algorithms = ['sha512', 'sha1', 'md5']
+        if algorithm not in algorithms:
+            return error('Invalid alogrithm. Use any of %s.' % (
+                ', '.join(algorithms)))
+        elif len(arg) not in [32, 40, 128]:
+            return error('Invalid checksum length for %s' % (algorithm))
+        cves = search_cve_combined(algorithm, arg)
+        # TODO: If post handle file bashes checksums here
+        return json.dumps(cves)
+    except:
+        return error()

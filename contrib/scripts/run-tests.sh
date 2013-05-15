@@ -5,10 +5,10 @@ SCRIPT_DIR=$(dirname $0)
 
 TEST_DIR=$(dirname "$SCRIPT_DIR")
 while true; do
-	if [ -d "${TEST_DIR}/test"]; then
+	if [ -d "${TEST_DIR}/test" ]; then
 		TEST_DIR="${TEST_DIR}/test"
 		break;
-	elif [ "/" -eq "${TEST_DIR}" ]; then
+	elif [ "/" == "${TEST_DIR}" ]; then
 		echo "Could not find test dirctory."
 		exit 1
 	fi

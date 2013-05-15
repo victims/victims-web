@@ -21,7 +21,7 @@ Data models.
 import datetime
 import re
 
-from mongokit import ValidationError
+from mongokit import ValidationError, CustomType
 
 from flask.ext.mongokit import Document
 
@@ -54,21 +54,42 @@ class RegExValidator(object):
         return True
 
 
+class SerializableDate(CustomType):
+
+    mongo_type = datetime.datetime
+    python_type = basestring
+    init_type = datetime.datetime.utcnow
+
+    def to_bson(self, value):
+        """convert type to a mongodb type"""
+        return datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
+
+    def to_python(self, value):
+        """convert type to a python object"""
+        if value is not None:
+            return value.isoformat()
+
+
 class Hash(Document):
     __collection__ = 'hashes'
 
     structure = {
-        'date': datetime.datetime,
+        'date': SerializableDate(),
         'name': basestring,
         'version': basestring,
         'format': basestring,
-        'hashes': dict,
+        'hashes': {
+            basestring: {
+                'files': dict,
+                'combined': basestring
+            }
+        },
         'vendor': basestring,
         'cves': dict,
         'status': basestring,
         'meta': list,
         'submitter': basestring,
-        'submittedon': datetime.datetime
+        'submittedon': SerializableDate()
     }
     use_dot_notation = True
     required_fields = [
@@ -79,7 +100,7 @@ class Hash(Document):
         'vendor': u'UNKNOWN',
         'version': u'UNKNOWN',
         'hashes': {},
-        'submittedon': datetime.datetime.utcnow(),
+        'submittedon': SerializableDate(),
         'meta': [],
     }
     validators = {
