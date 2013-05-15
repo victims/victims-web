@@ -109,6 +109,37 @@ class TestServiceV2(FlaskTestCase):
                 for htype in hash.keys():
                     assert htype in testhash.keys()
 
+    def test_cves_valid(self):
+        """
+        Ensures the cve search (/cves) end point works as expected for a
+        valid algorithm
+        """
+        # Test for valid sha512
+        sha512 = ''.join(['0' for i in range(128)])
+        resp = self.app.get('/service/v2/cves/%s/%s/' % ('sha512', sha512))
+        result = json.loads(resp.data)
+        assert isinstance(result, list)
+        assert 'CVE-1969-0001' in result
+
+    def test_cves_invalid(self):
+        """
+        Ensures the cve search (/cves) end point works as expected for a
+        valid algorithm
+        """
+        # Test for invalid algorithm
+        resp = self.app.get('/service/v2/cves/%s/%s/' % ('invalid', 'invalid'))
+        result = json.loads(resp.data)
+        assert resp.status_code == 400
+        assert isinstance(result, list)
+        assert result[0]['error'].find('Invalid alogrithm') >= 0
+
+        # Test for invalid argument length
+        resp = self.app.get('/service/v2/cves/%s/%s/' % ('sha1', '0'))
+        result = json.loads(resp.data)
+        assert resp.status_code == 400
+        assert isinstance(result, list)
+        assert result[0]['error'].find('Invalid checksum length for sha1') >= 0
+
     def test_status(self):
         """
         Verifies the status data is correct.

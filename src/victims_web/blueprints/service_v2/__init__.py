@@ -145,6 +145,17 @@ def status():
     })
 
 
+def error(msg='Could not understand request.', code=400):
+    """
+    Returns an error json response.
+
+    :Parameters:
+        - `msg`: Error message to be returned in json string.
+        - `code`: The code to return as status code for the response.
+    """
+    return json.dumps([{'error': msg}]), code
+
+
 @v2.route('/update/<since>/', methods=['GET', 'POST'])
 @check_for_auth
 def update(since):
@@ -158,8 +169,8 @@ def update(since):
         return Response(stream_with_context(serialize_results(since,
                                                               request.data)),
                         mimetype='application/json')
-    except Exception:
-        return json.dumps([{'error': 'Could not understand request.'}]), 400
+    except:
+        return error()
 
 
 @v2.route('/remove/<since>/')
@@ -176,4 +187,54 @@ def remove(since):
         datetime.datetime.strptime(since, "%Y-%m-%dT%H:%M:%S")
         return json.dumps([])
     except:
-        return json.dumps([{'error': 'Could not understand request.'}]), 400
+        return error()
+
+
+def search_cve_combined(algorithm, arg):
+    """
+    Searches the database for any matches for an algorithm/combined-hash
+    combination.
+
+    :Parameters:
+       - `algorithm`: Fingerprinting algorithm.
+       - `arg`: The fingerprint.
+    """
+    items = current_app.db.Hash.find(
+        {'hashes': {algorithm: {'combined': arg}}},
+        make_projection({'cves': []})
+    )
+    cves = []
+    for item in items:
+        cves += item['cves'].keys()
+    return cves
+
+
+@v2.route('/cves/<algorithm>/<arg>/', methods=['GET'])
+@check_for_auth
+@cache.memoize()
+def cves(algorithm, arg):
+    """
+    Returns any cves that match the given the request.
+
+    If GET, we check only the combined hashes for the given algorithm for
+    matches.
+
+    If POST, we check combined first, then check content fingerprints too for
+    matches.
+
+    :Parameters:
+       - `algorithm`: Fingerprinting algorithm.
+       - `arg`: The fingerprint.
+    """
+    try:
+        algorithms = ['sha512', 'sha1', 'md5']
+        if algorithm not in algorithms:
+            return error('Invalid alogrithm. Use any of %s.' % (
+                ', '.join(algorithms)))
+        elif len(arg) not in [32, 40, 128]:
+            return error('Invalid checksum length for %s' % (algorithm))
+        cves = search_cve_combined(algorithm, arg)
+        # TODO: If post handle file bashes checksums here
+        return json.dumps(cves)
+    except:
+        return error()
