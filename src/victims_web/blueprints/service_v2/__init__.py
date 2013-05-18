@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-Version 1 of the webservice. Remember service versions are not the same as
+Version 2 of the webservice. Remember service versions are not the same as
 application versions.
 """
 import datetime
@@ -26,7 +26,6 @@ from flask import current_app, json, request, stream_with_context
 
 from victims_web.cache import cache
 from victims_web.user import authenticate
-from victims_web.models import Hash
 
 v2 = Blueprint('service_v2', __name__)
 
