@@ -20,9 +20,11 @@ application versions!
 """
 import datetime
 
-from flask import Blueprint, current_app, json
+from flask import Blueprint, json
 
 from victims_web.cache import cache
+from victims_web.models import Hash
+
 
 v1 = Blueprint('service_v1', __name__)
 
@@ -46,11 +48,9 @@ def status():
 
 
 @v1.route('/update/<int:revision>/')
-@cache.cached()
 def update(revision):
     result = []
-    for item in current_app.db.Hash.find(
-            {'_v1.db_version': {'$gt': int(revision)}}):
+    for item in Hash.objects(_v1__db_version__gte=int(revision)):
         newitem = {}
         newitem['name'] = item['name']
         newitem['vendor'] = item['vendor']
@@ -61,6 +61,7 @@ def update(revision):
         newitem['hash'] = item['hashes']['sha512']['combined']
         newitem['db_version'] = int(item['_v1']['db_version'])
         newitem['cves'] = ','.join(item['cves'].keys())
+        newitem['submitter'] = str(item['submitter'])
         result.append({'fields': newitem})
     return json.dumps(result)
 

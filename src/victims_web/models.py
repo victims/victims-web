@@ -19,127 +19,105 @@ Data models.
 """
 
 import datetime
-import re
 
-from mongokit import ValidationError, CustomType
+import json
 
-from flask.ext.mongokit import Document
-
-
-class RegExValidator(object):
-
-    def __init__(self, rx, is_list=False, is_dict=False):
-        self.__rx_str = rx
-        self.__rx = re.compile(rx)
-        self.__is_list = is_list
-        self.__is_dict = is_dict
-
-    def _validate(self, item):
-        if bool(self.__rx.match(item)):
-            return True
-        raise ValidationError('%s must match ' + self.__rx_str)
-
-    def __call__(self, value):
-        if self.__is_list:
-            for item in value:
-                self._validate(item)
-        elif self.__is_dict:
-            for k, v in value.items():
-                if self.__is_dict.lower() == 'key':
-                    self._validate(k)
-                else:
-                    self._validate(v)
-        else:
-            self._validate(value)
-        return True
+from flask.ext.mongoengine import Document
+from mongoengine import (StringField, DateTimeField, DictField,
+                         BooleanField, ReferenceField)
 
 
-class SerializableDate(CustomType):
+class ValidatedDocument(Document):
+    """
+    Extended MongoEngine document which can use custom validators.
+    """
 
-    mongo_type = datetime.datetime
-    python_type = basestring
-    init_type = datetime.datetime.utcnow
+    _pre_save_hooks = []
 
-    def to_bson(self, value):
-        """convert type to a mongodb type"""
-        return datetime.datetime.strptime(value, "%Y-%m-%dT%H:%M:%S")
-
-    def to_python(self, value):
-        """convert type to a python object"""
-        if value is not None:
-            return value.isoformat()
-
-
-class Hash(Document):
-    __collection__ = 'hashes'
-
-    structure = {
-        'date': SerializableDate(),
-        'name': basestring,
-        'version': basestring,
-        'format': basestring,
-        'hashes': {
-            basestring: {
-                'files': dict,
-                'combined': basestring
-            }
-        },
-        'vendor': basestring,
-        'cves': dict,
-        'status': basestring,
-        'meta': list,
-        'submitter': basestring,
-        'submittedon': SerializableDate()
-    }
-    use_dot_notation = True
-    required_fields = [
-        'name', 'version', 'format',
-        'status', 'cves', 'submitter']
-    default_values = {
-        'status': u'SUBMITTED',
-        'vendor': u'UNKNOWN',
-        'version': u'UNKNOWN',
-        'hashes': {},
-        'submittedon': SerializableDate(),
-        'meta': [],
-    }
-    validators = {
-        'name': RegExValidator('^[a-zA-Z0-9_\-\.]*$'),
-        'version': RegExValidator('^[a-zA-Z0-9_\-\.]*$'),
-        'format': RegExValidator('^[a-zA-Z0-9\-]*$'),
-        'vendor': RegExValidator('^[a-zA-Z0-9_ \-]*$'),
-        'cves': RegExValidator('^CVE-\d{4}-\d{4}$', is_dict='key'),
-        'submitter': RegExValidator('^[a-zA-Z0-9]*$'),
+    meta = {
+        'allow_inheritance': False,
+        'abstract': True
     }
 
+    def save(self, *args, **kwargs):
+        """
+        Saves the document to the database.
 
-class Account(Document):
-    __collection__ = 'users'
+        :Parameters:
+           - `args`: All non-keyword args.
+           - `kwargs`: All keyword args.
+        """
+        for hook in self._pre_save_hooks:
+            hook(self)
 
-    structure = {
-        'username': basestring,
-        'password': basestring,
-        'endorsements': list,
-        'active': bool,
-        'createdon': datetime.datetime,
-        'lastlogin': datetime.datetime,
-        'lastip': basestring,
-    }
-
-    use_dot_notation = True
-    required_fields = ['username', 'password']
-
-    default_values = {
-        'endorsements': [],
-        'active': False,
-        'lastlogin': datetime.datetime.utcnow(),
-        'createdon': datetime.datetime.utcnow(),
-        'lastip': None,
-    }
-    validators = {
-        'username': RegExValidator('^[a-zA-Z0-9]*$'),
-    }
+        super(ValidatedDocument, self).save(*args, **kwargs)
 
 
-# Place all models that should get registered in MODELS
+class JsonifyMixin(object):
+
+    def jsonify(self):
+        """
+        Converts an instance into json.
+        """
+
+        def handle_special_objs(obj):
+            if hasattr(obj, 'isoformat'):
+                return obj.isoformat()
+            elif isinstance(obj, Account):
+                return str(obj.username)
+            return str(obj)
+
+        data = self.to_mongo()
+
+        for key in data.keys():
+            if key.startswith('_'):
+                del data[key]
+
+        return json.dumps(data, default=handle_special_objs)
+
+
+class Account(ValidatedDocument):
+    """
+    A user account.
+    """
+    meta = {'collection': 'users'}
+
+    username = StringField(regex='^[a-zA-Z0-9]*$')
+    password = StringField()
+    endorsements = DictField(default=[])
+    active = BooleanField(default=False)
+    createdon = DateTimeField(default=datetime.datetime.utcnow)
+    lastlogin = DateTimeField(default=datetime.datetime.utcnow)
+    lastip = StringField()
+
+    def __str__(self):
+        return str(self.username)
+
+
+class Hash(JsonifyMixin, ValidatedDocument):
+    """
+    A hash record.
+    """
+    meta = {'collection': 'hashes'}
+
+    # Temporary item for v1 mapping
+    _v1 = DictField(default={})
+    date = DateTimeField(default=None)
+    name = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
+    version = StringField(
+        default='UNKNOWN', regex='^[a-zA-Z0-9_\-\.]*$')
+    format = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
+    hashes = DictField(default={})
+    vendor = StringField(
+        default='UNKNOWN', regex='^[a-zA-Z0-9_\-\.]*$')
+    cves = DictField(default=[])
+    status = StringField(
+        choices=(('SUBMITTED', 'SUBMITTED'), ('RELEASED', 'RELEASED')),
+        default='SUBMITTED')
+    metadata = DictField(name='meta', default=[])
+    submitter = ReferenceField(Account, required=True, dbref=True)
+    submittedon = DateTimeField(default=datetime.datetime.utcnow)
+
+
+# All the models in the event something would like to grab them all
 MODELS = [Hash, Account]

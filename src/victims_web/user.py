@@ -17,30 +17,39 @@
 """
 User related functions.
 """
+import datetime
 
-from flask import current_app, redirect, url_for
+from flask import redirect, url_for, current_app
 
 from flask.ext.login import current_user
 from flask.ext.bcrypt import check_password_hash, generate_password_hash
 
+from victims_web.models import Account
+
 # Helper functions
 
 
-def authenticate(app, username, password):
-    user = app.db.Account.find_one({'username': str(username)})
+def authenticate(username, password):
+    user = Account.objects(username=str(username)).first()
     if user:
-        if check_password_hash(user['password'], password):
+        if check_password_hash(user.password, password):
             return True
     return False
 
 
-def create_user(app, username, password, endorsements=[]):
+def create_user(username, password, endorsements=[]):
     passhash = generate_password_hash(
-        password, app.config['BCRYPT_LOG_ROUNDS'])
-    new_user = app.db.Account()
+        password, current_app.config['BCRYPT_LOG_ROUNDS'])
+    new_user = Account()
     new_user.username = username
     new_user.password = passhash
-    new_user.endorsements = endorsements
+    now = datetime.datetime.utcnow()
+
+    all_endorsements = {}
+    for end in endorsements:
+        all_endorsements[end] = now
+
+    new_user.endorsements = all_endorsements
     new_user.active = True
 
     new_user.save()
@@ -97,10 +106,10 @@ class User(object):
         self.__endorsements = []
 
         if not user_obj:
-            user_obj = current_app.db.Account.find_one({'username': username})
+            user_obj = Account.objects(username=username).first()
 
-        self.__active = user_obj.get('active', False)
-        self.__endorsements = user_obj.get('endorsements', [])
+        self.__active = user_obj.active
+        self.__endorsements = user_obj.endorsements
 
     def is_authenticated(self):
         return self.__authenticated

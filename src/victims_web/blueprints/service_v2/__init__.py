@@ -19,28 +19,44 @@ Version 2 of the webservice. Remember service versions are not the same as
 application versions.
 """
 import datetime
+import json
 
-from functools import wraps
+#from functools import wraps
 from flask import Blueprint, Response
-from flask import current_app, json, request, stream_with_context
+#from flask import current_app, json, request, stream_with_context
 
 from victims_web.cache import cache
-from victims_web.user import authenticate
+#from victims_web.user import authenticate
+from victims_web.models import Hash
+
 
 v2 = Blueprint('service_v2', __name__)
+
 
 # Module globals
 EOL = None
 
 
-class StreamedSerialResponseValue():
+def error(msg='Could not understand request.', code=400):
     """
-    A think wrapper class around the cleaned/filtered results to enable
+    Returns an error json response.
+
+    :Parameters:
+        - `msg`: Error message to be returned in json string.
+        - `code`: The code to return as status code for the response.
+    """
+    return json.dumps([{'error': msg}]), code
+
+
+class StreamedSerialResponseValue(object):
+    """
+    A thin wrapper class around the cleaned/filtered results to enable
     streaming and caching simultaneously.
     """
     def __init__(self, result):
         self.result = result
 
+    '''
     def __getstate__(self):
         """The state returned is just the json string of the object"""
         return json.dumps(self.result)
@@ -48,12 +64,101 @@ class StreamedSerialResponseValue():
     def __setstate__(self, state):
         """When unpickling, convert the json string into an py-object"""
         self.result = json.loads(state)
-
+    '''
     def __iter__(self):
         """The iterator implementing result to json string generator"""
-        for chunk in json.JSONEncoder().iterencode(self.result):
-            yield chunk
+        yield "["
+        count = 0
+        for item in self.result:
+            count += 1
+            if count != len(self.result):
+                yield item.jsonify() + ","
+            else:
+                yield item.jsonify()
 
+        yield "]"
+
+
+@cache.memoize()
+def status():
+    """
+    Return the status of the service.
+    """
+    return json.dumps({
+        'eol': EOL,
+        'supported': True,
+        'version': '2',
+        'recommended': True,
+        'endpoint': '/service/v2/'
+    })
+
+
+@v2.route('/update/<since>/', methods=['GET'])
+def update(since):
+    """
+    Returns all items to add past a specific date in utc.
+
+    :Parameters:
+       - `since`: a specific date in utc
+    """
+    try:
+        items = Hash.objects(date__gt=datetime.datetime.strptime(
+                             since, "%Y-%m-%dT%H:%M:%S"))
+        return Response(StreamedSerialResponseValue(
+            items), mimetype='application/json')
+    except Exception, ex:
+        print ex
+        return error()
+
+
+@v2.route('/remove/<since>/')
+@cache.memoize()
+def remove(since):
+    """
+    Returns all items to remove past a specific date in utc.
+
+    :Parameters:
+       - `since`: a specific date in utc
+    """
+    try:
+        datetime.datetime.strptime(since, "%Y-%m-%dT%H:%M:%S")
+        return json.dumps([])
+    except:
+        return error()
+
+
+@v2.route('/cves/<algorithm>/<arg>/', methods=['GET'])
+def cves(algorithm, arg):
+    """
+    Returns any cves that match the given the request.
+
+    If GET, we check only the combined hashes for the given algorithm for
+    matches.
+
+    If POST, we check combined first, then check content fingerprints too for
+    matches.
+
+    :Parameters:
+       - `algorithm`: Fingerprinting algorithm.
+       - `arg`: The fingerprint.
+    """
+    try:
+        algorithms = ['sha512', 'sha1', 'md5']
+        if algorithm not in algorithms:
+            return error('Invalid alogrithm. Use any of %s.' % (
+                ', '.join(algorithms)))
+        elif len(arg) not in [32, 40, 128]:
+            return error('Invalid checksum length for %s' % (algorithm))
+
+        kwargs = {("hashes__%s__combined" % (algorithm)): arg}
+        cves = Hash.objects.only('cves').filter(**kwargs)
+        results = []
+        for hash in cves:
+            results += hash.cves.keys()
+        return Response(json.dumps(results), mimetype='application/json')
+    except Exception:
+        return error()
+'''
 
 def make_projection(obj, root=True):
     """
@@ -237,3 +342,4 @@ def cves(algorithm, arg):
         return json.dumps(cves)
     except:
         return error()
+'''
