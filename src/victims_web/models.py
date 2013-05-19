@@ -84,7 +84,7 @@ class Account(ValidatedDocument):
 
     username = StringField(regex='^[a-zA-Z0-9]*$')
     password = StringField()
-    endorsements = DictField(default=[])
+    endorsements = DictField(default={})
     active = BooleanField(default=False)
     createdon = DateTimeField(default=datetime.datetime.utcnow)
     lastlogin = DateTimeField(default=datetime.datetime.utcnow)
@@ -110,11 +110,11 @@ class Hash(JsonifyMixin, ValidatedDocument):
     hashes = DictField(default={})
     vendor = StringField(
         default='UNKNOWN', regex='^[a-zA-Z0-9_\-\.]*$')
-    cves = DictField(default=[])
+    cves = DictField(default={})
     status = StringField(
         choices=(('SUBMITTED', 'SUBMITTED'), ('RELEASED', 'RELEASED')),
         default='SUBMITTED')
-    metadata = DictField(name='meta', default=[])
+    metadata = DictField(name='meta', default={})
     submitter = ReferenceField(Account, required=True, dbref=True)
     submittedon = DateTimeField(default=datetime.datetime.utcnow)
 
