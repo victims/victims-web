@@ -29,7 +29,7 @@ from werkzeug import secure_filename
 
 from flask.ext import login
 
-from mongokit import ValidationError
+from victims_web.errors import ValidationError
 from victims_web.models import Hash
 
 
