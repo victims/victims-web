@@ -79,6 +79,7 @@ class StreamedSerialResponseValue(object):
         yield "]"
 
 
+@v2.route('/status.json')
 @cache.memoize()
 def status():
     """

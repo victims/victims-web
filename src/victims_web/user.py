@@ -17,8 +17,6 @@
 """
 User related functions.
 """
-import datetime
-
 from flask import redirect, url_for, current_app
 
 from flask.ext.login import current_user
@@ -43,11 +41,10 @@ def create_user(username, password, endorsements=[]):
     new_user = Account()
     new_user.username = username
     new_user.password = passhash
-    now = datetime.datetime.utcnow()
 
     all_endorsements = {}
     for end in endorsements:
-        all_endorsements[end] = now
+        all_endorsements[end] = end
 
     new_user.endorsements = all_endorsements
     new_user.active = True

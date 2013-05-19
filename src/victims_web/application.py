@@ -50,7 +50,7 @@ app._logger = logging.getLogger()
 csrf = SeaSurf(app)
 app.config.from_pyfile('application.cfg')
 
-if app.debug:
+if app.debug and not app.testing:
     try:
         from flask_debugtoolbar import DebugToolbarExtension
         toolbar = DebugToolbarExtension(app)
