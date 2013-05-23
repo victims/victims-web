@@ -71,10 +71,11 @@ class StreamedSerialResponseValue(object):
         count = 0
         for item in self.result:
             count += 1
+            data = '{"fields": ' + item.jsonify() + '}'
             if count != len(self.result):
-                yield item.jsonify() + ","
+                yield data + ","
             else:
-                yield item.jsonify()
+                yield data
 
         yield "]"
 
