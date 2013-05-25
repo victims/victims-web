@@ -67,16 +67,15 @@ class StreamedSerialResponseValue(object):
     '''
     def __iter__(self):
         """The iterator implementing result to json string generator"""
-        yield "["
+        yield "[\n"
         count = 0
         for item in self.result:
             count += 1
             data = '{"fields": ' + item.jsonify() + '}'
             if count != len(self.result):
-                yield data + ","
+                yield data + ",\n"
             else:
                 yield data
-
         yield "]"
 
 
