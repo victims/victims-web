@@ -53,26 +53,29 @@ class StreamedSerialResponseValue(object):
     A thin wrapper class around the cleaned/filtered results to enable
     streaming and caching simultaneously.
     """
+
     def __init__(self, result):
+        """
+        Creates the streamed iterator.
+
+        :Parameters:
+           - `result`: The result to iterate over.
+        """
         self.result = result
+        # NOTE: We must do the count else the cursor will stop at 100
+        self.result_count = result.count()
 
-    '''
-    def __getstate__(self):
-        """The state returned is just the json string of the object"""
-        return json.dumps(self.result)
-
-    def __setstate__(self, state):
-        """When unpickling, convert the json string into an py-object"""
-        self.result = json.loads(state)
-    '''
     def __iter__(self):
-        """The iterator implementing result to json string generator"""
+        """
+        The iterator implementing result to json string generator and
+        splitting the results by newlines.
+        """
         yield "[\n"
         count = 0
         for item in self.result:
             count += 1
             data = '{"fields": ' + item.jsonify() + '}'
-            if count != len(self.result):
+            if count != self.result_count:
                 yield data + ",\n"
             else:
                 yield data
