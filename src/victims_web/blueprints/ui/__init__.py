@@ -31,6 +31,7 @@ from flask.ext import login
 
 from victims_web.errors import ValidationError
 from victims_web.models import Hash
+from victims_web.cache import cache
 
 
 ui = Blueprint(
@@ -50,6 +51,7 @@ def _is_hash(data):
 
 
 @ui.route('/', methods=['GET'])
+@cache.cached()
 def index():
     released = Hash.objects(status='RELEASED')
     submitted = Hash.objects(status='SUBMITTED')
@@ -67,6 +69,7 @@ def index():
 
 @ui.route('/hashes/', methods=['GET'])
 @ui.route('/hashes/<format>/', methods=['GET'])
+@cache.memoize()
 def hashes(format=None):
     hashes = Hash.objects(status='RELEASED')
 
