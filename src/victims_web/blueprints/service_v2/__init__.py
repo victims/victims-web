@@ -65,6 +65,18 @@ class StreamedSerialResponseValue(object):
         # NOTE: We must do the count else the cursor will stop at 100
         self.result_count = result.count()
 
+    def __getstate__(self):
+        """
+        The state returned is just the json string of the object
+        """
+        return json.dumps(self.result)
+
+    def __setstate__(self, state):
+        """
+        When unpickling, convert the json string into an py-object
+        """
+        self.result = json.loads(state)
+
     def __iter__(self):
         """
         The iterator implementing result to json string generator and
@@ -237,67 +249,6 @@ def check_for_auth(view):
     return decorated
 
 
-@v2.route('/status.json')
-@check_for_auth
-@cache.memoize()
-def status():
-    """
-    Return the status of the service.
-    """
-    return json.dumps({
-        'eol': EOL,
-        'supported': True,
-        'version': '2',
-        'recommended': True,
-        'endpoint': '/service/v2/'
-    })
-
-
-def error(msg='Could not understand request.', code=400):
-    """
-    Returns an error json response.
-
-    :Parameters:
-        - `msg`: Error message to be returned in json string.
-        - `code`: The code to return as status code for the response.
-    """
-    return json.dumps([{'error': msg}]), code
-
-
-@v2.route('/update/<since>/', methods=['GET', 'POST'])
-@check_for_auth
-def update(since):
-    """
-    Returns all items to add past a specific date in utc.
-
-    :Parameters:
-       - `since`: a specific date in utc
-    """
-    try:
-        return Response(stream_with_context(serialize_results(since,
-                                                              request.data)),
-                        mimetype='application/json')
-    except:
-        return error()
-
-
-@v2.route('/remove/<since>/')
-@check_for_auth
-@cache.memoize()
-def remove(since):
-    """
-    Returns all items to remove past a specific date in utc.
-
-    :Parameters:
-       - `since`: a specific date in utc
-    """
-    try:
-        datetime.datetime.strptime(since, "%Y-%m-%dT%H:%M:%S")
-        return json.dumps([])
-    except:
-        return error()
-
-
 def search_cve_combined(algorithm, arg):
     """
     Searches the database for any matches for an algorithm/combined-hash
@@ -316,34 +267,4 @@ def search_cve_combined(algorithm, arg):
         cves += item['cves'].keys()
     return cves
 
-
-@v2.route('/cves/<algorithm>/<arg>/', methods=['GET'])
-@check_for_auth
-@cache.memoize()
-def cves(algorithm, arg):
-    """
-    Returns any cves that match the given the request.
-
-    If GET, we check only the combined hashes for the given algorithm for
-    matches.
-
-    If POST, we check combined first, then check content fingerprints too for
-    matches.
-
-    :Parameters:
-       - `algorithm`: Fingerprinting algorithm.
-       - `arg`: The fingerprint.
-    """
-    try:
-        algorithms = ['sha512', 'sha1', 'md5']
-        if algorithm not in algorithms:
-            return error('Invalid alogrithm. Use any of %s.' % (
-                ', '.join(algorithms)))
-        elif len(arg) not in [32, 40, 128]:
-            return error('Invalid checksum length for %s' % (algorithm))
-        cves = search_cve_combined(algorithm, arg)
-        # TODO: If post handle file bashes checksums here
-        return json.dumps(cves)
-    except:
-        return error()
 '''
