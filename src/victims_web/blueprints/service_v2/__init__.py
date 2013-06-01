@@ -61,9 +61,9 @@ class StreamedSerialResponseValue(object):
         :Parameters:
            - `result`: The result to iterate over.
         """
-        self.result = result
+        self.result = result.clone()
         # NOTE: We must do the count else the cursor will stop at 100
-        self.result_count = result.count()
+        self.result_count = self.result.count()
 
     def __getstate__(self):
         """
@@ -149,9 +149,6 @@ def cves(algorithm, arg):
     Returns any cves that match the given the request.
 
     If GET, we check only the combined hashes for the given algorithm for
-    matches.
-
-    If POST, we check combined first, then check content fingerprints too for
     matches.
 
     :Parameters:
