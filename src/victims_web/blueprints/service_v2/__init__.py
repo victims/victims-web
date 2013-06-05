@@ -21,12 +21,11 @@ application versions.
 import datetime
 import json
 
-#from functools import wraps
-from flask import Blueprint, Response
-#from flask import current_app, json, request, stream_with_context
+from functools import wraps
+from flask import Blueprint, Response, current_app, request
 
 from victims_web.cache import cache
-#from victims_web.user import authenticate
+from victims_web.user import authenticate
 from victims_web.models import Hash
 
 
@@ -171,57 +170,6 @@ def cves(algorithm, arg):
         return Response(json.dumps(results), mimetype='application/json')
     except Exception:
         return error()
-'''
-
-def make_projection(obj, root=True):
-    """
-    Creates a mongodb projection from a json-like object. If the object
-    provided is None, a default projection {'_id': False} is returned.
-
-    :Parameters:
-       - `obj`: A dict like object representing a json object.
-       - `first`: Flag to indicate if this is the root object.
-    """
-    projection = {}
-    if obj is not None and len(obj) > 0:
-        for key in obj.keys():
-            field = obj[key]
-            if isinstance(field, dict) and len(field) > 0:
-                for child in make_projection(field, False):
-                    projection['%s.%s' % (key, child)] = True
-            else:
-                projection[key] = True
-    if root:
-        # if this is the root set, filter _id
-        projection['_id'] = False
-    return projection
-
-
-@cache.memoize()
-def serialize_results(since, jsons=None):
-    """
-    Serializes results based on query results. If a filter is provided as a
-    json string as request data, only the specified fields are returned.
-
-    :Parameters:
-       - `items`: The items to serialize.
-       - `data` : A json string indicating the projection to be applied on the
-       db query. An example filter would be:
-       {'hash':'', 'cves':[], 'hashes':{'sha512':{'combined':''}}}
-    """
-    obj = json.loads(jsons) if jsons else None
-    items = current_app.db.Hash.find(
-        {'date': {'$gt': datetime.datetime.strptime(
-            since, "%Y-%m-%dT%H:%M:%S")}}, make_projection(obj))
-
-    # handle special fields
-    result = []
-    for item in items:
-        if 'cves' in item:
-            item['cves'] = item['cves'].keys()
-        result.append({'fields': item})
-
-    return StreamedSerialResponseValue(result)
 
 
 def check_for_auth(view):
@@ -244,24 +192,3 @@ def check_for_auth(view):
         return view(*args, **kwargs)
 
     return decorated
-
-
-def search_cve_combined(algorithm, arg):
-    """
-    Searches the database for any matches for an algorithm/combined-hash
-    combination.
-
-    :Parameters:
-       - `algorithm`: Fingerprinting algorithm.
-       - `arg`: The fingerprint.
-    """
-    items = current_app.db.Hash.find(
-        {'hashes': {algorithm: {'combined': arg}}},
-        make_projection({'cves': {}})
-    )
-    cves = []
-    for item in items:
-        cves += item['cves'].keys()
-    return cves
-
-'''
