@@ -22,6 +22,8 @@ import datetime
 
 import json
 
+from bson.dbref import DBRef
+
 from flask.ext.mongoengine import Document
 from mongoengine import (StringField, DateTimeField, DictField,
                          BooleanField, ReferenceField)
@@ -63,8 +65,8 @@ class JsonifyMixin(object):
         def handle_special_objs(obj):
             if hasattr(obj, 'isoformat'):
                 return obj.isoformat()
-            elif isinstance(obj, Account):
-                return str(obj.username)
+            elif isinstance(obj, DBRef):
+                return str(Account.objects.get(id=obj.id).username)
             return str(obj)
 
         data = self.to_mongo()
@@ -117,6 +119,17 @@ class Hash(JsonifyMixin, ValidatedDocument):
     metadata = DictField(name='meta', default={})
     submitter = ReferenceField(Account, required=True, dbref=True)
     submittedon = DateTimeField(default=datetime.datetime.utcnow)
+
+    def jsonify(self):
+        """
+        Update jsonify to flatten some fields.
+        """
+        new_cves = []
+        for key, val in self.cves.items():
+            new_cves.append(key)
+        self.cves = new_cves
+
+        return JsonifyMixin.jsonify(self)
 
 
 # All the models in the event something would like to grab them all
