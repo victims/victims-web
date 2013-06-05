@@ -43,7 +43,7 @@ def login_user():
     if request.method == 'POST':
         username = request.form.get('username', '')
         user_data = authenticate(
-            current_app, username,
+            username,
             request.form.get('password', ''))
         if user_data:
             if login.login_user(User(username)):
@@ -101,11 +101,11 @@ def register_user():
             if request.form['password'] != request.form['verify_password']:
                 raise errors.ValidationError('Passwords do not match.')
 
-            if current_app.db.users.find_one(
-                    {'username': request.form['username']}):
+            if Account.objects(username=request.form['username']).first():
                 raise errors.ValidationError('Username is not available.')
+
             user = create_user(
-                current_app, request.form['username'],
+                request.form['username'],
                 request.form['password'])
             login.login_user(user)
             return redirect(url_for('ui.index'))
@@ -113,7 +113,8 @@ def register_user():
             flash(ve.message, category='error')
         except (KeyError, IndexError):
             flash('Missing information.', category='error')
-        except Exception:
+        except Exception, ex:
+            print ex
             flash('An unknown error has occured.', category='error')
 
     # Default

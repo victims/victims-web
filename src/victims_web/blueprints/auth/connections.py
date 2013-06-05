@@ -23,6 +23,8 @@ import datetime
 from flask import request
 from flask.ext import login
 
+from victims_web.models import Account
+
 
 def log_login(app, user):
     """
@@ -35,7 +37,7 @@ def update_login_details(app, user):
     """
     Updates user information upon login.
     """
-    user_obj = app.db.Account.find_one({'username': user.username})
+    user_obj = Account.objects(username=user.username).first()
     user_obj.lastlogin = datetime.datetime.utcnow()
     try:
         user_obj.lastip = request.headers.getlist('X-Forwarded-For')[0]

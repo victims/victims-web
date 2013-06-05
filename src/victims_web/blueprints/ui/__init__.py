@@ -29,7 +29,9 @@ from werkzeug import secure_filename
 
 from flask.ext import login
 
-from mongokit import ValidationError
+from victims_web.errors import ValidationError
+from victims_web.models import Hash
+from victims_web.cache import cache
 
 
 ui = Blueprint(
@@ -49,51 +51,47 @@ def _is_hash(data):
 
 
 @ui.route('/', methods=['GET'])
+@cache.cached()
 def index():
+    released = Hash.objects(status='RELEASED')
+    submitted = Hash.objects(status='SUBMITTED')
+
     kwargs = {
-        'hashes': current_app.db.Hash.find({'status': 'RELEASED'}).count(),
-        'pending': current_app.db.Hash.find({'status': 'SUBMITTED'}).count(),
-        'jars': current_app.db.Hash.find(
-            {'format': 'Jar', 'status': 'RELEASED'}).count(),
-        'pending_jars': current_app.db.Hash.find(
-            {'format': 'Jar', 'status': 'SUBMITTED'}).count(),
-        'eggs': current_app.db.Hash.find(
-            {'format': 'Egg', 'status': 'RELEASED'}).count(),
-        'pending_eggs': current_app.db.Hash.find(
-            {'format': 'Egg', 'status': 'SUBMITTED'}).count(),
+        'hashes': len(released),
+        'pending': len(submitted),
+        'jars': len(released.filter(format='Jar')),
+        'pending_jars': len(submitted.filter(format='Jar')),
+        'eggs': len(released.filter(format='Egg')),
+        'pending_eggs': len(submitted.filter(format='Egg')),
     }
     return render_template('index.html', **kwargs)
 
 
 @ui.route('/hashes/', methods=['GET'])
 @ui.route('/hashes/<format>/', methods=['GET'])
+@cache.memoize()
 def hashes(format=None):
-    filters = {
-        'status': 'RELEASED',
-    }
+    hashes = Hash.objects(status='RELEASED')
+
     if format:
-        formats = current_app.db.Hash.find(
-            fields={'format': '1'}).distinct('format')
-
-        if format in formats:
-            filters['format'] = format
-        if format not in formats:
+        if format not in Hash.objects.distinct('format'):
             flash('Format not found', 'error')
+        else:
+            hashes = hashes.filter(format=format)
 
-    hashes = current_app.db.Hash.find(filters)
     return render_template('hashes.html', hashes=hashes)
 
 
 @ui.route('/hash/<hash>/', methods=['GET'])
 def hash(hash):
     if _is_hash(hash):
-        a_hash = current_app.db.Hash.find_one_or_404(
-            {'hashes.sha512.combined': hash})
+        a_hash = Hash.objects.get_or_404(hashes__sha512__combined=hash)
         return render_template('onehash.html', hash=a_hash)
     flash('Not a valid hash', 'error')
     return redirect(url_for('ui.hashes'))
 
 
+# TODO: NEEDS TESTING WITH MONGOENGINE
 @ui.route('/submit_archive/', methods=['GET', 'POST'])
 @login.login_required
 def submit_archive():
@@ -111,11 +109,11 @@ def submit_archive():
                     now = datetime.datetime.utcnow()
                     for cve in request.form['cves'].split(','):
                         cves[cve] = now
-                    new_hash = current_app.db.Hash()
+                    new_hash = Hash()
                     new_hash.name = filename
-                    new_hash.date = datetime.datetime.utcnow()
+#                    new_hash.date = datetime.datetime.utcnow()
                     new_hash.version = '1.0.0'
-                    new_hash.format = suffix.capitalize()
+                    new_hash.format = suffix.lower().capitalize()
                     new_hash.cves = cves
                     new_hash.status = 'SUBMITTED'
                     new_hash.submitter = login.current_user.username
