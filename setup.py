@@ -37,7 +37,7 @@ setup(
         'Flask-SeaSurf',
         'Flask-Cache',
         'Flask-Admin',
-        'pymongo>=2.3',
+        'pymongo>=2.5.2',
         'Flask-Views',
         'Flask-MongoEngine',
         'blinker>=1.2',
