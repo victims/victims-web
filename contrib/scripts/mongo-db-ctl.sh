@@ -39,7 +39,8 @@ function start()
 			match=$(grep -m 1 "waiting for connections on port" "${LOGFILE}")
 			if [ ! -z "$match" ]; then
 				if [ ! -z $NEW ]; then
-					mongoimport -d victims -c hashes "$BASE/test/mongo_test.json"
+					mongoimport -d victims -c hashes "$BASE/test/mongo_test_hash.json"
+					mongoimport -d victims -c users "$BASE/test/mongo_test_user.json"
 				fi
 				break;
 			else
