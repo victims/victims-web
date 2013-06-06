@@ -11,6 +11,11 @@ if [ $# -ne 1 ]; then
 fi
 ARG=$1
 
+if ! type -p mongod > /dev/null; then
+	echo "[ERROR] mongod not found. Please install mongodb-server and mongodb."
+	exit 1
+fi
+
 BASE=$(pwd)
 TEST_DBPATH=$BASE/testdb
 LOGFILE=$TEST_DBPATH/victims.mongo.log
@@ -27,6 +32,10 @@ function start()
 		echo "Waiting for mongodb to be ready..."
 		sleep 1
 		while true; do
+			if [ ! -f ${LOGFILE} ]; then
+				sleep 2
+				continue
+			fi
 			match=$(grep -m 1 "waiting for connections on port" "${LOGFILE}")
 			if [ ! -z "$match" ]; then
 				if [ ! -z $NEW ]; then
