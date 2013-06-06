@@ -11,7 +11,7 @@ ENV_PROMPT=${ENV_PREFIX}.dev
 CMD="pip install"
 
 function initialize {
-	$CMD "$(pwd)"
+    $CMD "$(pwd)"
     $CMD coverage nose pep8 --use-mirrors
     $CMD -e . --use-mirrors
 }
@@ -24,6 +24,10 @@ function vitualize {
     else
         source ${ENV_DIR}/bin/activate
     fi
+
+    # Make sure we install any new dependencies
+    $CMD -e . --use-mirrors
+
     export PYTHONPATH=$PYTHONPATH:$(pwd)/src
 
 }
