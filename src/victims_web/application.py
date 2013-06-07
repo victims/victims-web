@@ -72,7 +72,7 @@ administration_setup(app)
 
 # Login manager
 login_manager = login.LoginManager()
-login_manager.setup_app(app)
+login_manager.init_app(app)
 
 
 @app.errorhandler(500)
