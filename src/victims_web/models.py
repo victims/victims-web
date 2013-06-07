@@ -116,7 +116,7 @@ class Hash(JsonifyMixin, ValidatedDocument):
     status = StringField(
         choices=(('SUBMITTED', 'SUBMITTED'), ('RELEASED', 'RELEASED')),
         default='SUBMITTED')
-    metadata = DictField(name='meta', default={})
+    metadata = DictField(db_field='meta', default={})
     submitter = ReferenceField(Account, required=True, dbref=True)
     submittedon = DateTimeField(default=datetime.datetime.utcnow)
 
