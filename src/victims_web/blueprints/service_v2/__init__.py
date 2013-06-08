@@ -94,7 +94,7 @@ class StreamedSerialResponseValue(object):
 
 
 @v2.route('/status.json')
-@cache.memoize()
+@cache.cached()
 def status():
     """
     Return the status of the service.
@@ -117,12 +117,25 @@ def update(since):
        - `since`: a specific date in utc
     """
     try:
+
         items = Hash.objects(date__gt=datetime.datetime.strptime(
                              since, "%Y-%m-%dT%H:%M:%S"))
+        if request.args.get('fields', None):
+            fields = []
+            for field in request.args.get(
+                    'fields').replace(' ', '').split(','):
+                if field == 'hashes.sha512':
+                    fields.append('hashes__sha512')
+                elif field == 'hashes.sha256':
+                    fields.append('hashes__sha256')
+                else:
+                    if field in Hash._fields.keys():
+                        fields.append(field)
+
+            items = items.only(*fields)
         return Response(StreamedSerialResponseValue(
             items), mimetype='application/json')
-    except Exception, ex:
-        print ex
+    except Exception:
         return error()
 
 
