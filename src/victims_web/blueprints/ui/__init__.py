@@ -51,20 +51,26 @@ def _is_hash(data):
 
 
 @ui.route('/', methods=['GET'])
-@cache.cached()
 def index():
-    released = Hash.objects(status='RELEASED')
-    submitted = Hash.objects(status='SUBMITTED')
 
-    kwargs = {
-        'hashes': len(released),
-        'pending': len(submitted),
-        'jars': len(released.filter(format='Jar')),
-        'pending_jars': len(submitted.filter(format='Jar')),
-        'eggs': len(released.filter(format='Egg')),
-        'pending_eggs': len(submitted.filter(format='Egg')),
-    }
-    return render_template('index.html', **kwargs)
+    @cache.cached()
+    def get_data():
+        """
+        Caching results via inner function.
+        """
+        released = Hash.objects(status='RELEASED')
+        submitted = Hash.objects(status='SUBMITTED')
+
+        return {
+            'hashes': len(released),
+            'pending': len(submitted),
+            'jars': len(released.filter(format='Jar')),
+            'pending_jars': len(submitted.filter(format='Jar')),
+            'eggs': len(released.filter(format='Egg')),
+            'pending_eggs': len(submitted.filter(format='Egg')),
+        }
+
+    return render_template('index.html', **get_data())
 
 
 @ui.route('/hashes/', methods=['GET'])

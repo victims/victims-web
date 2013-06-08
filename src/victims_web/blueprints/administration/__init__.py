@@ -18,9 +18,15 @@
 Administration interface.
 """
 
-from flask.ext.admin.base import Admin, AdminIndexView, MenuLink
+import datetime
+
+from flask import redirect, url_for
+
+from flask.ext.admin.base import (
+    Admin, AdminIndexView, MenuLink, BaseView, expose)
 from flask.ext.admin.contrib.mongoengine import ModelView
 from victims_web.models import Account, Hash
+from victims_web.cache import cache
 
 from flask.ext import login
 
@@ -47,6 +53,31 @@ class SafeAdminIndexView(ViewRequiresAuthorization, AdminIndexView):
     pass
 
 
+class SafeBaseView(ViewRequiresAuthorization, BaseView):
+    """
+    Mixes in ViewRequiresAuthorization to require authorization.
+    """
+    pass
+
+
+class CacheAdminView(SafeBaseView):
+    """
+    Simple cache management.
+    """
+
+    @expose('/')
+    def index(self):
+        cached_info = {}
+        for key, value in cache.cache._cache.items():
+            cached_info[key] = datetime.datetime.fromtimestamp(value[0])
+        return self.render('admin/cache_index.html', items=cached_info)
+
+    @expose('/clear')
+    def clear(self):
+        cache.cache.clear()
+        return redirect(url_for('.index'))
+
+
 class AccountView(ModelView):
     column_filters = ('username', )
     column_exclude_list = ('password', )
@@ -67,6 +98,7 @@ def administration_setup(app):
     administration.init_app(app)
     administration.add_view(ModelView(Account))
     administration.add_view(HashView(Hash))
+    administration.add_view(CacheAdminView(name='Cache', endpoint='cache'))
 
     # Add links
     administration.add_link(MenuLink(name='Front End', endpoint='ui.index'))
