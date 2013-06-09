@@ -1,0 +1,19 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+    <a href={{ url_for('.clear') }}>Clear Cache</a>
+    <table class="table table-striped table-bordered model-list">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Cached Time</th>
+            </tr>
+        </thead>
+{% for cache_item in items.items() %}
+        <tr>
+            <td>{{ cache_item[0]|escape }}</td>
+            <td>{{ cache_item[1] }}</td>
+        </tr>
+{% endfor %}
+</table>
+{% endblock %}
