@@ -21,12 +21,12 @@ application versions.
 import datetime
 import json
 
-from functools import wraps
-from flask import Blueprint, Response, current_app, request
+from flask import Blueprint, Response, request
+from flask.ext.login import current_user
 
 from victims_web.cache import cache
-from victims_web.user import authenticate
 from victims_web.models import Hash
+from victims_web.blueprints.helpers import check_for_auth
 
 
 v2 = Blueprint('service_v2', __name__)
@@ -185,23 +185,32 @@ def cves(algorithm, arg):
         return error()
 
 
-def check_for_auth(view):
+@v2.route('/hash/<format>/<name>/<version>/', methods=['PUT'])
+@check_for_auth
+def submit(format, name, version):
     """
-    Checks for basic auth in calls and returns a 403 if it's not a
-    valid account. Does not stop anonymous users or throttle at this
-    point.
+    Allows for authenticated users to submit hashes.
+
+    :Parameters:
+       - `format`: The format of the archive.
+       - `name`: The name of the package.
+       - `version`: The version of the package.
     """
+    try:
+        json_data = json.loads(request.data)
+        new_hash = Hash()
+        new_hash.name = name
+        new_hash.version = version
+        new_hash.format = format
+        new_hash.vendor = json_data['vendor']
 
-    @wraps(view)
-    def decorated(*args, **kwargs):
-        if request.authorization:
-            valid = authenticate(
-                current_app,
-                request.authorization.username,
-                request.authorization.password)
-            if not valid:
-                return 'Forbidden', 403
+        cves = {}
+        for cve in json_data['cves']:
+            cves[cve] = datetime.datetime.utcnow()
 
-        return view(*args, **kwargs)
-
-    return decorated
+        new_hash.cves = cves
+        new_hash.submitter = current_user
+        new_hash.save()
+        return new_hash.jsonify(), 201
+    except:
+        return error()
