@@ -26,7 +26,7 @@ from bson.dbref import DBRef
 
 from flask.ext.mongoengine import Document
 from mongoengine import (StringField, DateTimeField, DictField,
-                         BooleanField, ReferenceField)
+                         BooleanField)
 
 
 class ValidatedDocument(Document):
@@ -117,7 +117,7 @@ class Hash(JsonifyMixin, ValidatedDocument):
         choices=(('SUBMITTED', 'SUBMITTED'), ('RELEASED', 'RELEASED')),
         default='SUBMITTED')
     metadata = DictField(db_field='meta', default={})
-    submitter = ReferenceField(Account, required=True, dbref=True)
+    submitter = StringField()
     submittedon = DateTimeField(default=datetime.datetime.utcnow)
 
     def jsonify(self):
@@ -125,8 +125,9 @@ class Hash(JsonifyMixin, ValidatedDocument):
         Update jsonify to flatten some fields.
         """
         new_cves = []
-        for key, val in self.cves.items():
-            new_cves.append(key)
+        # Workaround to handle both old lists, and newer dicts
+        for cve in self.cves:
+            new_cves.append(cve)
         self.cves = new_cves
 
         return JsonifyMixin.jsonify(self)
