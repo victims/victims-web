@@ -105,6 +105,7 @@ class Hash(JsonifyMixin, ValidatedDocument):
     # Temporary item for v1 mapping
     _v1 = DictField(default={})
     date = DateTimeField(default=None)
+    hash = StringField(regex='^[a-fA-F0-9]*$')
     name = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
     version = StringField(
         default='UNKNOWN', regex='^[a-zA-Z0-9_\-\.]*$')
