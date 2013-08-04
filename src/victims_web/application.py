@@ -38,9 +38,8 @@ from victims_web.user import User
 # Set up the application
 app = Flask('victims_web')
 
-
 logging.basicConfig(
-    filename=os.environ.get('OPENSHIFT_DATA_DIR', 'logs/') + 'server.log',
+    filename=os.environ.get('VICTIMS_LOG_DIR', 'logs/') + 'server.log',
     format='%(asctime)s - %(levelname)s: %(message)s',
     datefmt='%a %b %d %Y %H:%M:%S %Z',
     level=logging.DEBUG,
