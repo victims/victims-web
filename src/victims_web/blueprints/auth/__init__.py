@@ -46,7 +46,7 @@ def login_user():
             username,
             request.form.get('password', ''))
         if user_data:
-            if login.login_user(User(username)):
+            if login.login_user(user=User(username), remember=True):
                 flash("Logged in successfully.", category='info')
                 return redirect(url_for('ui.index'))
         flash("Invalid username/password", category='error')
