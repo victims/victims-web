@@ -25,8 +25,8 @@ import json
 from bson.dbref import DBRef
 
 from flask.ext.mongoengine import Document
-from mongoengine import (StringField, DateTimeField, DictField,
-                         BooleanField)
+from mongoengine import (StringField, DateTimeField, DictField, BooleanField,
+                         EmbeddedDocument, EmbeddedDocumentField, ListField)
 
 
 class ValidatedDocument(Document):
@@ -96,7 +96,7 @@ class Account(ValidatedDocument):
         return str(self.username)
 
 
-class Hash(JsonifyMixin, ValidatedDocument):
+class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
     """
     A hash record.
     """
@@ -134,5 +134,34 @@ class Hash(JsonifyMixin, ValidatedDocument):
         return JsonifyMixin.jsonify(self)
 
 
+class Submission(JsonifyMixin, ValidatedDocument):
+    """
+    A Submission Hash
+    """
+    meta = {'collection': 'submissions'}
+
+    submitter = StringField()
+    submittedon = DateTimeField(default=datetime.datetime.utcnow)
+    source = StringField()
+    filename = StringField()
+    suffix = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
+    metadata = DictField(default={})
+    cves = ListField()
+    group = StringField()
+    comment = StringField()
+    approval = StringField(
+        choices=(
+            ('REQUESTED', 'REQUESTED'),
+            ('PENDING_APPROVAL', 'PENDING_APPROVAL'),
+            ('APPROVED', 'APPROVED'),
+            ('IN_DATABASE', 'IN_DATABASE'),
+            ('DECLINED', 'DECLINED'),
+            ('INVALID', 'INVALID')
+        ),
+        default='REQUESTED'
+    )
+    entry = EmbeddedDocumentField(Hash)
+
+
 # All the models in the event something would like to grab them all
-MODELS = [Hash, Account]
+MODELS = [Hash, Account, Submission]
