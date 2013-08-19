@@ -21,11 +21,11 @@ application versions.
 import datetime
 import json
 
-from flask import Blueprint, Response, request
+from flask import Blueprint, Response, request, current_app
 from flask.ext.login import current_user
 
 from victims_web.cache import cache
-from victims_web.models import Hash
+from victims_web.models import Hash, Submission
 from victims_web.blueprints.helpers import check_for_auth
 
 
@@ -185,32 +185,31 @@ def cves(algorithm, arg):
         return error()
 
 
-@v2.route('/hash/<format>/<name>/<version>/', methods=['PUT'])
+@v2.route('/submit/<group>/', methods=['PUT'])
 @check_for_auth
-def submit(format, name, version):
+def submit(group):
     """
-    Allows for authenticated users to submit hashes.
-
-    :Parameters:
-       - `format`: The format of the archive.
-       - `name`: The name of the package.
-       - `version`: The version of the package.
+    Allows for authenticated users to submit hashes via json.
     """
+    allowed_groups = ['java', 'python']
+    user = '%s' % current_user.get_id()
     try:
+        if group not in allowed_groups:
+            raise ValueError('Invalid group specified')
         json_data = json.loads(request.data)
-        new_hash = Hash()
-        new_hash.name = name
-        new_hash.version = version
-        new_hash.format = format
-        new_hash.vendor = json_data['vendor']
-
-        cves = {}
-        for cve in json_data['cves']:
-            cves[cve] = datetime.datetime.utcnow()
-
-        new_hash.cves = cves
-        new_hash.submitter = current_user
-        new_hash.save()
-        return new_hash.jsonify(), 201
-    except:
+        if 'cves' not in json_data:
+            raise ValueError('No CVE provided')
+        submission = Submission()
+        submission.source = 'json-api'
+        submission.group = group
+        submission.submitter = user
+        submission.approval = 'PENDING_APPROVAL'
+        submission.entry = Hash()
+        submission.entry.load_json(user, json_data)
+        submission.validate()
+        submission.save()
+        return submission.entry.jsonify(), 201
+    except Exception as e:
+        current_app.logger.info('Invalid submission by %s' % (user))
+        current_app.logger.debug(e)
         return error()

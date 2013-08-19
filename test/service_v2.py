@@ -154,3 +154,38 @@ class TestServiceV2(FlaskTestCase):
         assert result['eol'] is None
         assert result['supported'] is True
         assert result['endpoint'] == '/service/v2/'
+
+    def login_tester(self):
+        import re
+        username = 'submissiontest'
+        password = 'f30Fw@@Do&itpHGFf'
+
+        resp = self.app.get('/register')
+        csrf_token = re.search(
+            '_csrf_token" value="([^"]*)">', resp.data).group(1)
+
+        form_data = {
+            'username': username,
+            'password': password,
+            'verify_password': password,
+            '_csrf_token': csrf_token
+        }
+
+        resp = self.app.post(
+            '/register', data=form_data, follow_redirects=False)
+
+        resp = self.app.post(
+            '/login', data=form_data, follow_redirects=False)
+
+        return resp.headers.to_list()
+
+    def test_json_submit_java(self):
+        headers = self.login_tester()
+
+        testhash = dict(combined="")
+        testhashes = dict(sha512=testhash)
+        testdata = dict(name="", hashes=testhashes, cves=['CVE-2013-0000'])
+        testdata = json.dumps(testdata)
+        resp = self.app.put('/service/v2/submit/java/', headers=headers,
+                            data=testdata, follow_redirects=True)
+        assert resp.status_code == 201
