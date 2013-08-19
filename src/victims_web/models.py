@@ -133,6 +133,29 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
 
         return JsonifyMixin.jsonify(self)
 
+    def load_json(self, submitter, json_data):
+        """
+        Load from json
+        """
+        fields = [
+            'name', 'version', 'format', 'vendor', 'hash', 'hashes', 'meta'
+        ]
+        field_names = {
+            'meta': 'metadata',
+        }
+        for field in fields:
+            key = field_names.get(field, field)
+            if field in json_data:
+                setattr(self, key, json_data[field])
+
+        cves = {}
+        for cve in json_data['cves']:
+            cves[cve] = datetime.datetime.utcnow()
+
+        self.cves = cves
+        self.submitter = submitter
+        self.submittedon = datetime.datetime.utcnow()
+
 
 class Submission(JsonifyMixin, ValidatedDocument):
     """
