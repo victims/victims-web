@@ -106,11 +106,13 @@ def submit_archive():
         if 'archive' in request.files.keys():
             archive = request.files['archive']
             try:
+                upload_dir = current_app.config['UPLOAD_FOLDER']
+                if not os.path.isdir(upload_dir):
+                    os.makedirs(upload_dir, 755)
                 suffix = archive.filename[archive.filename.rindex('.') + 1:]
                 if suffix in current_app.config['ALLOWED_EXTENSIONS']:
                     filename = secure_filename(archive.filename)
-                    archive.save(os.path.join(
-                        current_app.config['UPLOAD_FOLDER'], filename))
+                    archive.save(os.path.join(upload_dir, filename))
                     cves = {}
                     now = datetime.datetime.utcnow()
                     for cve in request.form['cves'].split(','):
@@ -133,6 +135,9 @@ def submit_archive():
                 flash('Not a valid archive type.', 'error')
             except ValidationError, ve:
                 flash(ve.message, 'error')
+            except os.error:
+                flash('Could not upload file due to a server side error',
+                      'error')
         else:
             flash('Unable to process the archive.', 'error')
     return render_template('submit_archive.html')
