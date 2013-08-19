@@ -38,8 +38,12 @@ from victims_web.user import User
 # Set up the application
 app = Flask('victims_web')
 
+log_dir = os.environ.get('VICTIMS_LOG_DIR', 'logs/')
+if not os.path.isdir(log_dir):
+    os.makedirs(log_dir)
+
 logging.basicConfig(
-    filename=os.environ.get('VICTIMS_LOG_DIR', 'logs/') + 'server.log',
+    filename=os.path.join(log_dir, 'server.log'),
     format='%(asctime)s - %(levelname)s: %(message)s',
     datefmt='%a %b %d %Y %H:%M:%S %Z',
     level=logging.DEBUG,
