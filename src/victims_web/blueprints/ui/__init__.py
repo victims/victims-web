@@ -108,6 +108,8 @@ def hash(hash):
 
 
 def submit(source, filename=None, suffix=None, cves=[], meta={}):
+    current_app.logger.debug('Submitting: (%s, %s, %s, %s)' %
+                             (source, filename, cves, meta))
     submission = Submission()
     submission.source = source
     if filename:
@@ -128,6 +130,7 @@ def get_upload_folder():
     """
     upload_dir = current_app.config['UPLOAD_FOLDER']
     if not os.path.isdir(upload_dir):
+        current_app.logger.info('Creating upload directory: %s' % (upload_dir))
         os.makedirs(upload_dir, 0755)
     return upload_dir
 
@@ -151,6 +154,9 @@ def upload_file(archive):
     sfilename = '%s-%s' % (str(uuid4()), filename)
     ondisk = os.path.join(upload_dir, sfilename)
     archive.save(ondisk)
+
+    current_app.logger.info(
+        'User %s has uploaded %s' % (login.current_user.username, filename))
 
     return (ondisk, filename, suffix)
 
@@ -207,8 +213,9 @@ def submit_archive():
             flash(ve.message, 'error')
         except ValidationError, ve:
             flash(ve.message, 'error')
-        except os.error:
+        except OSError, oe:
             flash('Could not upload file due to a server side error', 'error')
+            current_app.logger.debug(oe)
     return render_template('submit_archive.html', groups=_groups())
 
 
