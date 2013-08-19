@@ -108,7 +108,7 @@ def submit_archive():
             try:
                 upload_dir = current_app.config['UPLOAD_FOLDER']
                 if not os.path.isdir(upload_dir):
-                    os.makedirs(upload_dir, 755)
+                    os.makedirs(upload_dir, 0755)
                 suffix = archive.filename[archive.filename.rindex('.') + 1:]
                 if suffix in current_app.config['ALLOWED_EXTENSIONS']:
                     filename = secure_filename(archive.filename)
