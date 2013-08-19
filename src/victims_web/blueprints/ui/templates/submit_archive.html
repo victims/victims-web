@@ -3,17 +3,47 @@
 {% block content %}
 
 <form method="POST" enctype="multipart/form-data" action="{{ url_for('ui.submit_archive') }}">
-<table>
-  <tr>
-    <th>CVEs</th>
-    <td><input name="cves" /></td>
-  </tr>
-  <tr>
-    <th>Archive File</th>
-    <td><input name="archive" type="file" /></td>
-  </tr>
-<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-</table>
-<input type="submit" name="submit" value="Submit" />
+    <table>
+        <tr>
+            <th>CVEs</th>
+            <td><input name="cves" /></td>
+        </tr>
+        <tr>
+            <th>Archive File</th>
+            <td><input name="archive" type="file" /></td>
+        </tr>
+        <tr>
+            <th>Submission Type</th>
+            <td>
+                <select class="target" name="group">
+                    {% for group in groups %}
+                    <option value="{{ group }}">{{ group }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% for group in groups %}
+            {% for field in groups[group] %}
+        <tr class="{{ group }}" style="display: none;">
+            <th>{{ field }}</th>
+            <td><input name="{{group}}-{{field}}"></td>
+        </tr>
+            {% endfor %}
+        {% endfor %}
+
+        <script type=text/javascript>
+            $('select').change(function() { 
+                var group = "";
+                $('option').each(function() { 
+                    group = '.' + $(this).text();
+                    $(group).hide();
+                });
+                group = '.' + $('select option:selected').text();
+                $(group).show();
+            })
+        </script>
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    </table>
+    <input type="submit" name="submit" value="Submit" />
 </form>
 {% endblock %}

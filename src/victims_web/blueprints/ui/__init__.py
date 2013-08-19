@@ -18,9 +18,9 @@
 Main web ui.
 """
 
-import datetime
 import os.path
 import re
+from uuid import uuid4
 
 from flask import (
     Blueprint, current_app, render_template, helpers,
@@ -30,7 +30,7 @@ from werkzeug import secure_filename
 from flask.ext import login
 
 from victims_web.errors import ValidationError
-from victims_web.models import Hash
+from victims_web.models import Hash, Submission
 from victims_web.cache import cache
 
 
@@ -39,6 +39,16 @@ ui = Blueprint(
     template_folder='templates',
     static_folder='static',
     static_url_path='/static/')  # Last argument needed since we register on /
+
+
+submission_groups = {'---': []}
+
+
+def _groups():
+    if 'SUBMISSION_GROUPS' in current_app.config:
+        return current_app.config['SUBMISSION_GROUPS']
+    else:
+        return submission_groups
 
 
 def _is_hash(data):
@@ -97,50 +107,109 @@ def hash(hash):
     return redirect(url_for('ui.hashes'))
 
 
-# TODO: NEEDS TESTING WITH MONGOENGINE
+def submit(source, filename=None, suffix=None, cves=[], meta={}):
+    submission = Submission()
+    submission.source = source
+    if filename:
+        submission.filename = filename
+    if suffix:
+        submission.suffix = suffix.lower().capitalize()
+    submission.cves = cves
+    submission.metadata = meta
+    submission.submitter = login.current_user.username
+    submission.validate()
+    submission.save()
+
+
+def get_upload_folder():
+    """
+    Helper methed to fetch configured upload directory. If the directory does
+    not exist, it is created.
+    """
+    upload_dir = current_app.config['UPLOAD_FOLDER']
+    if not os.path.isdir(upload_dir):
+        os.makedirs(upload_dir, 0755)
+    return upload_dir
+
+
+def upload_file(archive):
+    """
+    Given a FileStorage object, the file is securely uploaded to the server
+    to the configured upload directory. A random prefix is added to the
+    filename.
+    """
+    if len(archive.filename) == 0:
+        raise ValueError('No archive provided')
+
+    upload_dir = get_upload_folder()
+
+    suffix = archive.filename[archive.filename.rindex('.') + 1:]
+    if suffix not in current_app.config['ALLOWED_EXTENSIONS']:
+        raise ValueError('Invalid archive: %s' % (archive.filename))
+
+    filename = secure_filename(archive.filename)
+    sfilename = '%s-%s' % (str(uuid4()), filename)
+    ondisk = os.path.join(upload_dir, sfilename)
+    archive.save(ondisk)
+
+    return (ondisk, filename, suffix)
+
+
+def process_metadata():
+    """
+    Process any group specific metadata that was provided in the submission
+    form.
+    """
+    meta = {}
+    group = request.form['group'].strip()
+    current_groups = _groups()
+    if group in current_groups:
+        for field in current_groups[group]:
+            name = '%s-%s' % (group, field)
+            if name in request.form:
+                value = request.form[name].strip()
+                if len(value) > 0:
+                    meta[field] = value
+    return meta
+
+
 @ui.route('/submit_archive/', methods=['GET', 'POST'])
 @login.login_required
 def submit_archive():
     # If a file is submitted
     if request.method == "POST":
-        if 'archive' in request.files.keys():
-            archive = request.files['archive']
-            try:
-                upload_dir = current_app.config['UPLOAD_FOLDER']
-                if not os.path.isdir(upload_dir):
-                    os.makedirs(upload_dir, 0755)
-                suffix = archive.filename[archive.filename.rindex('.') + 1:]
-                if suffix in current_app.config['ALLOWED_EXTENSIONS']:
-                    filename = secure_filename(archive.filename)
-                    archive.save(os.path.join(upload_dir, filename))
-                    cves = {}
-                    now = datetime.datetime.utcnow()
-                    for cve in request.form['cves'].split(','):
-                        cves[cve] = now
-                    new_hash = Hash()
-                    new_hash.name = filename
-#                    new_hash.date = datetime.datetime.utcnow()
-                    new_hash.version = '1.0.0'
-                    new_hash.format = suffix.lower().capitalize()
-                    new_hash.cves = cves
-                    new_hash.status = 'SUBMITTED'
-                    new_hash.submitter = login.current_user.username
-                    new_hash.hashes = {}
-                    new_hash.validate()
-                    new_hash.save()
-                    flash('Archive Submitted for processing', 'info')
-                else:
-                    raise ValueError('No suffix')
-            except ValueError:
-                flash('Not a valid archive type.', 'error')
-            except ValidationError, ve:
-                flash(ve.message, 'error')
-            except os.error:
-                flash('Could not upload file due to a server side error',
-                      'error')
-        else:
-            flash('Unable to process the archive.', 'error')
-    return render_template('submit_archive.html')
+        try:
+            cve_field = request.form['cves'].strip()
+            if len(cve_field) == 0:
+                raise ValueError('No CVE provided')
+            cves = []
+            for cve in cve_field.split(','):
+                cve = cve.strip().upper()
+                if re.match('^CVE-\d+-\d+$', cve) is None:
+                    raise ValueError('Invalid CVE provided: "%s"' % (cve))
+                cves.append(cve)
+
+            if 'archive' in request.files:
+                try:
+                    (ondisk, filename, suffix) = upload_file(
+                        request.files['archive'])
+                except Exception, e:
+                    # TODO: implement maven/pypi fetch
+                    raise e
+            else:
+                raise ValueError('Archive not submitted')
+
+            meta = process_metadata()
+
+            submit(ondisk, filename, suffix, cves, meta)
+            flash('Archive Submitted for processing', 'info')
+        except ValueError, ve:
+            flash(ve.message, 'error')
+        except ValidationError, ve:
+            flash(ve.message, 'error')
+        except os.error:
+            flash('Could not upload file due to a server side error', 'error')
+    return render_template('submit_archive.html', groups=_groups())
 
 
 @ui.route('/<page>.html', methods=['GET'])
