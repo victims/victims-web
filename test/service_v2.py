@@ -179,6 +179,9 @@ class TestServiceV2(FlaskTestCase):
 
         return resp.headers.to_list()
 
+    def logout_tester(self):
+        self.app.get('/logout')
+
     def json_submit(self, group, headers, status_code=201):
         testhash = dict(combined="")
         testhashes = dict(sha512=testhash)
@@ -186,7 +189,6 @@ class TestServiceV2(FlaskTestCase):
         testdata = json.dumps(testdata)
         resp = self.app.put('/service/v2/submit/java/', headers=headers,
                             data=testdata, follow_redirects=True)
-        print('DEBUG: Got status_code ' + str(resp.status_code))
         assert resp.status_code == status_code
 
     def test_java_submission_authenticated(self):
@@ -194,4 +196,5 @@ class TestServiceV2(FlaskTestCase):
         self.json_submit('java', headers, 201)
 
     def test_java_submission_anon(self):
+        self.logout_tester()
         self.json_submit('java', [], 401)
