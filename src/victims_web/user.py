@@ -48,8 +48,8 @@ def authenticate(username, password):
     return False
 
 
-def generate_signature(apikey, method, path, content_type, date, data_md5=''):
-    ordered = [method, path, content_type, date]
+def generate_signature(apikey, method, path, content_type, date, data_md5):
+    ordered = [method, path, content_type, date, data_md5]
     string = ''
     for content in ordered:
         if content is None:
