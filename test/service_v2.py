@@ -19,8 +19,12 @@ Service version 2 testing.
 """
 
 import json
+from datetime import datetime
+from hashlib import md5
 
 from test import UserTestCase
+from victims_web.models import Account
+from victims_web.user import generate_signature
 
 
 class TestServiceV2(UserTestCase):
@@ -155,12 +159,23 @@ class TestServiceV2(UserTestCase):
         assert result['supported'] is True
         assert result['endpoint'] == '/service/v2/'
 
-    def json_submit(self, group, status_code=201):
+    def json_submit(self, group, status_code=403, apikey=None, secret=None):
         testhash = dict(combined="")
         testhashes = dict(sha512=testhash)
         testdata = dict(name="", hashes=testhashes, cves=['CVE-2013-0000'])
         testdata = json.dumps(testdata)
-        resp = self.app.put('/service/v2/submit/java/', data=testdata,
+        path = '/service/v2/submit/%s/' % (group)
+        content_type = 'application/json'
+        date = datetime.utcnow().isoformat()
+        headers = [
+            ('Content-Type', content_type),
+            ('Date', date),
+        ]
+        if apikey is not None and secret is not None:
+            signature = generate_signature(
+                apikey, 'PUT', path, content_type, date, md5(testdata))
+            headers.append(('Victims-Api', '%s:%s' % (apikey, signature)))
+        resp = self.app.put(path, headers=headers, data=testdata,
                             follow_redirects=True)
         assert resp.status_code == status_code
 
@@ -171,13 +186,12 @@ class TestServiceV2(UserTestCase):
         username = 'submissiontest'
         password = 'f30Fw@@Do&itpHGFf'
         self._create_user(username, password, password)
-        self._login(username, password)
-        self.json_submit('java', 201)
+        user = Account.objects(username=username).first()
+        self.json_submit('java', 201, user.apikey, user.secret)
         self._logout()
 
-    def _test_java_submission_anon(self):
+    def test_java_submission_anon(self):
         """
-        Verfieis that an unauthenticated user cannot submit via the JSON API
+        Verfies that an unauthenticated user cannot submit via the JSON API
         """
-        self._logout()
-        self.json_submit('java', 401)
+        self.json_submit('java', 403)

@@ -22,11 +22,11 @@ import datetime
 import json
 
 from flask import Blueprint, Response, request, current_app
-from flask.ext.login import current_user, login_required
+from flask.ext.login import current_user
 
 from victims_web.cache import cache
 from victims_web.models import Hash, Submission
-from victims_web.blueprints.helpers import check_for_auth
+from victims_web.blueprints.helpers import check_api_auth
 
 
 v2 = Blueprint('service_v2', __name__)
@@ -186,8 +186,7 @@ def cves(algorithm, arg):
 
 
 @v2.route('/submit/<group>/', methods=['PUT'])
-@login_required
-@check_for_auth
+@check_api_auth
 def submit(group):
     """
     Allows for authenticated users to submit hashes via json.
