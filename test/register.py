@@ -21,6 +21,7 @@ Tests for registration.
 import re
 
 from test import UserTestCase
+from victims_web.models import Account
 
 
 class TestRegister(UserTestCase):
@@ -122,3 +123,13 @@ class TestRegister(UserTestCase):
         assert resp.status_code == 302
         assert resp.location == 'http://localhost/'
         self.app.get('/logout', follow_redirects=True)
+
+    def test_api_generation(self):
+        """
+        Makes sure api keys are generated on registration
+        """
+        resp = self._create_user('apiuser', 'this_/is_OUR_secret')
+        assert resp.status_code == 302
+
+        user = Account.objects(username='apiuser').first()
+        assert len(user.apikey) == 32 and len(user.secret) == 40
