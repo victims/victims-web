@@ -127,7 +127,7 @@ class TestRegister(FlaskTestCase):
         for item in ['username', 'password', 'verify_password']:
             resp = try_to_create_user(item)
             assert resp.status_code == 200
-            assert 'Missing information.' in resp.data
+            assert ' is required' in resp.data
 
     def test_good_registration(self):
         """
