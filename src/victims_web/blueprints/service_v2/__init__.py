@@ -193,7 +193,7 @@ def submit(group):
     Allows for authenticated users to submit hashes via json.
     """
     allowed_groups = ['java', 'python']
-    user = '%s' % current_user.get_id()
+    user = '%s' % current_user
     try:
         if group not in allowed_groups:
             raise ValueError('Invalid group specified')

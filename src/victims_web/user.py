@@ -115,20 +115,33 @@ class User(object):
         self.__active = user_obj.active
         self.__endorsements = user_obj.endorsements
 
-    def is_authenticated(self):
+    @property
+    def authenticated(self):
         return self.__authenticated
 
-    def is_active(self):
+    @property
+    def active(self):
         return self.__active
 
+    @property
+    def endorsements(self):
+        return self.__endorsements
+
+    @property
+    def username(self):
+        return self.__username
+
+    def is_authenticated(self):
+        return self.authenticated
+
     def is_anonymous(self):
-        return not self.__authenticated
+        return not self.authenticated
+
+    def is_active(self):
+        return self.active
 
     def get_id(self):
         return unicode(self.__username)
-
-    def endorsements(self):
-        return self.__endorsements
 
     def has_endorsement(self, name):
         return name in self.__endorsements
@@ -136,10 +149,9 @@ class User(object):
     def __repr__(self):
         if self.is_anonymous():
             return '<User: Anonymous>'
-        return '<User: username="%s">' % self.__username
+        return '<User: username="%s">' % (self.username)
 
-    # Read-only properties
-    username = property(lambda s: s.__username)
-    endorsements = property(lambda s: s.__endorsements)
-    active = property(lambda s: s.__active)
-    authenticated = property(lambda s: s.__authenticated)
+    def __str__(self):
+        if self.is_anonymous():
+            return 'Anonymous'
+        return self.username
