@@ -17,14 +17,26 @@
 """
 User related functions.
 """
-from flask import redirect, url_for, current_app
+from hmac import HMAC
+from uuid import uuid4
+from hashlib import md5, sha512
 
-from flask.ext.login import current_user
+from flask import redirect, request, url_for, current_app
+
+from flask.ext.login import current_user, make_secure_token
 from flask.ext.bcrypt import check_password_hash, generate_password_hash
 
 from victims_web.models import Account
 
+
 # Helper functions
+def generate_client_secret(apikey):
+    return make_secure_token(apikey).upper()
+
+
+def generate_apikey(username):
+    apikey = HMAC(uuid4().hex, username).hexdigest()
+    return apikey.upper()
 
 
 def authenticate(username, password):
@@ -33,6 +45,42 @@ def authenticate(username, password):
         if check_password_hash(user.password, password):
             return True
     return False
+
+
+def generate_signature(apikey, method, path, content_type, date, data_md5=''):
+    ordered = [method, path, content_type, date]
+    string = ''
+    for content in ordered:
+        if content is None:
+            raise ValueError('Required header not found')
+        string += str(content)
+
+    user = Account.objects(apikey=apikey).first()
+    if user is None:
+        raise ValueError('Invalid apikey')
+    if user.secret is None:
+        raise ValueError('No client secret known')
+
+    return HMAC(string.lower(), user.secret, sha512).hexdigest().upper()
+
+
+def validate_signature():
+    if 'Victims-Api' not in request.headers:
+        return False
+
+    (apikey, signature) = request.headers['VICTIMS-API'].strip().split(':')
+
+    # date format %Y-%m-%dT%H:%M:%S.%f
+    try:
+        expected = generate_signature(
+            apikey, request.method, request.path,
+            request.headers['Content-Type'],
+            request.headers['Date'],
+            md5(request.data)
+        )
+        return signature.upper() == expected
+    except:
+        return False
 
 
 def create_user(username, password, endorsements=[], email=None):
@@ -51,6 +99,10 @@ def create_user(username, password, endorsements=[], email=None):
     new_user.endorsements = all_endorsements
     new_user.active = True
 
+    new_user.apikey = generate_apikey(username)
+    new_user.secret = generate_client_secret(new_user.apikey)
+
+    new_user.validate()
     new_user.save()
 
     return User(username)

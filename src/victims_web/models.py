@@ -93,6 +93,9 @@ class Account(ValidatedDocument):
     lastlogin = DateTimeField(default=datetime.datetime.utcnow)
     lastip = StringField()
     email = EmailField()
+    apikey = StringField(min_length=32, max_length=32)
+    secret = StringField(min_length=40, max_length=40)
+    lastapi = DateTimeField(default=None)
 
     def __str__(self):
         return str(self.username)
