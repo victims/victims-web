@@ -20,7 +20,7 @@ Helpers that can be reused in blueprints.
 
 from functools import wraps
 from flask import current_app, request
-from victims_web.user import authenticate
+from victims_web.user import authenticate, validate_signature
 
 
 def check_for_auth(view):
@@ -39,6 +39,32 @@ def check_for_auth(view):
                 request.authorization.password)
             if not valid:
                 return 'Forbidden', 403
+        return view(*args, **kwargs)
+
+    return decorated
+
+
+def check_api_auth(view):
+    """
+    Checks for a valid signature in api request. If VICTIMS-API header is not
+    present, we try basic auth. If neither is valid, we return a 403.
+    """
+
+    @wraps(view)
+    def decorated(*args, **kwargs):
+        valid = False
+        valid = validate_signature()
+
+        if not valid and request.authorization:
+            # fallback to basic auth
+            valid = authenticate(
+                current_app,
+                request.authorization.username,
+                request.authorization.password)
+
+        if not valid:
+            return 'Forbidden', 403
+
         return view(*args, **kwargs)
 
     return decorated
