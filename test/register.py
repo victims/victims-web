@@ -21,17 +21,26 @@ Tests for registration.
 import re
 
 from test import FlaskTestCase
+from victims_web.user import delete_user
 
 
 class TestRegister(FlaskTestCase):
     """
     Tests user registration.
     """
+    _created_users = []
+
+    def tearDown(self):
+        for username in self._created_users:
+            delete_user(username)
 
     def _create_user(self, username, password, password_confirm=None):
         """
         Shortcut for creating users.
         """
+        if username not in self._created_users:
+            self._created_users.append(username)
+
         if not password_confirm:
             password_confirm = password
 
@@ -43,7 +52,7 @@ class TestRegister(FlaskTestCase):
             'username': username,
             'password': password,
             'verify_password': password_confirm,
-            '_csrf_token': csrf_token
+            '_csrf_token': csrf_token,
         }
         resp = self.app.post(
             '/register', data=form_data, follow_redirects=False)
