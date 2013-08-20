@@ -166,7 +166,7 @@ class TestServiceV2(UserTestCase):
         testdata = json.dumps(testdata)
         path = '/service/v2/submit/%s/' % (group)
         content_type = 'application/json'
-        date = datetime.utcnow().isoformat()
+        date = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
         headers = [
             ('Content-Type', content_type),
             ('Date', date),

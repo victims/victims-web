@@ -20,6 +20,7 @@ User related functions.
 from hmac import HMAC
 from uuid import uuid4
 from hashlib import md5, sha512
+from time import strptime, mktime
 from datetime import datetime, timedelta
 
 from flask import redirect, request, url_for, current_app
@@ -73,8 +74,8 @@ def validate_signature():
 
     try:
         (apikey, signature) = request.headers['Victims-Api'].strip().split(':')
-        request_date = datetime.strptime(
-            request.headers['Date'], '%Y-%m-%dT%H:%M:%S.%f')
+        t = strptime(request.headers['Date'], '%a, %d %b %Y %H:%M:%S %Z')
+        request_date = datetime.fromtimestamp(mktime(t))
         delta = datetime.utcnow() - request_date
         if delta > timedelta(minutes=expiry) or delta < timedelta(0):
             return False
