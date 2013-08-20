@@ -35,12 +35,14 @@ def authenticate(username, password):
     return False
 
 
-def create_user(username, password, endorsements=[]):
+def create_user(username, password, endorsements=[], email=None):
     passhash = generate_password_hash(
         password, current_app.config['BCRYPT_LOG_ROUNDS'])
     new_user = Account()
     new_user.username = username
     new_user.password = passhash
+    if email is not None:
+        new_user.email = email.strip()
 
     all_endorsements = {}
     for end in endorsements:

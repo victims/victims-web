@@ -26,7 +26,8 @@ from bson.dbref import DBRef
 
 from flask.ext.mongoengine import Document
 from mongoengine import (StringField, DateTimeField, DictField, BooleanField,
-                         EmbeddedDocument, EmbeddedDocumentField, ListField)
+                         EmbeddedDocument, EmbeddedDocumentField, ListField,
+                         EmailField)
 
 
 class ValidatedDocument(Document):
@@ -91,6 +92,7 @@ class Account(ValidatedDocument):
     createdon = DateTimeField(default=datetime.datetime.utcnow)
     lastlogin = DateTimeField(default=datetime.datetime.utcnow)
     lastip = StringField()
+    email = EmailField()
 
     def __str__(self):
         return str(self.username)
