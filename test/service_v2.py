@@ -165,6 +165,9 @@ class TestServiceV2(UserTestCase):
         assert resp.status_code == status_code
 
     def test_java_submission_authenticated(self):
+        """
+        Verifies that an authenticated user can submit entries via the JSON API
+        """
         username = 'submissiontest'
         password = 'f30Fw@@Do&itpHGFf'
         self._create_user(username, password, password)
@@ -172,6 +175,9 @@ class TestServiceV2(UserTestCase):
         self.json_submit('java', 201)
         self._logout()
 
-    def test_java_submission_anon(self):
+    def _test_java_submission_anon(self):
+        """
+        Verfieis that an unauthenticated user cannot submit via the JSON API
+        """
         self._logout()
         self.json_submit('java', 401)
