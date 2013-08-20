@@ -20,10 +20,10 @@ Tests for logins.
 
 import re
 
-from test import FlaskTestCase
+from test import UserTestCase
 
 
-class TestLogin(FlaskTestCase):
+class TestLogin(UserTestCase):
     """
     Tests user login.
     """
@@ -33,23 +33,6 @@ class TestLogin(FlaskTestCase):
         Issue a logout on every test.
         """
         self.app.get('/logout', follow_redirects=True)
-
-    def _login(self, username, password):
-        """
-        Shortcut for logging a user in.
-        """
-        resp = self.app.get('/login')
-        csrf_token = re.search(
-            '_csrf_token" value="([^"]*)">', resp.data).group(1)
-
-        form_data = {
-            'username': username,
-            'password': password,
-            '_csrf_token': csrf_token
-        }
-        resp = self.app.post(
-            '/login', data=form_data, follow_redirects=False)
-        return resp
 
     def test_unknown_username(self):
         """

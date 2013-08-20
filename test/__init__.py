@@ -19,8 +19,10 @@ Unittesting.
 """
 
 import unittest
+import re
 
 from victims_web import application
+from victims_web.user import delete_user
 
 
 class FlaskTestCase(unittest.TestCase):
@@ -28,3 +30,62 @@ class FlaskTestCase(unittest.TestCase):
     def setUp(self):
         application.app.config['TESTING'] = True
         self.app = application.app.test_client()
+
+
+class UserTestCase(FlaskTestCase):
+
+    _created_users = []
+
+    def tearDown(self):
+        for username in self._created_users:
+            delete_user(username)
+
+    def _login(self, username, password):
+        """
+        Shortcut for logging a user in.
+        """
+        resp = self.app.get('/login')
+        if resp.status_code == 302:
+            return resp
+
+        csrf_token = re.search(
+            '_csrf_token" value="([^"]*)">', resp.data).group(1)
+
+        form_data = {
+            'username': username,
+            'password': password,
+            '_csrf_token': csrf_token
+        }
+        resp = self.app.post(
+            '/login', data=form_data, follow_redirects=False)
+        return resp
+
+    def _logout(self):
+        """
+        Shortcut for logging a user out
+        """
+        self.app.get('/logout', follow_redirects=True)
+
+    def _create_user(self, username, password, password_confirm=None):
+        """
+        Shortcut for creating users.
+        """
+        if username not in self._created_users:
+            self._created_users.append(username)
+
+        if not password_confirm:
+            password_confirm = password
+
+        resp = self.app.get('/register')
+        csrf_token = re.search(
+            '_csrf_token" value="([^"]*)">', resp.data).group(1)
+
+        form_data = {
+            'username': username,
+            'password': password,
+            'verify_password': password_confirm,
+            '_csrf_token': csrf_token,
+        }
+        resp = self.app.post(
+            '/register', data=form_data, follow_redirects=False)
+        return resp

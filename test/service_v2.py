@@ -20,10 +20,10 @@ Service version 2 testing.
 
 import json
 
-from test import FlaskTestCase
+from test import UserTestCase
 
 
-class TestServiceV2(FlaskTestCase):
+class TestServiceV2(UserTestCase):
     """
     Tests for version 2 of the web service.
     """
@@ -155,46 +155,23 @@ class TestServiceV2(FlaskTestCase):
         assert result['supported'] is True
         assert result['endpoint'] == '/service/v2/'
 
-    def login_tester(self):
-        import re
-        username = 'submissiontest'
-        password = 'f30Fw@@Do&itpHGFf'
-
-        resp = self.app.get('/register')
-        csrf_token = re.search(
-            '_csrf_token" value="([^"]*)">', resp.data).group(1)
-
-        form_data = {
-            'username': username,
-            'password': password,
-            'verify_password': password,
-            '_csrf_token': csrf_token
-        }
-
-        resp = self.app.post(
-            '/register', data=form_data, follow_redirects=False)
-
-        resp = self.app.post(
-            '/login', data=form_data, follow_redirects=False)
-
-        return resp.headers.to_list()
-
-    def logout_tester(self):
-        self.app.get('/logout')
-
-    def json_submit(self, group, headers, status_code=201):
+    def json_submit(self, group, status_code=201):
         testhash = dict(combined="")
         testhashes = dict(sha512=testhash)
         testdata = dict(name="", hashes=testhashes, cves=['CVE-2013-0000'])
         testdata = json.dumps(testdata)
-        resp = self.app.put('/service/v2/submit/java/', headers=headers,
-                            data=testdata, follow_redirects=True)
+        resp = self.app.put('/service/v2/submit/java/', data=testdata,
+                            follow_redirects=True)
         assert resp.status_code == status_code
 
     def test_java_submission_authenticated(self):
-        headers = self.login_tester()
-        self.json_submit('java', headers, 201)
+        username = 'submissiontest'
+        password = 'f30Fw@@Do&itpHGFf'
+        self._create_user(username, password, password)
+        self._login(username, password)
+        self.json_submit('java', 201)
+        self._logout()
 
     def test_java_submission_anon(self):
-        self.logout_tester()
-        self.json_submit('java', [], 401)
+        self._logout()
+        self.json_submit('java', 401)
