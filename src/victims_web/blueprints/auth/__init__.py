@@ -127,7 +127,7 @@ def register_user():
             validate_username()
             validate_password()
 
-            email = request.form['email'].strip()
+            email = request.form.get('email', '').strip()
             email = None if len(email) == 0 else email
             user = create_user(
                 request.form['username'],
