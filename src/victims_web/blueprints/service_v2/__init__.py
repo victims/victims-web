@@ -22,7 +22,7 @@ import datetime
 import json
 
 from flask import Blueprint, Response, request, current_app
-from flask.ext.login import current_user
+from flask.ext.login import current_user, login_required
 
 from victims_web.cache import cache
 from victims_web.models import Hash, Submission
@@ -186,6 +186,7 @@ def cves(algorithm, arg):
 
 
 @v2.route('/submit/<group>/', methods=['PUT'])
+@login_required
 @check_for_auth
 def submit(group):
     """

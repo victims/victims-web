@@ -179,13 +179,18 @@ class TestServiceV2(FlaskTestCase):
 
         return resp.headers.to_list()
 
-    def test_json_submit_java(self):
-        headers = self.login_tester()
-
+    def json_submit(self, group, headers, status_code=201):
         testhash = dict(combined="")
         testhashes = dict(sha512=testhash)
         testdata = dict(name="", hashes=testhashes, cves=['CVE-2013-0000'])
         testdata = json.dumps(testdata)
         resp = self.app.put('/service/v2/submit/java/', headers=headers,
                             data=testdata, follow_redirects=True)
-        assert resp.status_code == 201
+        assert resp.status_code == status_code
+
+    def test_java_submission_authenticated(self):
+        headers = self.login_tester()
+        self.json_submit('java', headers, 201)
+
+    def test_java_submission_anon(self):
+        self.json_submit('java', [], 401)
