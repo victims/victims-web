@@ -69,12 +69,14 @@ def validate_signature():
     if 'Victims-Api' not in request.headers:
         return False
 
+    expiry = current_app.config.get('API_REQUEST_EXPIRY_MINS', 3)
+
     try:
         (apikey, signature) = request.headers['Victims-Api'].strip().split(':')
         request_date = datetime.strptime(
             request.headers['Date'], '%Y-%m-%dT%H:%M:%S.%f')
         delta = datetime.utcnow() - request_date
-        if delta > timedelta(minutes=3) or delta < timedelta(0):
+        if delta > timedelta(minutes=expiry) or delta < timedelta(0):
             return False
         expected = generate_signature(
             apikey, request.method, request.path,
