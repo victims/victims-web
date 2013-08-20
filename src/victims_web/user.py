@@ -56,6 +56,11 @@ def create_user(username, password, endorsements=[], email=None):
     return User(username)
 
 
+def delete_user(username):
+    for account in Account.objects(username=username):
+        account.delete()
+
+
 def endorsements_required(endorsements, always_allow=['admin']):
     """
     Enforces required endorsements.
