@@ -167,7 +167,7 @@ class Submission(JsonifyMixin, ValidatedDocument):
     submittedon = DateTimeField(default=datetime.datetime.utcnow)
     source = StringField()
     filename = StringField()
-    suffix = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
+    format = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
     metadata = DictField(default={})
     cves = ListField()
     group = StringField()

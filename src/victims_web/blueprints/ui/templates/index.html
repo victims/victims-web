@@ -4,15 +4,15 @@
 <div class="main">
   <p class="fat">
     <span class="huge"><a href="{{ url_for('.hashes') }}">{{ hashes }}</a></span> unique hashes
-    (<span class="huge">{{ pending }}</span> pending review).
+    (<span class="huge">{{ submitted }}</span> submitted, <span class="huge">{{ pending }}</span> pending)
   </p>
   <p class="fat">
-    <span class="huge"><a href="{{ url_for('.hashes', format='Jar') }}">{{ jars }}</a></span> JAR hashes
-    (<span class="huge">{{ pending_jars }}</span> pending review).
+    <span class="huge"><a href="{{ url_for('.hashes', format='Jar') }}">{{ hashes_jars }}</a></span> JAR hashes
+    (<span class="huge">{{ submitted_jars }}</span> submitted, <span class="huge">{{ pending_jars }}</span> pending)
   </p>
   <p class="fat">
-    <span class="huge"><a href="{{ url_for('.hashes', format='Egg') }}">{{ eggs }}</a></span> EGG hashes
-    (<span class="huge">{{ pending_eggs }}</span> pending review).
+    <span class="huge"><a href="{{ url_for('.hashes', format='Egg') }}">{{ hashes_eggs }}</a></span> EGG hashes
+    (<span class="huge">{{ submitted_eggs }}</span> submitted, <span class="huge">{{ pending_eggs }}</span> pending)
   </p>
 </div>
 {% endblock %}

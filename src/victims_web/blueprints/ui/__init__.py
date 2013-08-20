@@ -68,17 +68,22 @@ def index():
         """
         Caching results via inner function.
         """
-        released = Hash.objects(status='RELEASED')
-        submitted = Hash.objects(status='SUBMITTED')
+        stats = {}
+        stats['hashes'] = Hash.objects(status='RELEASED')
+        stats['submitted'] = Submission.objects(approval='REQUESTED')
+        stats['pending'] = Submission.objects(approval='PENDING_APPROVAL')
 
-        return {
-            'hashes': len(released),
-            'pending': len(submitted),
-            'jars': len(released.filter(format='Jar')),
-            'pending_jars': len(submitted.filter(format='Jar')),
-            'eggs': len(released.filter(format='Egg')),
-            'pending_eggs': len(submitted.filter(format='Egg')),
-        }
+        # Generate counts for objects and for each format
+        # data will contain hashes, hashes_jars, hashes_eggs etc.
+        data = {}
+        formats = ['Jar', 'Egg']
+        for key in stats:
+            data[key.lower()] = len(stats[key])
+            for fmt in formats:
+                entry = '%s_%ss' % (key.lower(), fmt.lower())
+                data[entry] = len(stats[key].filter(format=fmt))
+
+        return data
 
     return render_template('index.html', **get_data())
 
@@ -115,7 +120,7 @@ def submit(source, filename=None, suffix=None, cves=[], meta={}):
     if filename:
         submission.filename = filename
     if suffix:
-        submission.suffix = suffix.lower().capitalize()
+        submission.format = suffix.title()
     submission.cves = cves
     submission.metadata = meta
     submission.submitter = login.current_user.username
