@@ -186,6 +186,7 @@ class TestServiceV2(FlaskTestCase):
         testdata = json.dumps(testdata)
         resp = self.app.put('/service/v2/submit/java/', headers=headers,
                             data=testdata, follow_redirects=True)
+        print('DEBUG: Got status_code ' + str(resp.status_code))
         assert resp.status_code == status_code
 
     def test_java_submission_authenticated(self):
