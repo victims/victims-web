@@ -20,4 +20,5 @@
         </tr>
     </table>
     <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <a href="{{ url_for('auth.user_edit') }}"><input type="button" name="edit" value="Edit" /></a>
 {% endblock %}

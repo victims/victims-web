@@ -52,6 +52,12 @@ def generate_apikey(username):
     return apikey.upper()
 
 
+def generate_api_tokens(username):
+    apikey = generate_apikey(username)
+    secret = generate_client_secret(apikey)
+    return (apikey, secret)
+
+
 def authenticate(username, password):
     user = get_account(str(username))
     if user:
@@ -107,9 +113,13 @@ def validate_signature():
         return False
 
 
-def create_user(username, password, endorsements=[], email=None):
-    passhash = generate_password_hash(
+def make_password_hash(password):
+    return generate_password_hash(
         password, current_app.config['BCRYPT_LOG_ROUNDS'])
+
+
+def create_user(username, password, endorsements=[], email=None):
+    passhash = make_password_hash(password)
     new_user = Account()
     new_user.username = username
     new_user.password = passhash

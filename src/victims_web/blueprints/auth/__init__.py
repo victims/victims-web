@@ -26,7 +26,8 @@ from flask.ext import login
 from recaptcha.client import captcha
 from mongoengine import ValidationError
 
-from victims_web.user import authenticate, create_user, User, get_account
+from victims_web.user import (authenticate, create_user, User, get_account,
+                              make_password_hash, generate_api_tokens)
 from victims_web.models import Account
 
 auth = Blueprint('auth', __name__, template_folder='templates')
@@ -72,7 +73,7 @@ def user_account():
     return render_template('account.html', **content)
 
 
-def validate_password():
+def validate_password(username=None):
     # Password checks to make sure they are at least somewhat sane
     for char in request.form['password']:
         cnt = request.form['password'].count(char)
@@ -80,7 +81,9 @@ def validate_password():
             raise ValueError((
                 'You can not use the same '
                 'char for more than 30% of the password'))
-        if request.form['password'] == request.form['username']:
+        if not username:
+            username = request.form['username']
+        if request.form['password'] == username:
             raise ValueError(
                 'Password can not be the same as the username.')
         if len(request.form['password']) <= 8:
@@ -105,6 +108,50 @@ def validate_captcha():
         )
         if not response.is_valid:
             raise ValueError('Captcha did not match.')
+
+
+@auth.route('/account_edit', methods=['GET', 'POST'])
+@login.login_required
+def user_edit():
+    if request.method == 'POST':
+        try:
+            password = request.form['current_password']
+            if len(password.strip()) == 0:
+                raise ValueError('Please enter your current password')
+
+            if not authenticate(login.current_user.username, password):
+                raise ValueError('Wrong password')
+
+            account = get_account(login.current_user.username)
+
+            if request.form.get('change_password', 'off') == 'on':
+                validate_password(account.username)
+                account.password = make_password_hash(request.form['password'])
+
+            if request.form.get('change_email', 'off') == 'on':
+                account.email = request.form['email'].strip()
+
+            if request.form.get('regenerate', 'off') == 'on':
+                (apikey, secret) = generate_api_tokens(account.username)
+                account.apikey = apikey
+                account.secret = secret
+
+            account.validate()
+            account.save()
+            flash('Account information was successfully updated!',
+                  category='info')
+            return redirect(url_for('auth.user_account'))
+        except ValueError as ve:
+            flash(ve.message, category='error')
+        except ValidationError as ve:
+            invalids = ','.join([f.title() for f in ve.errors.keys()])
+            msg = 'Invalid: %s' % (invalids)
+            flash(msg, category='error')
+        except Exception as ex:
+            current_app.logger.info(ex)
+            flash('An unknown error has occured.', category='error')
+
+    return render_template('account_edit.html')
 
 
 @auth.route("/register", methods=['GET', 'POST'])
