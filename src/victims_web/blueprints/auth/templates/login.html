@@ -2,9 +2,17 @@
 
 {% block content %}
 <form method="POST">
-<p>Username: <input name="username" /></p>
-<p>Password: <input name="password" type="password" /></p>
-<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-<p><input type="submit" value="Submit"/></p>
+    <table>
+        <tr>
+            <th>Username: </th>
+            <td><input name="username" required></td>
+        </tr>
+        <tr>
+            <th>Password: </th>
+            <td><input name="password" type="password" required></td>
+        </tr>
+    </table>
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <p><input type="submit" value="Submit"/></p>
 </form>
 {% endblock %}
