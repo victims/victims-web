@@ -24,12 +24,10 @@ from flask import (
 
 from flask.ext import login
 from recaptcha.client import captcha
+from mongoengine import ValidationError
 
 from victims_web.user import authenticate, create_user, User
 from victims_web.models import Account
-
-from victims_web import errors
-
 
 auth = Blueprint('auth', __name__, template_folder='templates')
 
@@ -66,21 +64,21 @@ def validate_password():
     for char in request.form['password']:
         cnt = request.form['password'].count(char)
         if cnt / float(len(request.form['password'])) > 0.3:
-            raise errors.ValidationError((
+            raise ValueError((
                 'You can not use the same '
                 'char for more than 30% of the password'))
         if request.form['password'] == request.form['username']:
-            raise errors.ValidationError(
+            raise ValueError(
                 'Password can not be the same as the username.')
         if len(request.form['password']) <= 8:
-            raise errors.ValidationError('Password to simple.')
+            raise ValueError('Password to simple.')
         if request.form['password'] != request.form['verify_password']:
-            raise errors.ValidationError('Passwords do not match.')
+            raise ValueError('Passwords do not match.')
 
 
 def validate_username():
     if Account.objects(username=request.form['username']).first():
-        raise errors.ValidationError('Username is not available.')
+        raise ValueError('Username is not available.')
 
 
 def validate_captcha():
@@ -93,7 +91,7 @@ def validate_captcha():
             request.remote_addr,
         )
         if not response.is_valid:
-            raise errors.ValidationError('Captcha did not match.')
+            raise ValueError('Captcha did not match.')
 
 
 @auth.route("/register", methods=['GET', 'POST'])
@@ -135,8 +133,10 @@ def register_user():
                 email=email)
             login.login_user(user)
             return redirect(url_for('ui.index'))
-        except errors.ValidationError, ve:
-            flash(ve.message, category='error')
+        except ValidationError, ve:
+            invalids = ','.join([f.title() for f in ve.errors.keys()])
+            msg = 'Invalid: %s' % (invalids)
+            flash(msg, category='error')
         except ValueError, ve:
             flash(ve.message, category='error')
         except (KeyError, IndexError):
