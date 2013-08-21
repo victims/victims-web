@@ -14,7 +14,7 @@
     <div id="header">
         <h1><a href="{{ url_for('ui.index') }}">victims</a></h1>
         <h2>don't be one</h2>
-        <div id="info" align="right">
+        <div id="sessioninfo" align="right">
             {% if current_user.is_authenticated() %}
             <b><a href="{{ url_for('auth.user_account') }}">{{ current_user.username }}</a> | </b>
             <b><a href="{{ url_for('auth.logout_user') }}">logout</a></b>

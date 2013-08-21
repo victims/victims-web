@@ -33,7 +33,7 @@ a:hover { color: #000; }
 #header h1 a { font-size: 25px; color: #FFF; text-decoration: none;}
 #header h2 { padding-left: 10px; padding-top: 0px; font-size: 19px; color: #FFE51E; }
 
-#info {
+#sessioninfo {
     padding-right: 10px;
     color: #C0C0C0;
     font-size: 16px;
@@ -41,11 +41,11 @@ a:hover { color: #000; }
     text-align: right;
 }
 
-#info a {
+#sessioninfo a {
     color: #C0C0C0;
 }
 
-#info a:hover {
+#sessioninfo a:hover {
     color: #FFF;
 }
 
