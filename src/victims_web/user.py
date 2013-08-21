@@ -33,7 +33,7 @@ from victims_web.models import Account
 
 # Helper functions
 def generate_client_secret(apikey):
-    return str(make_secure_token(apikey).upper())
+    return make_secure_token(apikey).upper()
 
 
 def generate_apikey(username):
@@ -63,7 +63,11 @@ def generate_signature(apikey, method, path, content_type, date, data_md5):
     if user.secret is None:
         raise ValueError('No client secret known')
 
-    return HMAC(user.secret, string.lower(), sha512).hexdigest().upper()
+    return HMAC(
+        key=bytes(user.secret),
+        msg=string.lower(),
+        digestmod=sha512
+    ).hexdigest().upper()
 
 
 def validate_signature():
