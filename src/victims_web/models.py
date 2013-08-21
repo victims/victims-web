@@ -85,7 +85,7 @@ class Account(ValidatedDocument):
     """
     meta = {'collection': 'users'}
 
-    username = StringField(regex='^[a-zA-Z0-9]*$')
+    username = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
     password = StringField()
     endorsements = DictField(default={})
     active = BooleanField(default=False)
