@@ -78,16 +78,18 @@ def validate_signature():
 
     try:
         (apikey, signature) = request.headers['Victims-Api'].strip().split(':')
+
         t = strptime(request.headers['Date'], '%a, %d %b %Y %H:%M:%S %Z')
         request_date = datetime.fromtimestamp(mktime(t))
         delta = datetime.utcnow() - request_date
         if delta > timedelta(minutes=expiry) or delta < timedelta(0):
             return False
+
         expected = generate_signature(
             apikey, request.method, request.path,
             request.headers['Content-Type'],
             request.headers['Date'],
-            md5(request.data)
+            md5(request.data).hexdigest()
         )
         return signature.upper() == expected
     except:

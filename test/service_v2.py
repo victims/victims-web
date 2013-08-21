@@ -166,17 +166,18 @@ class TestServiceV2(UserTestCase):
         testdata = json.dumps(testdata)
         path = '/service/v2/submit/%s/' % (group)
         content_type = 'application/json'
+        data_md5 = md5(testdata).hexdigest()
         date = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
-        headers = [
-            ('Content-Type', content_type),
-            ('Date', date),
-        ]
+        headers = [('Date', date)]
         if apikey is not None and secret is not None:
             signature = generate_signature(
-                apikey, 'PUT', path, content_type, date, md5(testdata))
+                apikey, 'PUT', path, content_type, date, data_md5
+            )
             headers.append(('Victims-Api', '%s:%s' % (apikey, signature)))
-        resp = self.app.put(path, headers=headers, data=testdata,
-                            follow_redirects=True)
+        resp = self.app.put(
+            path, headers=headers, data=testdata, content_type=content_type,
+            follow_redirects=True
+        )
         assert resp.status_code == status_code
 
     def test_java_submission_authenticated(self):
