@@ -32,6 +32,17 @@ from victims_web.models import Account
 
 
 # Helper functions
+def get_account(value, field='username'):
+    """
+    Retrieve an Account object.
+
+    :Parameters:
+        - `value`: Value to filter by.
+        - `field`: Field to filter on. Default field is username.
+    """
+    return Account.objects(**{field: value}).first()
+
+
 def generate_client_secret(apikey):
     return make_secure_token(apikey).upper()
 
@@ -42,7 +53,7 @@ def generate_apikey(username):
 
 
 def authenticate(username, password):
-    user = Account.objects(username=str(username)).first()
+    user = get_account(str(username))
     if user:
         if check_password_hash(user.password, password):
             return True
@@ -57,7 +68,7 @@ def generate_signature(apikey, method, path, content_type, date, data_md5):
             raise ValueError('Required header not found')
         string += str(content)
 
-    user = Account.objects(apikey=apikey).first()
+    user = get_account(apikey, 'apikey')
     if user is None:
         raise ValueError('Invalid apikey')
     if user.secret is None:
@@ -175,7 +186,7 @@ class User(object):
         self.__endorsements = []
 
         if not user_obj:
-            user_obj = Account.objects(username=username).first()
+            user_obj = get_account(username)
 
         self.__active = user_obj.active
         self.__endorsements = user_obj.endorsements
