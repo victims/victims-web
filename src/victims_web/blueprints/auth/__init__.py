@@ -167,8 +167,9 @@ def register_user():
 
     # Someone with a session can not make a new user
     if login.current_user.is_authenticated():
-        flash('You are already logged in as %s' % (login.current_user.username),
-              category='info')
+        flash(
+            'You are already logged in as %s' % (login.current_user.username),
+            category='info')
         return redirect(url_for('ui.index'))
 
     # Request to make a new user
