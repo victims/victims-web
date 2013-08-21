@@ -33,6 +33,22 @@ a:hover { color: #000; }
 #header h1 a { font-size: 25px; color: #FFF; text-decoration: none;}
 #header h2 { padding-left: 10px; padding-top: 0px; font-size: 19px; color: #FFE51E; }
 
+#info {
+    padding-right: 10px;
+    color: #C0C0C0;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: right;
+}
+
+#info a {
+    color: #C0C0C0;
+}
+
+#info a:hover {
+    color: #FFF;
+}
+
 #menu {
   text-align: center;
   margin-top: 10px;
