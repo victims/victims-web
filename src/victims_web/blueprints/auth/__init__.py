@@ -66,8 +66,8 @@ def user_account():
     content = {
         'username': account.username,
         'email': account.email,
-        'apikey': account.apikey,
-        'secret': account.secret,
+        'apikey': str(account.apikey),
+        'secret': str(account.secret),
     }
     return render_template('account.html', **content)
 
