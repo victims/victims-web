@@ -26,7 +26,7 @@ from flask.ext import login
 from recaptcha.client import captcha
 from mongoengine import ValidationError
 
-from victims_web.user import authenticate, create_user, User
+from victims_web.user import authenticate, create_user, User, get_account
 from victims_web.models import Account
 
 auth = Blueprint('auth', __name__, template_folder='templates')
@@ -57,6 +57,19 @@ def login_user():
 def logout_user():
     login.logout_user()
     return redirect(url_for('ui.index'))
+
+
+@auth.route('/account', methods=['GET'])
+@login.login_required
+def user_account():
+    account = get_account(login.current_user.username)
+    content = {
+        'username': account.username,
+        'email': account.email,
+        'apikey': account.apikey,
+        'secret': account.secret,
+    }
+    return render_template('account.html', **content)
 
 
 def validate_password():
@@ -107,6 +120,8 @@ def register_user():
 
     # Someone with a session can not make a new user
     if login.current_user.is_authenticated():
+        flash('You are already logged in as %s' % (login.current_user.username),
+              category='info')
         return redirect(url_for('ui.index'))
 
     # Request to make a new user
@@ -132,6 +147,8 @@ def register_user():
                 request.form['password'],
                 email=email)
             login.login_user(user)
+            flash('Registration successful, welcome %s!' % (user.username),
+                  category='info')
             return redirect(url_for('ui.index'))
         except ValidationError, ve:
             invalids = ','.join([f.title() for f in ve.errors.keys()])
