@@ -46,8 +46,10 @@ def login_user():
             request.form.get('password', ''))
         if user_data:
             if login.login_user(user=User(username), remember=True):
-                flash("Logged in successfully.", category='info')
-                return redirect(url_for('ui.index'))
+                forward = request.args.get('next')
+                if not forward:
+                    flash("Logged in successfully.", category='info')
+                return redirect(forward or url_for('ui.index'))
         flash("Invalid username/password", category='error')
 
     return render_template("login.html")
