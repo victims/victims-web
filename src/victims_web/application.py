@@ -29,7 +29,7 @@ from flask.ext import login
 from victims_web.blueprints.service_v1 import v1
 from victims_web.blueprints.service_v2 import v2, SUBMISSION_ROUTES
 from victims_web.blueprints.ui import ui
-from victims_web.blueprints.auth import auth
+from victims_web.blueprints.auth import auth, login_user
 from victims_web.blueprints.administration import administration_setup
 
 from victims_web.cache import cache
@@ -76,6 +76,8 @@ for submit in SUBMISSION_ROUTES:
 
 # Login manager
 login_manager = login.LoginManager()
+login_manager.login_view = login_user
+login_manager.login_message = 'You are unautorized! Please login.'
 login_manager.init_app(app)
 
 
