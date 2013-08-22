@@ -31,16 +31,14 @@ setup(
     url='http://www.victi.ms',
 
     install_requires=[
-        'Flask>=0.8',
+        'Flask>=0.10',
         'Flask-Login>=0.1.1',
         'Flask-Bcrypt',
         'Flask-SeaSurf',
         'Flask-Cache',
         'Flask-Admin',
-        'pymongo>=2.5.2',
         'Flask-Views',
         'Flask-MongoEngine',
-        'blinker>=1.2',
         'PyYAML',
         'recaptcha-client'],
 )
