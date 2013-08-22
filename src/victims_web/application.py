@@ -29,7 +29,7 @@ from flask.ext import login
 from victims_web.blueprints.service_v1 import v1
 from victims_web.blueprints.service_v2 import v2, SUBMISSION_ROUTES
 from victims_web.blueprints.ui import ui
-from victims_web.blueprints.auth import auth, login_user
+from victims_web.blueprints.auth import auth
 from victims_web.blueprints.administration import administration_setup
 
 from victims_web.cache import cache
@@ -74,10 +74,12 @@ administration_setup(app)
 for submit in SUBMISSION_ROUTES:
     csrf.exempt(submit)
 
+
 # Login manager
 login_manager = login.LoginManager()
-login_manager.login_view = login_user
-login_manager.login_message = 'You are unautorized! Please login.'
+login_manager.login_view = 'auth.login_user'
+login_manager.login_message = 'You are not authorized to access this resource.'
+login_manager.login_message_category = 'error'
 login_manager.init_app(app)
 
 
