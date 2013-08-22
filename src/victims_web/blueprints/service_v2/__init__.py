@@ -25,7 +25,7 @@ from flask import Blueprint, Response, request, current_app
 
 from victims_web.user import api_request_user
 from victims_web.cache import cache
-from victims_web.models import Hash
+from victims_web.models import Hash, Removal
 from victims_web.submissions import (submit, allowed_groups, process_metadata,
                                      group_keys, upload_file)
 from victims_web.blueprints.helpers import check_api_auth
@@ -106,6 +106,13 @@ class StreamedSerialResponseValue(object):
         yield "]"
 
 
+def stream_items(items):
+    return Response(
+        StreamedSerialResponseValue(items),
+        mimetype='application/json'
+    )
+
+
 @v2.route('/status.json')
 @cache.cached()
 def status():
@@ -146,8 +153,7 @@ def update(since):
                         fields.append(field)
 
             items = items.only(*fields)
-        return Response(StreamedSerialResponseValue(
-            items), mimetype='application/json')
+        return stream_items(items)
     except Exception:
         return error()
 
@@ -162,8 +168,9 @@ def remove(since):
        - `since`: a specific date in utc
     """
     try:
-        datetime.datetime.strptime(since, "%Y-%m-%dT%H:%M:%S")
-        return json.dumps([])
+        timestamp = datetime.datetime.strptime(since, "%Y-%m-%dT%H:%M:%S")
+        items = Removal.objects(date__gt=timestamp)
+        return stream_items(items)
     except:
         return error()
 

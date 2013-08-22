@@ -101,6 +101,24 @@ class Account(ValidatedDocument):
         return str(self.username)
 
 
+class Removal(JsonifyMixin, ValidatedDocument):
+    """
+    A removal entry
+    """
+    meta = {'collection': 'removals'}
+
+    date = DateTimeField(default=datetime.datetime.utcnow)
+    hash = StringField(regex='^[a-fA-F0-9]*$')
+    reason = StringField(
+        choices=(
+            ('DELETE', 'DELETE'),
+            ('WRONG', 'WRONG'),
+            ('UPDATE', 'UPDATE')
+        ),
+        default='DELETE'
+    )
+
+
 class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
     """
     A hash record.

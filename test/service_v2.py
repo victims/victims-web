@@ -23,7 +23,7 @@ from datetime import datetime
 from hashlib import md5
 
 from test import UserTestCase
-from victims_web.models import Account
+from victims_web.models import Account, Removal
 from victims_web.user import generate_signature
 
 
@@ -158,6 +158,17 @@ class TestServiceV2(UserTestCase):
         assert result['eol'] is None
         assert result['supported'] is True
         assert result['endpoint'] == '/service/v2/'
+
+    def test_removals(self):
+        test_hash = 'ABC123'
+        removal = Removal()
+        removal.hash = test_hash
+        removal.validate()
+        removal.save()
+        resp = self.app.get(
+            '/service/v2/remove/1970-01-01T00:00:00', follow_redirects=True)
+        assert resp.status_code == 200
+        assert test_hash in resp.data
 
     def json_submit(self, group, status_code=403, apikey=None, secret=None):
         testhash = dict(combined="")
