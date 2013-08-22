@@ -35,9 +35,15 @@ auth = Blueprint('auth', __name__, template_folder='templates')
 
 @auth.route("/login", methods=['GET', 'POST'])
 def login_user():
+    def redirect_url():
+        forward = request.args.get('next')
+        if not forward:
+            flash("Logged in successfully.", category='info')
+        return redirect(forward or url_for('ui.index'))
+
     # If you are already logged in, go away!
     if not login.current_user.is_anonymous():
-        return redirect(url_for('ui.index'))
+        return redirect_url()
 
     if request.method == 'POST':
         username = request.form.get('username', '')
@@ -46,10 +52,7 @@ def login_user():
             request.form.get('password', ''))
         if user_data:
             if login.login_user(user=User(username), remember=True):
-                forward = request.args.get('next')
-                if not forward:
-                    flash("Logged in successfully.", category='info')
-                return redirect(forward or url_for('ui.index'))
+                return redirect_url()
         flash("Invalid username/password", category='error')
 
     return render_template("login.html")
