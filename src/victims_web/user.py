@@ -87,14 +87,42 @@ def generate_signature(apikey, method, path, content_type, date, data_md5):
     ).hexdigest().upper()
 
 
-def validate_signature():
+def api_username(apikey):
+    """
+    Fetch the username who holds a given apikey. Returns None if no match.
+
+    :Parameters:
+        - `apikey`: API Key to search for.
+    """
+    account = get_account(apikey, 'apikey')
+    if account:
+        return account.username
+    return None
+
+
+def api_request_tokens():
+    """
+    Checks for the 'Victims-Api' header in the requst and parses the apikey
+    and signature
+    """
     if 'Victims-Api' not in request.headers:
-        return False
+        raise ValueError('Victims-Api header not present in request')
+    (apikey, signature) = request.headers['Victims-Api'].strip().split(':')
+    return (apikey, signature)
 
+
+def api_request_user():
+    """
+    Get username associated with the API request
+    """
+    (apikey, _) = api_request_tokens()
+    return api_username(apikey)
+
+
+def validate_signature():
     expiry = current_app.config.get('API_REQUEST_EXPIRY_MINS', 3)
-
     try:
-        (apikey, signature) = request.headers['Victims-Api'].strip().split(':')
+        (apikey, signature) = api_request_tokens()
 
         t = strptime(request.headers['Date'], '%a, %d %b %Y %H:%M:%S %Z')
         request_date = datetime.fromtimestamp(mktime(t))

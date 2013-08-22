@@ -22,11 +22,12 @@ import datetime
 import json
 
 from flask import Blueprint, Response, request, current_app
-from flask.ext.login import current_user
 
+from victims_web.user import api_request_user
 from victims_web.cache import cache
 from victims_web.models import Hash
-from victims_web.submissions import submit, allowed_groups
+from victims_web.submissions import (submit, allowed_groups, process_metadata,
+                                     group_keys, upload_file)
 from victims_web.blueprints.helpers import check_api_auth
 
 
@@ -203,7 +204,7 @@ def submit_hash(group):
     """
     Allows for authenticated users to submit hashes via json.
     """
-    user = '%s' % current_user
+    user = '%s' % api_request_user()
     try:
         if group not in allowed_groups():
             raise ValueError('Invalid group specified')
@@ -213,7 +214,7 @@ def submit_hash(group):
         entry = Hash()
         entry.load_json(user, json_data)
         submit(
-            user, 'json-api', group, entry=entry, approval='PENDING_APPROVAL')
+            user, 'json-api-hash', group, entry=entry, approval='PENDING_APPROVAL')
         return success()
     except Exception as e:
         current_app.logger.info('Invalid submission by %s' % (user))
@@ -221,12 +222,38 @@ def submit_hash(group):
         return error()
 
 
-@v2.route('/submit/archive/<group>')
+@v2.route('/submit/archive/<group>', methods=['PUT'])
 @check_api_auth
 def submit_archive(group):
     """
     Allows for authenticated users to submit archives
     """
-    pass
+    user = '%s' % api_request_user()
+    keys = group_keys(group)
+    try:
+        if group not in allowed_groups():
+            raise ValueError('Invalid group specified')
+
+        if 'cves' not in request.args:
+            raise ValueError('CVE(s) required')
+
+        cves = [cve.strip() for cve in request.args['cves'].split(',')]
+        meta = process_metadata(group, request.args, True)
+
+        (ondisk, filename, suffix) = ('json-api-archive', None, None)
+        if 'archive' not in request.files:
+            if len(meta) != len(keys):
+                raise ValueError('No archive provided! %s required' % keys)
+
+            (ondisk, filename, suffix) = upload_file(request.files['archive'])
+
+        submit(user, ondisk, group, filename, suffix, cves, meta)
+        return success()
+    except ValueError as ve:
+        current_app.logger.info('Invalid submission by %s' % (user))
+        return error(ve.message)
+    except Exception as e:
+        current_app.logger.info(e.message)
+        return error()
 
 SUBMISSION_ROUTES = [submit_hash, submit_archive]

@@ -19,7 +19,7 @@ Helpers that can be reused in blueprints.
 """
 
 from functools import wraps
-from flask import current_app, request
+from flask import Response, current_app, request
 from victims_web.user import authenticate, validate_signature
 
 
@@ -63,7 +63,8 @@ def check_api_auth(view):
                 request.authorization.password)
 
         if not valid:
-            return 'Forbidden', 403
+            return Response('Forbidden', mimetype='application/json',
+                            status=403)
 
         return view(*args, **kwargs)
 

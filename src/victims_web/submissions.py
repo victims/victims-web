@@ -49,7 +49,14 @@ def allowed_groups():
     return []
 
 
-def process_metadata(group, values={}):
+def group_keys(group):
+    """
+    Retrieve the metadata keys associated with a given group.
+    """
+    return groups().get(group, [])
+
+
+def process_metadata(group, values={}, noprefix=False):
     """
     Process any group specific metadata that was provided in the submission
     form.
@@ -58,9 +65,12 @@ def process_metadata(group, values={}):
     current_groups = groups()
     if group.strip().lower() in current_groups:
         for field in current_groups[group]:
-            name = '%s-%s' % (group, field)
+            if noprefix:
+                name = field
+            else:
+                name = '%s-%s' % (group, field)
             if name in values:
-                value = values.strip()
+                value = values[name].strip()
                 if len(value) > 0:
                     meta[field] = value
     return meta
