@@ -26,7 +26,7 @@ function vitualize {
     fi
 
     # Make sure we install any new dependencies
-    $CMD -e . --use-mirrors
+    $CMD -e . --upgrade --use-mirrors
 
     export PYTHONPATH=$PYTHONPATH:$(pwd)/src
 
