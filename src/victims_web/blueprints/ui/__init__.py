@@ -18,20 +18,19 @@
 Main web ui.
 """
 
-import os.path
 import re
-from uuid import uuid4
 
 from flask import (
     Blueprint, current_app, render_template, helpers,
     url_for, request, redirect, flash)
-from werkzeug import secure_filename
 
 from flask.ext import login
 
 from victims_web.errors import ValidationError
 from victims_web.models import Hash, Submission
 from victims_web.cache import cache
+from victims_web.submissions import (groups, process_metadata, submit,
+                                     upload_file)
 
 
 ui = Blueprint(
@@ -39,16 +38,6 @@ ui = Blueprint(
     template_folder='templates',
     static_folder='static',
     static_url_path='/static/')  # Last argument needed since we register on /
-
-
-submission_groups = {'---': []}
-
-
-def _groups():
-    if 'SUBMISSION_GROUPS' in current_app.config:
-        return current_app.config['SUBMISSION_GROUPS']
-    else:
-        return submission_groups
 
 
 def _is_hash(data):
@@ -112,78 +101,6 @@ def hash(hash):
     return redirect(url_for('ui.hashes'))
 
 
-def submit(source, filename=None, suffix=None, cves=[], meta={}):
-    current_app.logger.debug('Submitting: (%s, %s, %s, %s)' %
-                             (source, filename, cves, meta))
-    submission = Submission()
-    submission.source = source
-    if filename:
-        submission.filename = filename
-    if suffix:
-        submission.format = suffix.title()
-    submission.cves = cves
-    submission.metadata = meta
-    submission.submitter = login.current_user.username
-    submission.validate()
-    submission.save()
-
-
-def get_upload_folder():
-    """
-    Helper methed to fetch configured upload directory. If the directory does
-    not exist, it is created.
-    """
-    upload_dir = current_app.config['UPLOAD_FOLDER']
-    if not os.path.isdir(upload_dir):
-        current_app.logger.info('Creating upload directory: %s' % (upload_dir))
-        os.makedirs(upload_dir, 0755)
-    return upload_dir
-
-
-def upload_file(archive):
-    """
-    Given a FileStorage object, the file is securely uploaded to the server
-    to the configured upload directory. A random prefix is added to the
-    filename.
-    """
-    if len(archive.filename) == 0:
-        raise ValueError('No archive provided')
-
-    upload_dir = get_upload_folder()
-
-    suffix = archive.filename[archive.filename.rindex('.') + 1:]
-    if suffix not in current_app.config['ALLOWED_EXTENSIONS']:
-        raise ValueError('Invalid archive: %s' % (archive.filename))
-
-    filename = secure_filename(archive.filename)
-    sfilename = '%s-%s' % (str(uuid4()), filename)
-    ondisk = os.path.join(upload_dir, sfilename)
-    archive.save(ondisk)
-
-    current_app.logger.info(
-        'User %s has uploaded %s' % (login.current_user.username, filename))
-
-    return (ondisk, filename, suffix)
-
-
-def process_metadata():
-    """
-    Process any group specific metadata that was provided in the submission
-    form.
-    """
-    meta = {}
-    group = request.form['group'].strip()
-    current_groups = _groups()
-    if group in current_groups:
-        for field in current_groups[group]:
-            name = '%s-%s' % (group, field)
-            if name in request.form:
-                value = request.form[name].strip()
-                if len(value) > 0:
-                    meta[field] = value
-    return meta
-
-
 @ui.route('/submit_archive/', methods=['GET', 'POST'])
 @login.login_required
 def submit_archive():
@@ -210,9 +127,11 @@ def submit_archive():
             else:
                 raise ValueError('Archive not submitted')
 
-            meta = process_metadata()
+            group = request.form['group']
+            meta = process_metadata(group, request.form)
 
-            submit(ondisk, filename, suffix, cves, meta)
+            submit(login.current_user.username, ondisk, group, filename,
+                   suffix, cves, meta)
             flash('Archive Submitted for processing', 'info')
         except ValueError, ve:
             flash(ve.message, 'error')
@@ -221,7 +140,7 @@ def submit_archive():
         except OSError, oe:
             flash('Could not upload file due to a server side error', 'error')
             current_app.logger.debug(oe)
-    return render_template('submit_archive.html', groups=_groups())
+    return render_template('submit_archive.html', groups=groups())
 
 
 @ui.route('/<page>.html', methods=['GET'])

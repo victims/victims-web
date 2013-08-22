@@ -25,7 +25,8 @@ from flask import Blueprint, Response, request, current_app
 from flask.ext.login import current_user
 
 from victims_web.cache import cache
-from victims_web.models import Hash, Submission
+from victims_web.models import Hash
+from victims_web.submissions import submit
 from victims_web.blueprints.helpers import check_api_auth
 
 
@@ -45,6 +46,17 @@ def error(msg='Could not understand request.', code=400):
         - `code`: The code to return as status code for the response.
     """
     return json.dumps([{'error': msg}]), code
+
+
+def success(msg='Request successful.', code=201):
+    """
+    Returns a success json resposne.
+
+    :Paramenters:
+        - `msg`: Error message to be returned in json string.
+        - `code`: The code to return as status code for the response.
+    """
+    return json.dumps([{'success': msg}]), code
 
 
 class StreamedSerialResponseValue(object):
@@ -185,9 +197,9 @@ def cves(algorithm, arg):
         return error()
 
 
-@v2.route('/submit/<group>/', methods=['PUT'])
+@v2.route('/submit/hash/<group>/', methods=['PUT'])
 @check_api_auth
-def submit(group):
+def submit_hash(group):
     """
     Allows for authenticated users to submit hashes via json.
     """
@@ -199,17 +211,23 @@ def submit(group):
         json_data = json.loads(request.data)
         if 'cves' not in json_data:
             raise ValueError('No CVE provided')
-        submission = Submission()
-        submission.source = 'json-api'
-        submission.group = group
-        submission.submitter = user
-        submission.approval = 'PENDING_APPROVAL'
-        submission.entry = Hash()
-        submission.entry.load_json(user, json_data)
-        submission.validate()
-        submission.save()
-        return submission.entry.jsonify(), 201
+        entry = Hash()
+        entry.load_json(user, json_data)
+        submit(
+            user, 'json-api', group, entry=entry, approval='PENDING_APPROVAL')
+        return success()
     except Exception as e:
         current_app.logger.info('Invalid submission by %s' % (user))
         current_app.logger.debug(e)
         return error()
+
+
+@v2.route('/submit/archive/<group>')
+@check_api_auth
+def submit_archive(group):
+    """
+    Allows for authenticated users to submit archives
+    """
+    pass
+
+SUBMISSION_ROUTES = [submit_hash, submit_archive]

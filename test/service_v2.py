@@ -164,7 +164,7 @@ class TestServiceV2(UserTestCase):
         testhashes = dict(sha512=testhash)
         testdata = dict(name="", hashes=testhashes, cves=['CVE-2013-0000'])
         testdata = json.dumps(testdata)
-        path = '/service/v2/submit/%s/' % (group)
+        path = '/service/v2/submit/hash/%s/' % (group)
         content_type = 'application/json'
         data_md5 = md5(testdata).hexdigest()
         date = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
