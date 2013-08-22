@@ -214,7 +214,8 @@ def submit_hash(group):
         entry = Hash()
         entry.load_json(user, json_data)
         submit(
-            user, 'json-api-hash', group, entry=entry, approval='PENDING_APPROVAL')
+            user, 'json-api-hash', group, entry=entry,
+            approval='PENDING_APPROVAL')
         return success()
     except Exception as e:
         current_app.logger.info('Invalid submission by %s' % (user))
