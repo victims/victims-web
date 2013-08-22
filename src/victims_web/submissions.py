@@ -27,14 +27,26 @@ from werkzeug import secure_filename
 from victims_web.models import Submission
 
 
-submission_groups = {'---': []}
-
-
 def groups():
+    """
+    Retrieve a list of groups with the default '---' group added.
+    """
+    submission_groups = {'---': []}
     if 'SUBMISSION_GROUPS' in current_app.config:
-        return current_app.config['SUBMISSION_GROUPS']
-    else:
-        return submission_groups
+        configured_groups = current_app.config['SUBMISSION_GROUPS']
+        for group in configured_groups:
+            submission_groups[group] = configured_groups[group]
+    return submission_groups
+
+
+def allowed_groups():
+    """
+    Retrieve a list of groups that we know of. All configured group names are
+    returned.
+    """
+    if 'SUBMISSION_GROUPS' in current_app.config:
+        return current_app.config['SUBMISSION_GROUPS'].keys()
+    return []
 
 
 def process_metadata(group, values={}):

@@ -26,7 +26,7 @@ from flask.ext.login import current_user
 
 from victims_web.cache import cache
 from victims_web.models import Hash
-from victims_web.submissions import submit
+from victims_web.submissions import submit, allowed_groups
 from victims_web.blueprints.helpers import check_api_auth
 
 
@@ -203,12 +203,11 @@ def submit_hash(group):
     """
     Allows for authenticated users to submit hashes via json.
     """
-    allowed_groups = ['java', 'python']
     user = '%s' % current_user
     try:
-        if group not in allowed_groups:
+        if group not in allowed_groups():
             raise ValueError('Invalid group specified')
-        json_data = json.loads(request.data)
+        json_data = request.get_json()
         if 'cves' not in json_data:
             raise ValueError('No CVE provided')
         entry = Hash()
