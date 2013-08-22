@@ -51,3 +51,37 @@ cd src/victims_web/
 python application.py
 ```
 You should be able to see the victims page at _http://localhost:5000/_ if everything was done correctly, with 1 hash record.
+
+## Usage
+### Secured API Access
+Submission end points like ```/service/submit/archive/java``` are secured by an implementation similar to what is used by AWS. The authorization is expected in a header named ```Victims-Api```. If this is not present or if validation/authorization fails, check falls back to *BASIC AUTH*.
+
+An example using curl is as follows:
+```sh
+$ curl -v -X PUT -H "Victims-Api: $APIKEY:$SIGNATURE" -H "Date: Thu, 22 Aug 2013 15:20:37 GMT" -F archive=@$ARCHIVE http://$VICTIMS_SERVER/service/submit/archive/java?version=VID\&groupId=GID\&artifactId=AID\&cves=CVE-2013-0000,CVE-2013-0001
+```
+#### API Key and Client Secret Key
+Each account on victi.ms is allocated an API Key and Secret key by default. This can be retrieved by visiting ```https://victi.ms/account```. These can be regenerated using the form at ```https://victi.ms/account_edit```.
+
+#### Signature
+The signature is generated using ```HTTP Method```, ```Path```, ```Content-Type```, ```Date``` and the *MD5 hexdigest*.
+
+The following is a reference implementation in python:
+```py
+from hmac import HMAC
+
+def generate_signature(secret, method, path, content_type, date, data_md5):
+    ordered = [method, path, content_type, date, data_md5]
+    string = ''
+
+    for content in ordered:
+        if content is None:
+            raise ValueError('Required header not found')
+        string += str(content)
+
+    return HMAC(
+        key=bytes(secret),
+        msg=string.lower(),
+        digestmod=sha512
+    ).hexdigest().upper()
+```
