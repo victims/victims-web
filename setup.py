@@ -39,6 +39,7 @@ setup(
         'Flask-Admin',
         'Flask-Views',
         'Flask-MongoEngine',
+        'Flask-SSLify',
         'PyYAML',
         'recaptcha-client'],
 )

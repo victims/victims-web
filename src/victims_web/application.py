@@ -25,6 +25,7 @@ from flask import Flask, render_template
 from flask.ext.mongoengine import MongoEngine
 from flask.ext.seasurf import SeaSurf
 from flask.ext import login
+from flask_sslify import SSLify
 
 from victims_web.blueprints.service_v1 import v1
 from victims_web.blueprints.service_v2 import v2, SUBMISSION_ROUTES
@@ -37,6 +38,9 @@ from victims_web.user import User
 
 # Set up the application
 app = Flask('victims_web')
+
+# SSLify
+sslify = SSLify(app)
 
 log_dir = os.environ.get('VICTIMS_LOG_DIR', 'logs/')
 if not os.path.isdir(log_dir):
