@@ -25,6 +25,7 @@ from flask import current_app
 from werkzeug import secure_filename
 
 from victims_web.models import Submission
+from victims_web.plugin.charon import download
 
 
 def groups():
@@ -131,3 +132,12 @@ def upload_file(archive):
         'Uploaded %s' % (filename))
 
     return (ondisk, filename, suffix)
+
+
+def upload_from_metadata(group, meta):
+    """
+    Given only metadata of an archive ask charon to retrive it where possible
+    """
+    if group not in allowed_groups():
+        raise ValueError('Invalid group')
+    return download(group, meta)

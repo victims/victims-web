@@ -27,7 +27,7 @@ from victims_web.user import api_request_user
 from victims_web.cache import cache
 from victims_web.models import Hash, Removal
 from victims_web.submissions import (submit, allowed_groups, process_metadata,
-                                     group_keys, upload_file)
+                                     upload_file, upload_from_metadata)
 from victims_web.blueprints.helpers import check_api_auth
 
 
@@ -237,7 +237,6 @@ def submit_archive(group):
     Allows for authenticated users to submit archives
     """
     user = '%s' % api_request_user()
-    keys = group_keys(group)
     try:
         if group not in allowed_groups():
             raise ValueError('Invalid group specified')
@@ -248,17 +247,25 @@ def submit_archive(group):
         cves = [cve.strip() for cve in request.args['cves'].split(',')]
         meta = process_metadata(group, request.args, True)
 
-        (ondisk, filename, suffix) = ('json-api-archive', None, None)
-        if 'archive' not in request.files:
-            if len(meta) != len(keys):
-                raise ValueError('No archive provided! %s required' % keys)
+        files = []
+        try:
+            if 'archive' in request.files:
+                files.append(upload_file(request.files['archive']))
+            else:
+                raise ValueError('No archive submitted')
+        except:
+            files = upload_from_metadata(group, meta)
 
-            (ondisk, filename, suffix) = upload_file(request.files['archive'])
+        if len(files) == 0:
+            error('Invalid submissions, no archives could be resolved.')
 
-        submit(user, ondisk, group, filename, suffix, cves, meta)
+        for (ondisk, filename, suffix) in files:
+            submit(user, ondisk, group, filename, suffix, cves, meta)
+
         return success()
     except ValueError as ve:
-        current_app.logger.info('Invalid submission by %s' % (user))
+        current_app.logger.info('Invalid submission by %s: %s' %
+                                (user, ve.message))
         return error(ve.message)
     except Exception as e:
         current_app.logger.info(e.message)

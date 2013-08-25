@@ -30,7 +30,7 @@ from victims_web.errors import ValidationError
 from victims_web.models import Hash, Submission
 from victims_web.cache import cache
 from victims_web.submissions import (groups, process_metadata, submit,
-                                     upload_file)
+                                     upload_file, upload_from_metadata)
 
 
 ui = Blueprint(
@@ -117,21 +117,19 @@ def submit_archive():
                     raise ValueError('Invalid CVE provided: "%s"' % (cve))
                 cves.append(cve)
 
-            if 'archive' in request.files:
-                try:
-                    (ondisk, filename, suffix) = upload_file(
-                        request.files['archive'])
-                except Exception, e:
-                    # TODO: implement maven/pypi fetch
-                    raise e
-            else:
-                raise ValueError('Archive not submitted')
-
             group = request.form['group']
             meta = process_metadata(group, request.form)
 
-            submit(login.current_user.username, ondisk, group, filename,
-                   suffix, cves, meta)
+            files = []
+            if 'archive' in request.files:
+                try:
+                    files.append(upload_file(request.files['archive']))
+                except:
+                    files = upload_from_metadata(group, meta)
+
+            for (ondisk, filename, suffix) in files:
+                submit(login.current_user.username, ondisk, group, filename,
+                       suffix, cves, meta)
             flash('Archive Submitted for processing', 'info')
         except ValueError, ve:
             flash(ve.message, 'error')
