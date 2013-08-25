@@ -113,8 +113,9 @@ def is_initialized():
 
 def _initialize():
     """
-    Helper method to initiate plugin dynamically if not initiated. Initilization
-    is skipped if there is no flask context or if previously initialized.
+    Helper method to initiate plugin dynamically if not initiated.
+    Initilization is skipped if there is no flask context or if previously
+    initialized.
     """
     if is_initialized():
         return
