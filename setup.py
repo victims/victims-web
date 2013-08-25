@@ -41,5 +41,7 @@ setup(
         'Flask-MongoEngine',
         'Flask-SSLify',
         'PyYAML',
-        'recaptcha-client'],
+        'recaptcha-client',
+        'jip>=0.7',
+    ],
 )
