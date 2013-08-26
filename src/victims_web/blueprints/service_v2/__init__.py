@@ -247,7 +247,7 @@ def submit_archive(group):
         cves = [cve.strip() for cve in request.args['cves'].split(',')]
         meta = process_metadata(group, request.args, True)
 
-        files = upload(group, request.files.get('archive', None))
+        files = upload(group, request.files.get('archive', None), meta)
 
         for (ondisk, filename, suffix) in files:
             submit(user, ondisk, group, filename, suffix, cves, meta)

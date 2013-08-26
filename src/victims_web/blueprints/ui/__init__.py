@@ -119,7 +119,7 @@ def submit_archive():
             group = request.form['group']
             meta = process_metadata(group, request.form)
 
-            files = upload(group, request.files.get('archive', None))
+            files = upload(group, request.files.get('archive', None), meta)
 
             for (ondisk, filename, suffix) in files:
                 submit(login.current_user.username, ondisk, group, filename,
