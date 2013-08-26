@@ -17,14 +17,17 @@
 """
 Submission module. Handle submission related logic.
 """
-from os import makedirs
-from os.path import isdir, join
+import json
+
+from os import makedirs, remove
+from os.path import isdir, isfile, join
 from uuid import uuid4
+from subprocess import check_output, CalledProcessError
 
 from flask import current_app
 from werkzeug import secure_filename
 
-from victims_web.models import Submission
+from victims_web.models import Hash, Submission
 from victims_web.plugin.charon import download
 
 
@@ -77,6 +80,45 @@ def process_metadata(group, values={}, noprefix=False):
     return meta
 
 
+def get_hash(submission):
+    """
+    Helper method to process an archive at source where possible from a
+    submission.
+    """
+    if not isfile(submission.source):
+        return
+
+    config = current_app.config
+    key = 'HASHING_COMMANDS'
+
+    if key not in config or submission.group not in config[key]:
+        return
+
+    command = config[key][submission.group].format(archive=submission.source)
+    try:
+        output = check_output(command, shell=True).strip()
+        json_data = json.loads(output)
+        json_data['cves'] = submission.cves
+        entry = Hash()
+        entry.load_json(submission.submitter, json_data)
+        submission.entry = entry
+        submission.approval = 'PENDING_APPROVAL'
+        submission.validate()
+        submission.save()
+
+        # we are done safely, now remove the source
+        try:
+            remove(submission.source)
+        except:
+            current_app.logger.warn(
+                'Deletion failed for %s' % (submission.source))
+    except CalledProcessError:
+        current_app.logger.debug(
+            'Command execution failed for "%s"' % (command))
+    except Exception as e:
+        current_app.logger.warn('Failed to hash: ' + e.message)
+
+
 def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
            meta={}, entry=None, approval='REQUESTED'):
     current_app.logger.debug('Submitting: %s' % (
@@ -94,6 +136,10 @@ def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
     submission.approval = approval
     submission.validate()
     submission.save()
+
+    if entry is None:
+        # TODO: Make this async
+        get_hash(submission)
 
 
 def get_upload_folder():
@@ -150,10 +196,17 @@ def upload(group, archive=None, meta=None):
     """
     files = []
 
-    if archive:
-        files.append(upload_file(archive))
-    elif meta:
-        files = upload_from_metadata(group, meta)
+    try:
+        if archive:
+            files.append(upload_file(archive))
+        else:
+            raise ValueError('No Archive provided')
+    except ValueError as ve:
+        if meta:
+            print(meta)
+            files = upload_from_metadata(group, meta)
+        else:
+            raise ve
 
     if len(files) == 0:
         raise ValueError('Invalid submissions, no archives could be resolved.')
