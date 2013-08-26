@@ -27,7 +27,7 @@ from victims_web.user import api_request_user
 from victims_web.cache import cache
 from victims_web.models import Hash, Removal
 from victims_web.submissions import (submit, allowed_groups, process_metadata,
-                                     upload_file, upload_from_metadata)
+                                     upload)
 from victims_web.blueprints.helpers import check_api_auth
 
 
@@ -247,17 +247,7 @@ def submit_archive(group):
         cves = [cve.strip() for cve in request.args['cves'].split(',')]
         meta = process_metadata(group, request.args, True)
 
-        files = []
-        try:
-            if 'archive' in request.files:
-                files.append(upload_file(request.files['archive']))
-            else:
-                raise ValueError('No archive submitted')
-        except:
-            files = upload_from_metadata(group, meta)
-
-        if len(files) == 0:
-            error('Invalid submissions, no archives could be resolved.')
+        files = upload(group, request.files.get('archive', None))
 
         for (ondisk, filename, suffix) in files:
             submit(user, ondisk, group, filename, suffix, cves, meta)

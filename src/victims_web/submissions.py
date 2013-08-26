@@ -141,3 +141,21 @@ def upload_from_metadata(group, meta):
     if group not in allowed_groups():
         raise ValueError('Invalid group')
     return download(group, meta)
+
+
+def upload(group, archive=None, meta=None):
+    """
+    Helper method to upload files using archive file in request or metadata
+    provided. If no files get uploaded a ValueError is raised.
+    """
+    files = []
+
+    if archive:
+        files.append(upload_file(archive))
+    elif meta:
+        files = upload_from_metadata(group, meta)
+
+    if len(files) == 0:
+        raise ValueError('Invalid submissions, no archives could be resolved.')
+
+    return files

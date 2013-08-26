@@ -29,8 +29,7 @@ from flask.ext import login
 from victims_web.errors import ValidationError
 from victims_web.models import Hash, Submission
 from victims_web.cache import cache
-from victims_web.submissions import (groups, process_metadata, submit,
-                                     upload_file, upload_from_metadata)
+from victims_web.submissions import groups, process_metadata, submit, upload
 
 
 ui = Blueprint(
@@ -120,12 +119,7 @@ def submit_archive():
             group = request.form['group']
             meta = process_metadata(group, request.form)
 
-            files = []
-            if 'archive' in request.files:
-                try:
-                    files.append(upload_file(request.files['archive']))
-                except:
-                    files = upload_from_metadata(group, meta)
+            files = upload(group, request.files.get('archive', None))
 
             for (ondisk, filename, suffix) in files:
                 submit(login.current_user.username, ondisk, group, filename,
