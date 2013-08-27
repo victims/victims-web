@@ -31,6 +31,20 @@ class FlaskTestCase(unittest.TestCase):
         application.app.config['TESTING'] = True
         self.app = application.app.test_client()
 
+    def visit(self, route):
+        """
+        Helper method that visits a given route and returns response and
+        csrf_token.
+        """
+        resp = self.app.get(route)
+
+        if '_csrf_token' in resp.data:
+            return (
+                resp,
+                re.search('_csrf_token" value="([^"]*)">', resp.data).group(1)
+            )
+        return (resp, None)
+
 
 class UserTestCase(FlaskTestCase):
 
@@ -44,18 +58,16 @@ class UserTestCase(FlaskTestCase):
         """
         Shortcut for logging a user in.
         """
-        resp = self.app.get('/login')
+        (resp, csrf_token) = self.visit('/login')
         if resp.status_code == 302:
             return resp
-
-        csrf_token = re.search(
-            '_csrf_token" value="([^"]*)">', resp.data).group(1)
 
         form_data = {
             'username': username,
             'password': password,
-            '_csrf_token': csrf_token
+            '_csrf_token': csrf_token,
         }
+
         resp = self.app.post(
             '/login', data=form_data, follow_redirects=False)
         return resp
@@ -76,9 +88,7 @@ class UserTestCase(FlaskTestCase):
         if not password_confirm:
             password_confirm = password
 
-        resp = self.app.get('/register')
-        csrf_token = re.search(
-            '_csrf_token" value="([^"]*)">', resp.data).group(1)
+        (_, csrf_token) = self.visit('/register')
 
         form_data = {
             'username': username,
