@@ -23,7 +23,7 @@ from datetime import datetime
 from hashlib import md5
 
 from test import UserTestCase
-from victims_web.models import Account, Removal
+from victims_web.models import Removal
 from victims_web.user import generate_signature
 
 
@@ -32,6 +32,7 @@ class TestServiceV2(UserTestCase):
     Tests for version 2 of the web service.
     """
 
+    username = 'v2tester'
     points = ['update', 'remove']
 
     def test_uri_endpoints(self):
@@ -195,11 +196,9 @@ class TestServiceV2(UserTestCase):
         """
         Verifies that an authenticated user can submit entries via the JSON API
         """
-        username = 'submissiontest'
-        password = 'f30Fw@@Do&itpHGFf'
-        self._create_user(username, password, password)
-        user = Account.objects(username=username).first()
-        self.json_submit('java', 201, user.apikey, user.secret)
+        self.makeAccount()
+        self._login(self.username, self.password)
+        self.json_submit('java', 201, self.account.apikey, self.account.secret)
         self._logout()
 
     def test_java_submission_anon(self):

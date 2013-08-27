@@ -33,9 +33,8 @@ class TestAccountInfo(UserTestCase):
 
     def setUp(self):
         UserTestCase.setUp(self)
-        self._create_user(self.username, self.password)
+        self.makeAccount()
         self._login(self.username, self.password)
-        self.account = get_account(self.username)
 
     def tearDown(self):
         self._logout()

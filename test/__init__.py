@@ -22,7 +22,7 @@ import unittest
 import re
 
 from victims_web import application
-from victims_web.user import delete_user
+from victims_web.user import get_account, delete_user
 
 
 class FlaskTestCase(unittest.TestCase):
@@ -50,9 +50,8 @@ class UserTestCase(FlaskTestCase):
 
     _created_users = []
 
-    def tearDown(self):
-        for username in self._created_users:
-            delete_user(username)
+    username = 'defaulttester'
+    password = 'f30Fw@@Do&itpHGFf'
 
     def _login(self, username, password):
         """
@@ -99,3 +98,11 @@ class UserTestCase(FlaskTestCase):
         resp = self.app.post(
             '/register', data=form_data, follow_redirects=False)
         return resp
+
+    def makeAccount(self):
+        self._create_user(self.username, self.password, self.password)
+        self.account = get_account(self.username)
+
+    def tearDown(self):
+        for username in self._created_users:
+            delete_user(username)
