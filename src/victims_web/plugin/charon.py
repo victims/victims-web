@@ -6,12 +6,11 @@ Charon ferries the victims from their repositories to the judge of limbo.
 from abc import ABCMeta, abstractmethod
 from uuid import uuid4
 from os import makedirs
-from os.path import join, isdir
+from os.path import isdir
 from logging import getLogger
-from jip.maven import Artifact
-from jip.repository import MavenHttpRemoteRepos
-from jip.util import download as mavendownload
-from jip.util import DownloadException
+from victims_web.plugin.maven import (
+    Artifact, MavenHttpRemoteRepos, DownloadException
+)
 
 
 DEFAULT_DOWNLOADS_DIR = './downloads'
@@ -67,45 +66,30 @@ class JavaManager(Manager):
         except:
             ValueError('Could not identify artifact using provided info')
 
-    def _download(self, queue, filename):
-        assert filename.endswith('.jar')
-        downloaded = []
-        for sha1 in queue:
-            (repo, uri) = queue[sha1]
-            sfilename = '%s-%s-%s' % (str(uuid4()), repo.name, filename)
-            localfile = join(DOWNLOADS_DIR, sfilename)
-            try:
-                with open(localfile, 'w') as local:
-                    mavendownload(uri, local)
-
-                if repo.checksum(localfile, 'sha1') != sha1:
-                    raise DownloadException('Checksum mismatch.')
-            except DownloadException as de:
-                LOGGER.debug(
-                    'Skipping download from %s: %s' % (repo.name, de.message)
-                )
-                continue
-
-            downloaded.append((localfile, filename, 'Jar'))
-
-        return downloaded
-
     def download(self, info):
         artifact = self.make_artifact(info)
-        name = artifact.to_jip_name()
-        print(name)
         queue = {}
         for repo in self.repos:
             uri = repo.get_artifact_uri(artifact, 'jar')
             sha1 = repo.download_check_sum('sha1', uri)
-            if sha1 not in queue:
-                queue[sha1] = (repo, uri)
+            if sha1 and sha1 not in queue and sha1.strip != '':
+                queue[sha1] = repo
 
-            downloaded = self._download(queue, name)
-
-        if len(downloaded) == 0:
+        if len(queue) == 0:
             raise ValueError('No artifact found for %s' % (artifact))
 
+        downloaded = []
+        for sha1 in queue:
+            repo = queue[sha1]
+            prefix = '%s-%s' % (str(uuid4()), repo.name)
+            try:
+                localfile = repo.download_jar(
+                    artifact, DOWNLOADS_DIR, prefix, True)
+                downloaded.append((localfile, artifact.to_jip_name(), 'Jar'))
+            except DownloadException as de:
+                LOGGER.debug(
+                    'Skipping download from %s: %s' % (repo.name, de.message)
+                )
         return downloaded
 
 

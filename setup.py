@@ -42,6 +42,5 @@ setup(
         'Flask-SSLify',
         'PyYAML',
         'recaptcha-client',
-        'jip>=0.7',
     ],
 )
