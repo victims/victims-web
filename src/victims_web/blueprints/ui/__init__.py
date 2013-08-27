@@ -29,7 +29,9 @@ from flask.ext import login
 from victims_web.errors import ValidationError
 from victims_web.models import Hash, Submission
 from victims_web.cache import cache
-from victims_web.submissions import groups, process_metadata, submit, upload
+from victims_web.submissions import (
+    groups, process_metadata, submit, upload, refresh_ui_flag
+)
 
 
 ui = Blueprint(
@@ -72,6 +74,10 @@ def index():
                 data[entry] = len(stats[key].filter(format=fmt))
 
         return data
+
+    if refresh_ui_flag():
+        cache.delete_memoized(get_data)
+        refresh_ui_flag(False)
 
     return render_template('index.html', **get_data())
 
