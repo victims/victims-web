@@ -52,8 +52,9 @@ def _is_hash(data):
 
 @ui.route('/', methods=['GET'])
 def index():
+    _cache_key = 'view/%s/get_data' % (request.path)
 
-    @cache.cached()
+    @cache.cached(key_prefix=_cache_key)
     def get_data():
         """
         Caching results via inner function.
@@ -76,7 +77,7 @@ def index():
         return data
 
     if current_app.config.get('INDEX_REFRESH_FLAG', False):
-        cache.delete_memoized(get_data)
+        cache.delete(_cache_key)
         current_app.config['INDEX_REFRESH_FLAG'] = False
 
     return render_template('index.html', **get_data())
