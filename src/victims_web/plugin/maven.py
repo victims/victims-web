@@ -10,8 +10,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -202,7 +202,9 @@ class MavenRepos(object):
         pass
 
     def download_jar(self, artifact, local_path, prefix='', async=True):
-        """ download or copy file to local path, raise exception when failed """
+        """
+        download or copy file to local path, raise exception when failed
+        """
         pass
 
     def download_pom(self, artifact):
@@ -214,7 +216,9 @@ class MavenRepos(object):
         pass
 
     def download_check_sum(self, checksum_type, origin_file_name):
-        """ return pre calculated checksum value, only avaiable for remote repos """
+        """
+        return pre calculated checksum value, only avaiable for remote repos
+        """
         pass
 
 
@@ -310,7 +314,9 @@ class MavenHttpRemoteRepos(MavenRepos):
             return None
 
     def download_check_sum(self, checksum_type, origin_file_name):
-        """ return pre calculated checksum value, only avaiable for remote repos """
+        """
+        return pre calculated checksum value, only avaiable for remote repos
+        """
         checksum_url = origin_file_name + "." + checksum_type
         try:
             data = download_string(checksum_url)

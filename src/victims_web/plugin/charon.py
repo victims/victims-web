@@ -115,8 +115,8 @@ def _initialize(downloads_dir=DEFAULT_DOWNLOADS_DIR, repositories=[],
 
 def initialize():
     """
-    Helper method to initiate plugin dynamically. If flask context is available,
-    use app config, else use defaults.
+    Helper method to initiate plugin dynamically. If flask context is
+    available, use app config, else use defaults.
     """
     try:
         from flask import current_app as app
