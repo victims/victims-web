@@ -30,7 +30,7 @@ from victims_web.errors import ValidationError
 from victims_web.models import Hash, Submission
 from victims_web.cache import cache
 from victims_web.submissions import (
-    groups, process_metadata, submit, upload, refresh_ui_flag
+    groups, process_metadata, submit, upload
 )
 
 
@@ -75,9 +75,9 @@ def index():
 
         return data
 
-    if refresh_ui_flag():
+    if current_app.config.get('INDEX_REFRESH_FLAG', False):
         cache.delete_memoized(get_data)
-        refresh_ui_flag(False)
+        current_app.config['INDEX_REFRESH_FLAG'] = False
 
     return render_template('index.html', **get_data())
 
@@ -126,7 +126,6 @@ def submit_archive():
             meta = process_metadata(group, request.form)
 
             files = upload(group, request.files.get('archive', None), meta)
-
             for (ondisk, filename, suffix) in files:
                 submit(login.current_user.username, ondisk, group, filename,
                        suffix, cves, meta)

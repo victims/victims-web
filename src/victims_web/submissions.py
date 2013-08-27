@@ -31,17 +31,6 @@ from victims_web.models import Hash, Submission
 from victims_web.plugin.charon import download
 
 
-_UI_REFRESH_FLAG = False
-
-
-def refresh_ui_flag(to_value=None):
-    global _UI_REFRESH_FLAG
-    if to_value is not None:
-        _UI_REFRESH_FLAG = to_value
-    else:
-        return _UI_REFRESH_FLAG
-
-
 def groups():
     """
     Retrieve a list of groups with the default '---' group added.
@@ -152,7 +141,7 @@ def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
         # TODO: Make this async
         get_hash(submission)
 
-    refresh_ui_flag(True)
+    current_app.config['INDEX_REFRESH_FLAG'] = True
 
 
 def get_upload_folder():
