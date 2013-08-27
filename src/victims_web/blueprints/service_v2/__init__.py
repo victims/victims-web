@@ -25,7 +25,7 @@ from flask import Blueprint, Response, request, current_app
 
 from victims_web.user import api_request_user
 from victims_web.cache import cache
-from victims_web.models import Hash, Removal
+from victims_web.models import Hash, Removal, JsonifyMixin
 from victims_web.submissions import (submit, allowed_groups, process_metadata,
                                      upload)
 from victims_web.blueprints.helpers import check_api_auth
@@ -77,17 +77,26 @@ class StreamedSerialResponseValue(object):
         # NOTE: We must do the count else the cursor will stop at 100
         self.result_count = self.result.count()
 
+    def _json(self, item):
+        if isinstance(item, JsonifyMixin):
+            return item.jsonify()
+        elif isinstance(item, str) or isinstance(item, unicode):
+            return str(item)
+        else:
+            return json.dumps(item)
+
     def __getstate__(self):
         """
         The state returned is just the json string of the object
         """
-        return json.dumps(self.result)
+        dump = [self._json(o) for o in self.result]
+        return json.dumps((dump, self.result_count))
 
     def __setstate__(self, state):
         """
         When unpickling, convert the json string into an py-object
         """
-        self.result = json.loads(state)
+        (self.result, self.result_count) = json.loads(state)
 
     def __iter__(self):
         """
@@ -98,7 +107,7 @@ class StreamedSerialResponseValue(object):
         count = 0
         for item in self.result:
             count += 1
-            data = '{"fields": ' + item.jsonify() + '}'
+            data = '{"fields": ' + self._json(item) + '}'
             if count != self.result_count:
                 yield data + ",\n"
             else:
