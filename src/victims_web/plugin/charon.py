@@ -64,7 +64,7 @@ class JavaManager(Manager):
             versionId = info['versionId']
             return Artifact(groupId, artifactId, versionId)
         except:
-            ValueError('Could not identify artifact using provided info')
+            raise ValueError('Could not identify artifact using provided info')
 
     def download(self, info):
         artifact = self.make_artifact(info)
