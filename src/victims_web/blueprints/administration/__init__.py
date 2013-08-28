@@ -20,7 +20,7 @@ Administration interface.
 
 import datetime
 
-from flask import redirect, url_for
+from flask import flash, redirect, url_for
 
 from flask.ext.admin.base import (
     Admin, AdminIndexView, MenuLink, BaseView, expose)
@@ -75,19 +75,29 @@ class CacheAdminView(SafeBaseView):
     @expose('/')
     def index(self):
         cached_info = {}
-        for key, value in cache.cache._cache.items():
-            cached_info[key] = datetime.datetime.fromtimestamp(value[0])
-        return self.render('admin/cache_index.html', items=cached_info)
+        err = False
+        try:
+            for key, value in cache.cache._cache.items():
+                cached_info[key] = datetime.datetime.fromtimestamp(value[0])
+        except:
+            flash('Could not load cache!', category='info')
+            err = True
+        return self.render(
+            'admin/cache_index.html', items=cached_info, err=err
+        )
 
     @expose('/clear')
     def clear(self):
-        cache.cache.clear()
+        try:
+            cache.cache.clear()
+        except:
+            flash('Could not clear cache!', category='info')
         return redirect(url_for('.index'))
 
 
 class AccountView(SafeModelView):
     column_filters = ('username', )
-    column_exclude_list = ('password', )
+    column_exclude_list = ('password', 'apikey', 'secret')
 
 
 class HashView(SafeModelView):
