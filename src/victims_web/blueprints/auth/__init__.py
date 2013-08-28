@@ -27,7 +27,7 @@ from recaptcha.client import captcha
 from mongoengine import ValidationError
 
 from victims_web.user import (authenticate, create_user, User, get_account,
-                              make_password_hash, generate_api_tokens)
+                              make_password_hash)
 from victims_web.models import Account
 
 auth = Blueprint('auth', __name__, template_folder='templates')
@@ -137,9 +137,7 @@ def user_edit():
                 account.email = request.form['email'].strip()
 
             if request.form.get('regenerate', 'off') == 'on':
-                (apikey, secret) = generate_api_tokens(account.username)
-                account.apikey = apikey
-                account.secret = secret
+                account.update_api_tokens()
 
             account.validate()
             account.save()

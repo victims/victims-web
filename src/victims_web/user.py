@@ -18,14 +18,13 @@
 User related functions.
 """
 from hmac import HMAC
-from uuid import uuid4
 from hashlib import md5, sha512
 from time import strptime, mktime
 from datetime import datetime, timedelta
 
 from flask import redirect, request, url_for, current_app
 
-from flask.ext.login import current_user, make_secure_token
+from flask.ext.login import current_user
 from flask.ext.bcrypt import check_password_hash, generate_password_hash
 
 from victims_web.models import Account
@@ -41,21 +40,6 @@ def get_account(value, field='username'):
         - `field`: Field to filter on. Default field is username.
     """
     return Account.objects(**{field: value}).first()
-
-
-def generate_client_secret(apikey):
-    return make_secure_token(apikey).upper()
-
-
-def generate_apikey(username):
-    apikey = HMAC(uuid4().hex, username).hexdigest()
-    return apikey.upper()
-
-
-def generate_api_tokens(username):
-    apikey = generate_apikey(username)
-    secret = generate_client_secret(apikey)
-    return (apikey, secret)
 
 
 def authenticate(username, password):
@@ -160,9 +144,6 @@ def create_user(username, password, endorsements=[], email=None):
 
     new_user.endorsements = all_endorsements
     new_user.active = True
-
-    new_user.apikey = generate_apikey(username)
-    new_user.secret = generate_client_secret(new_user.apikey)
 
     new_user.validate()
     new_user.save()

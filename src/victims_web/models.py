@@ -19,16 +19,33 @@ Data models.
 """
 
 import datetime
-
 import json
 
+from hmac import HMAC
+from uuid import uuid4
 from bson.dbref import DBRef
 
 from flask.ext.mongoengine import Document
+from flask.ext.login import make_secure_token
 from mongoengine import (
     StringField, DateTimeField, DictField, BooleanField, EmbeddedDocument,
     EmbeddedDocumentField, ListField, EmailField
 )
+
+
+def generate_client_secret(apikey):
+    return make_secure_token(apikey).upper()
+
+
+def generate_apikey(username):
+    apikey = HMAC(uuid4().hex, username).hexdigest()
+    return apikey.upper()
+
+
+def generate_api_tokens(username):
+    apikey = generate_apikey(username)
+    secret = generate_client_secret(apikey)
+    return (apikey, secret)
 
 
 class ValidatedDocument(Document):
@@ -105,6 +122,14 @@ class Account(ValidatedDocument):
 
     def __str__(self):
         return str(self.username)
+
+    def update_api_tokens(self):
+        (self.apikey, self.secret) = generate_api_tokens(self.username)
+
+    def save(self):
+        if self.apikey is None or len(self.apikey) == 0:
+            self.update_api_tokens()
+        ValidatedDocument.save(self)
 
 
 class Removal(JsonifyMixin, ValidatedDocument):
