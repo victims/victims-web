@@ -60,6 +60,13 @@ class SafeBaseView(ViewRequiresAuthorization, BaseView):
     pass
 
 
+class SafeModelView(ViewRequiresAuthorization, ModelView):
+    """
+    Mixes in ViewRequiresAuthorization to require authorization.
+    """
+    pass
+
+
 class CacheAdminView(SafeBaseView):
     """
     Simple cache management.
@@ -78,12 +85,12 @@ class CacheAdminView(SafeBaseView):
         return redirect(url_for('.index'))
 
 
-class AccountView(ModelView):
+class AccountView(SafeModelView):
     column_filters = ('username', )
     column_exclude_list = ('password', )
 
 
-class HashView(ModelView):
+class HashView(SafeModelView):
     column_filters = ('name', )
     column_list = ('name', 'version', 'format',
                    'status', 'submittedon', 'date')
@@ -96,7 +103,7 @@ def administration_setup(app):
     administration = Admin(
         name="Victims Admin", index_view=SafeAdminIndexView())
     administration.init_app(app)
-    administration.add_view(ModelView(Account))
+    administration.add_view(AccountView(Account))
     administration.add_view(HashView(Hash))
     administration.add_view(CacheAdminView(name='Cache', endpoint='cache'))
 
