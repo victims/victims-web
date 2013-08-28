@@ -80,7 +80,7 @@ def process_metadata(group, values={}, noprefix=False):
     return meta
 
 
-def get_hash(submission):
+def set_hash(submission):
     """
     Helper method to process an archive at source where possible from a
     submission.
@@ -139,7 +139,7 @@ def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
 
     if entry is None:
         # TODO: Make this async
-        get_hash(submission)
+        set_hash(submission)
 
     current_app.config['INDEX_REFRESH_FLAG'] = True
 
