@@ -25,9 +25,10 @@ import json
 from bson.dbref import DBRef
 
 from flask.ext.mongoengine import Document
-from mongoengine import (StringField, DateTimeField, DictField, BooleanField,
-                         EmbeddedDocument, EmbeddedDocumentField, ListField,
-                         EmailField)
+from mongoengine import (
+    StringField, DateTimeField, DictField, BooleanField, EmbeddedDocument,
+    EmbeddedDocumentField, ListField, EmailField
+)
 
 
 class ValidatedDocument(Document):
@@ -58,7 +59,7 @@ class ValidatedDocument(Document):
 
 class JsonifyMixin(object):
 
-    def jsonify(self):
+    def jsonify(self, fields=None):
         """
         Converts an instance into json.
         """
@@ -72,8 +73,13 @@ class JsonifyMixin(object):
 
         data = self.to_mongo()
 
+        # workaround to remove default values when using only(*fields)
+        # Note that this will not work for embedded documents with defaults
+        if fields:
+            fields = [f.split('.', 1)[0].strip() for f in fields]
+
         for key in data.keys():
-            if key.startswith('_'):
+            if key.startswith('_') or (fields and key not in fields):
                 del data[key]
 
         return json.dumps(data, default=handle_special_objs)
@@ -144,7 +150,7 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
     submitter = StringField()
     submittedon = DateTimeField(default=datetime.datetime.utcnow)
 
-    def jsonify(self):
+    def jsonify(self, fields=None):
         """
         Update jsonify to flatten some fields.
         """
@@ -154,7 +160,7 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
             new_cves.append(cve)
         self.cves = new_cves
 
-        return JsonifyMixin.jsonify(self)
+        return JsonifyMixin.jsonify(self, fields)
 
     def load_json(self, submitter, json_data):
         """

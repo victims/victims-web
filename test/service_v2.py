@@ -54,14 +54,17 @@ class TestServiceV2(UserTestCase):
                 resp = self.app.get('/service/v2/%s/%s/' % (kind, badtype))
                 assert resp.status_code == 400
 
-    def verify_data_structure(self, result, expected):
+    def verify_data_structure(self, result, expected, two_way=False):
         assert len(result) > 0
         for item in result:
             assert 'fields' in item.keys()
             for key, testtype in expected.items():
                 assert isinstance(item['fields'][key], testtype)
+            if two_way:
+                for key in item['fields']:
+                    assert key in expected
 
-    def test_data_structure_get(self):
+    def test_updates(self):
         """
         Ensures the response structure is correct for a GET request.
         """
@@ -82,38 +85,24 @@ class TestServiceV2(UserTestCase):
             'submittedon': basestring,
         }
         self.verify_data_structure(result, expected)
-    '''
-    def test_data_structure_post(self):
+
+    def test_filtered_updates(self):
         """
         Ensures the response structure is correct for a POST request.
         """
-        testhash = dict(combined="")
-        testhashes = dict(sha512=testhash)
-        testdata = dict(name="", hashes=testhashes)
-        testdata = json.dumps(testdata)
-        resp = self.app.post('/service/v2/update/1970-01-01T00:00:00/',
-                             data=testdata, follow_redirects=True)
+        resp = self.app.get(
+            '/service/v2/update/1970-01-01T00:00:00?fields=name,hashes',
+            follow_redirects=True
+        )
         result = json.loads(resp.data)
 
         expected = {
             'name': basestring,
             'hashes': dict
         }
-        self.verify_data_structure(result, expected)
+        self.verify_data_structure(result, expected, True)
 
-        # additional verifications
-        for item in result:
-            hashes = item['fields']['hashes']
-            assert isinstance(hashes, dict)
-            assert len(hashes) == len(testhashes)
-            for alg in hashes.keys():
-                assert alg in testhashes.keys()
-                hash = hashes[alg]
-                assert isinstance(hash, dict)
-                assert len(hash) == len(testhash)
-                for htype in hash.keys():
-                    assert htype in testhash.keys()
-
+    '''
     # TODO: Need to import a full hash else this test will always fail
     def test_cves_valid(self):
         """

@@ -66,7 +66,7 @@ class StreamedSerialResponseValue(object):
     streaming and caching simultaneously.
     """
 
-    def __init__(self, result):
+    def __init__(self, result, fields=None):
         """
         Creates the streamed iterator.
 
@@ -74,12 +74,13 @@ class StreamedSerialResponseValue(object):
            - `result`: The result to iterate over.
         """
         self.result = result.clone()
+        self.fields = fields
         # NOTE: We must do the count else the cursor will stop at 100
         self.result_count = self.result.count()
 
     def _json(self, item):
         if isinstance(item, JsonifyMixin):
-            return item.jsonify()
+            return item.jsonify(self.fields)
         elif isinstance(item, str) or isinstance(item, unicode):
             return str(item)
         else:
@@ -90,13 +91,13 @@ class StreamedSerialResponseValue(object):
         The state returned is just the json string of the object
         """
         dump = [self._json(o) for o in self.result]
-        return json.dumps((dump, self.result_count))
+        return json.dumps((dump, self.fields, self.result_count))
 
     def __setstate__(self, state):
         """
         When unpickling, convert the json string into an py-object
         """
-        (self.result, self.result_count) = json.loads(state)
+        (self.result, self.fields, self.result_count) = json.loads(state)
 
     def __iter__(self):
         """
@@ -115,9 +116,9 @@ class StreamedSerialResponseValue(object):
         yield "]"
 
 
-def stream_items(items):
+def stream_items(items, fields=None):
     return Response(
-        StreamedSerialResponseValue(items),
+        StreamedSerialResponseValue(items, fields),
         mimetype='application/json'
     )
 
@@ -149,21 +150,18 @@ def update(since):
 
         items = Hash.objects(date__gt=datetime.datetime.strptime(
                              since, "%Y-%m-%dT%H:%M:%S"))
+        fields = None
         if request.args.get('fields', None):
             fields = []
             for field in request.args.get(
                     'fields').replace(' ', '').split(','):
-                if field == 'hashes.sha512':
-                    fields.append('hashes__sha512')
-                elif field == 'hashes.sha256':
-                    fields.append('hashes__sha256')
-                else:
-                    if field in Hash._fields.keys():
-                        fields.append(field)
+                if field in Hash._fields.keys():
+                    fields.append(field)
 
             items = items.only(*fields)
-        return stream_items(items)
-    except Exception:
+        return stream_items(items, fields)
+    except Exception as e:
+        current_app.logger.debug(e)
         return error()
 
 
