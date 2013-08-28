@@ -121,7 +121,7 @@ def get_hash(submission):
 
 def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
            meta={}, entry=None, approval='REQUESTED'):
-    current_app.logger.debug('Submitting: %s' % (
+    current_app.logger.info('Submitting: %s' % (
         ', '.join(['%s:%s' % (k, v) for (k, v) in locals().items()])))
     submission = Submission()
     submission.source = source
