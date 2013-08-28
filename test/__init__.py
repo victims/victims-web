@@ -80,7 +80,7 @@ class UserTestCase(FlaskTestCase):
         """
         self.app.get('/logout', follow_redirects=True)
 
-    def create_user(self, username, password):
+    def create_user(self, username, password, endorsements={}):
         """
         Shortcut for creating users.
         """
@@ -94,6 +94,7 @@ class UserTestCase(FlaskTestCase):
             application.app.config['BCRYPT_LOG_ROUNDS']
         )
         account.active = True
+        account.endorsements = endorsements
         account.save()
 
         self.account = account
