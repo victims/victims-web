@@ -185,7 +185,7 @@ class TestServiceV2(UserTestCase):
         """
         Verifies that an authenticated user can submit entries via the JSON API
         """
-        self.makeAccount()
+        self.create_user(self.username, self.password)
         self._login(self.username, self.password)
         self.json_submit('java', 201, self.account.apikey, self.account.secret)
         self._logout()

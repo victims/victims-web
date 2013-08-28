@@ -28,7 +28,27 @@ class TestRegister(UserTestCase):
     """
     Tests user registration.
     """
-    _created_users = []
+    def register_user(self, username, password, password_confirm=None):
+        """
+        Shortcut for creating users.
+        """
+        if username not in self._created_users:
+            self._created_users.append(username)
+
+        if not password_confirm:
+            password_confirm = password
+
+        (_, csrf_token) = self.visit('/register')
+
+        form_data = {
+            'username': username,
+            'password': password,
+            'verify_password': password_confirm,
+            '_csrf_token': csrf_token,
+        }
+        resp = self.app.post(
+            '/register', data=form_data, follow_redirects=False)
+        return resp
 
     def test_inital_request(self):
         """
@@ -49,9 +69,9 @@ class TestRegister(UserTestCase):
         """
         Don't allow duplicate usernames.
         """
-        self._create_user('duplicateuser', 'arj/^fakhsDDASm491')
+        self.register_user('duplicateuser', 'arj/^fakhsDDASm491')
         self.app.get('/logout', follow_redirects=True)
-        resp = self._create_user('duplicateuser', 'arj/^fakhsDDASm491')
+        resp = self.register_user('duplicateuser', 'arj/^fakhsDDASm491')
         assert resp.status_code == 200
         assert 'Username is not available.' in resp.data
 
@@ -59,7 +79,7 @@ class TestRegister(UserTestCase):
         """
         Verify passwords must match on registration.
         """
-        resp = self._create_user(
+        resp = self.register_user(
             'shouldnotwork', 'arj/^fakhsDDASm491', '4oTiuIsd@fgdjfa')
         assert resp.status_code == 200
         assert 'Passwords do not match.' in resp.data
@@ -68,7 +88,7 @@ class TestRegister(UserTestCase):
         """
         Verify passwords and username can not be the same.
         """
-        resp = self._create_user('shouldNotwork', 'shouldNotwork')
+        resp = self.register_user('shouldNotwork', 'shouldNotwork')
         assert resp.status_code == 200
         assert 'Password can not be the same as the username' in resp.data
 
@@ -76,11 +96,11 @@ class TestRegister(UserTestCase):
         """
         Verify password is not too simple.
         """
-        resp = self._create_user('shouldNotwork', 'aaaaaaAaaaa/V')
+        resp = self.register_user('shouldNotwork', 'aaaaaaAaaaa/V')
         assert resp.status_code == 200
         assert 'char for more than 30% of the password' in resp.data
 
-        resp = self._create_user('shouldNotwork', '1234567')
+        resp = self.register_user('shouldNotwork', '1234567')
         assert resp.status_code == 200
         assert 'Password to simple' in resp.data
 
@@ -114,7 +134,7 @@ class TestRegister(UserTestCase):
         """
         Makes sure a good registration works.
         """
-        resp = self._create_user('goodreguser', 'this_/is_OUR_secret')
+        resp = self.register_user('goodreguser', 'this_/is_OUR_secret')
         assert resp.status_code == 302
         assert resp.location == 'http://localhost/'
 
@@ -128,7 +148,7 @@ class TestRegister(UserTestCase):
         """
         Makes sure api keys are generated on registration
         """
-        resp = self._create_user('apiuser', 'this_/is_OUR_secret')
+        resp = self.register_user('apiuser', 'this_/is_OUR_secret')
         assert resp.status_code == 302
 
         user = Account.objects(username='apiuser').first()

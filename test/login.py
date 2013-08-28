@@ -27,7 +27,6 @@ class TestLogin(UserTestCase):
     """
     Tests user login.
     """
-
     def tearDown(self):
         """
         Issue a logout on every test.

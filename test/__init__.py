@@ -21,8 +21,11 @@ Unittesting.
 import unittest
 import re
 
+from flask.ext.bcrypt import generate_password_hash
+
 from victims_web import application
-from victims_web.user import get_account, delete_user
+from victims_web.models import Account
+from victims_web.user import delete_user
 
 
 class FlaskTestCase(unittest.TestCase):
@@ -77,31 +80,23 @@ class UserTestCase(FlaskTestCase):
         """
         self.app.get('/logout', follow_redirects=True)
 
-    def _create_user(self, username, password, password_confirm=None):
+    def create_user(self, username, password):
         """
         Shortcut for creating users.
         """
         if username not in self._created_users:
             self._created_users.append(username)
 
-        if not password_confirm:
-            password_confirm = password
+        account = Account()
+        account.username = username
+        account.password = generate_password_hash(
+            password,
+            application.app.config['BCRYPT_LOG_ROUNDS']
+        )
+        account.active = True
+        account.save()
 
-        (_, csrf_token) = self.visit('/register')
-
-        form_data = {
-            'username': username,
-            'password': password,
-            'verify_password': password_confirm,
-            '_csrf_token': csrf_token,
-        }
-        resp = self.app.post(
-            '/register', data=form_data, follow_redirects=False)
-        return resp
-
-    def makeAccount(self):
-        self._create_user(self.username, self.password, self.password)
-        self.account = get_account(self.username)
+        self.account = account
 
     def tearDown(self):
         for username in self._created_users:

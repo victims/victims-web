@@ -33,7 +33,7 @@ class TestAccountInfo(UserTestCase):
 
     def setUp(self):
         UserTestCase.setUp(self)
-        self.makeAccount()
+        self.create_user(self.username, self.password)
         self._login(self.username, self.password)
 
     def tearDown(self):
@@ -66,9 +66,10 @@ class TestAccountInfo(UserTestCase):
 
         form_data['_csrf_token'] = csrf_token
 
-        resp = self.app.post('/account_edit', data=form_data, follow_redirects=True)
+        resp = self.app.post(
+            '/account_edit', data=form_data, follow_redirects=True
+        )
         assert resp.status_code == 200
-        print(resp.data)
         assert 'Account information was successfully updated!' in resp.data
 
     def test_account_edit(self):
