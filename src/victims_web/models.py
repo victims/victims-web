@@ -21,12 +21,13 @@ Data models.
 import datetime
 import json
 
+from os import urandom
+from hashlib import sha1
 from hmac import HMAC
 from uuid import uuid4
 from bson.dbref import DBRef
 
 from flask.ext.mongoengine import Document
-from flask.ext.login import make_secure_token
 from mongoengine import (
     StringField, DateTimeField, DictField, BooleanField, EmbeddedDocument,
     EmbeddedDocumentField, ListField, EmailField
@@ -34,7 +35,7 @@ from mongoengine import (
 
 
 def generate_client_secret(apikey):
-    return make_secure_token(apikey).upper()
+    return HMAC(bytes(urandom(24)), apikey, sha1).hexdigest().upper()
 
 
 def generate_apikey(username):
