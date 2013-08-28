@@ -148,8 +148,9 @@ def update(since):
     """
     try:
 
-        items = Hash.objects(date__gt=datetime.datetime.strptime(
-                             since, "%Y-%m-%dT%H:%M:%S"))
+        items = Hash.objects(
+            date__gt=datetime.datetime.strptime(since, "%Y-%m-%dT%H:%M:%S")
+        )
         fields = None
         if request.args.get('fields', None):
             fields = []
@@ -160,8 +161,7 @@ def update(since):
 
             items = items.only(*fields)
         return stream_items(items, fields)
-    except Exception as e:
-        current_app.logger.debug(e)
+    except:
         return error()
 
 
