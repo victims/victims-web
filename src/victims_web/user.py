@@ -51,8 +51,9 @@ def authenticate(username, password):
     return False
 
 
-def generate_signature(apikey, method, path, date, data_md5):
-    ordered = [method, path, date, data_md5]
+def generate_signature(apikey, method, path, date, md5sums):
+    md5sums.sort()
+    ordered = [method, path, date] + md5sums
     string = ''
     for content in ordered:
         if content is None:
@@ -115,13 +116,31 @@ def validate_signature():
         if delta > timedelta(minutes=expiry) or delta < timedelta(0):
             return False
 
+        # prepare path with args
+        path = request.path
+        if len(request.args) > 0:
+            args = []
+            for key in request.args.keys():
+                args.append('%s=%s' % (key, request.args[key]))
+            path = '%s?%s' % (path, '&'.join(args))
+
+        # prepare md5 sums
+        md5sums = []
+        if len(request.data) > 0:
+            md5sums.append(md5(request.data).hexdigest())
+
+        if len(request.files) > 0:
+            for f in request.files.values():
+                md5sums.append(md5(f.stream.getvalue()).hexdigest())
+
         expected = generate_signature(
-            apikey, request.method, request.path,
+            apikey, request.method, path,
             request.headers['Date'],
-            md5(request.data).hexdigest()
+            md5sums
         )
         return signature.upper() == expected
-    except:
+    except Exception as e:
+        config.LOGGER.debug(e)
         return False
 
 

@@ -21,8 +21,14 @@ Service version 2 testing.
 import json
 from datetime import datetime
 from hashlib import md5
+from StringIO import StringIO
+from os import listdir
+from shutil import rmtree
+from os.path import isdir
 
 from test import UserTestCase
+
+from victims_web.config import UPLOAD_FOLDER
 from victims_web.models import Removal
 from victims_web.user import generate_signature
 
@@ -34,6 +40,11 @@ class TestServiceV2(UserTestCase):
 
     username = 'v2tester'
     points = ['update', 'remove']
+
+    def tearDown(self):
+        if isdir(UPLOAD_FOLDER):
+            rmtree(UPLOAD_FOLDER)
+        UserTestCase.tearDown(self)
 
     def test_uri_endpoints(self):
         """
@@ -165,27 +176,61 @@ class TestServiceV2(UserTestCase):
         assert resp.content_type == 'application/json'
         assert test_hash in resp.data
 
-    def json_submit(self, group, status_code=403, apikey=None, secret=None):
+    def json_submit(self, path, data, content_type, md5sums, status_code, apikey, secret):
+        date = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
+        headers = [('Date', date)]
+        if apikey is not None and secret is not None:
+            signature = generate_signature(apikey, 'PUT', path, date, md5sums)
+            headers.append(('Victims-Api', '%s:%s' % (apikey, signature)))
+        resp = self.app.put(
+            path, headers=headers,
+            data=data,
+            follow_redirects=True,
+            content_type=content_type
+        )
+        assert resp.status_code == status_code
+        assert resp.content_type == 'application/json'
+
+    def json_submit_hash(self, group, status_code, apikey=None, secret=None):
         testhash = dict(combined="")
         testhashes = dict(sha512=testhash)
         testdata = dict(name="", hashes=testhashes, cves=['CVE-2013-0000'])
         testdata = json.dumps(testdata)
         path = '/service/v2/submit/hash/%s/' % (group)
-        content_type = 'application/json'
-        data_md5 = md5(testdata).hexdigest()
-        date = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
-        headers = [('Date', date)]
-        if apikey is not None and secret is not None:
-            signature = generate_signature(
-                apikey, 'PUT', path, date, data_md5
-            )
-            headers.append(('Victims-Api', '%s:%s' % (apikey, signature)))
-        resp = self.app.put(
-            path, headers=headers, data=testdata, content_type=content_type,
-            follow_redirects=True
+        md5sums = [md5(testdata).hexdigest()]
+        self.json_submit(
+            path, testdata, 'application/json',
+            md5sums, status_code, apikey, secret
         )
-        assert resp.status_code == status_code
-        assert resp.content_type == 'application/json'
+
+    def json_submit_file(self, group, status_code, argstr=None, apikey=None,
+                         secret=None):
+        testfilename = 'testfile.jar'
+        content = 'test content'
+        md5sums = [md5(content).hexdigest()]
+        data = {'archive': (StringIO(content), testfilename)}
+
+        path = '/service/v2/submit/archive/%s' % (group)
+        if argstr:
+            path = '%s?%s' % (path, argstr)
+
+        self.json_submit(
+            path, data, 'multipart/form-data',
+            md5sums, status_code, apikey, secret
+        )
+
+        files = []
+        if isdir(UPLOAD_FOLDER):
+            files = [
+                f for f in listdir(UPLOAD_FOLDER) if f.endswith(testfilename)
+            ]
+
+        if status_code == 201:
+            assert isdir(UPLOAD_FOLDER)
+            assert len(files) > 0
+            rmtree(UPLOAD_FOLDER)
+        else:
+            assert len(files) == 0
 
     def test_java_submission_authenticated(self):
         """
@@ -193,11 +238,19 @@ class TestServiceV2(UserTestCase):
         """
         self.create_user(self.username, self.password)
         self._login(self.username, self.password)
-        self.json_submit('java', 201, self.account.apikey, self.account.secret)
+        self.json_submit_hash('java', 201, self.account.apikey, self.account.secret)
+        self.json_submit_file(
+            'java', 400, None, self.account.apikey, self.account.secret
+        )
+        self.json_submit_file(
+            'java', 201, 'cves=CVE-2013-000', self.account.apikey,
+            self.account.secret
+        )
         self._logout()
 
     def test_java_submission_anon(self):
         """
         Verfies that an unauthenticated user cannot submit via the JSON API
         """
-        self.json_submit('java', 403)
+        self.json_submit_hash('java', 403)
+        self.json_submit_file('java', 403)

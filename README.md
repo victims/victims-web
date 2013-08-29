@@ -66,12 +66,18 @@ Each account on victi.ms is allocated an API Key and Secret key by default. This
 #### Signature
 The signature is generated using ```HTTP Method```, ```Path```, ```Date``` and the *MD5 hexdigest*.
 
+_Notes:_
+* The ```Path``` includes the arguments. Eg: ```/service/submit/archive/java?cves=CVE-0000-0000```
+* The MD5 include the data (if available) and of all files that are being submitted. The checksums are sorted in ascending order before adding to the string.
+* The date is expected to be in ```GMT```. Eg: ```Thu, 22 Aug 2013 15:20:37 GMT```.
+
 The following is a reference implementation in python:
 ```py
 from hmac import HMAC
 
-def generate_signature(secret, method, path, date, data_md5):
-    ordered = [method, path, date, data_md5]
+def generate_signature(secret, method, path, date, md5sums):
+    md5sums.sort()
+    ordered = [method, path, date] + md5sums
     string = ''
 
     for content in ordered:
