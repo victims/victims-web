@@ -36,6 +36,15 @@ v2 = Blueprint('service_v2', __name__)
 
 # Module globals
 EOL = None
+MIME_TYPE = 'application/json'
+
+
+def make_response(data, code=200):
+    return Response(
+        response=data,
+        status=code,
+        mimetype=MIME_TYPE
+    )
 
 
 def error(msg='Could not understand request.', code=400):
@@ -46,7 +55,7 @@ def error(msg='Could not understand request.', code=400):
         - `msg`: Error message to be returned in json string.
         - `code`: The code to return as status code for the response.
     """
-    return json.dumps([{'error': msg}]), code
+    return make_response(json.dumps([{'error': msg}]), code)
 
 
 def success(msg='Request successful.', code=201):
@@ -57,7 +66,7 @@ def success(msg='Request successful.', code=201):
         - `msg`: Error message to be returned in json string.
         - `code`: The code to return as status code for the response.
     """
-    return json.dumps([{'success': msg}]), code
+    return make_response(json.dumps([{'success': msg}]), code)
 
 
 class StreamedSerialResponseValue(object):
@@ -117,10 +126,7 @@ class StreamedSerialResponseValue(object):
 
 
 def stream_items(items, fields=None):
-    return Response(
-        StreamedSerialResponseValue(items, fields),
-        mimetype='application/json'
-    )
+    return make_response(StreamedSerialResponseValue(items, fields))
 
 
 @v2.route('/status.json')
@@ -129,13 +135,15 @@ def status():
     """
     Return the status of the service.
     """
-    return json.dumps({
+    data = json.dumps({
         'eol': EOL,
         'supported': True,
         'version': '2',
         'recommended': True,
         'endpoint': '/service/v2/'
     })
+
+    return make_response(data)
 
 
 @v2.route('/update/<since>/', methods=['GET'])
@@ -207,7 +215,7 @@ def cves(algorithm, arg):
         results = []
         for hash in cves:
             results += hash.cves.keys()
-        return Response(json.dumps(results), mimetype='application/json')
+        return make_response(json.dumps(results))
     except Exception:
         return error()
 

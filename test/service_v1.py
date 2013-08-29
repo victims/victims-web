@@ -37,17 +37,21 @@ class TestServiceV1(FlaskTestCase):
         for kind in self.points:
             resp = self.app.get('/service/v1/%s/0/' % kind)
             assert resp.status_code == 200
+            assert resp.content_type == 'application/json'
 
         # V1 returns empty list when nothing is available
         for kind in self.points:
             resp = self.app.get('/service/v1/%s/999999/' % kind)
             assert resp.status_code == 200
+            assert resp.content_type == 'application/json'
 
         # Anything that is not an int should be a 404
         for kind in self.points:
             for badtype in ['NotAnInt', 10.436, u'bleh']:
                 resp = self.app.get('/service/v1/%s/%s/' % (kind, badtype))
-                assert resp.status_code == 404
+                print(resp.status_code, kind, resp)
+                assert resp.status_code == 400
+                assert resp.content_type == 'application/json'
 
     def test_data_structure(self):
         """
@@ -80,6 +84,8 @@ class TestServiceV1(FlaskTestCase):
         Verifies the status data is correct.
         """
         resp = self.app.get('/service/v1/status.json')
+        assert resp.content_type == 'application/json'
+
         result = json.loads(resp.data)
 
         import datetime

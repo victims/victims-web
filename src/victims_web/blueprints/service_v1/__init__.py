@@ -20,7 +20,7 @@ application versions!
 """
 import datetime
 
-from flask import Blueprint, json
+from flask import Blueprint, json, Response
 
 from victims_web.cache import cache
 from victims_web.models import Hash
@@ -30,6 +30,26 @@ v1 = Blueprint('service_v1', __name__)
 
 # Module globals
 EOL = datetime.datetime(2013, 6, 1)
+MIME_TYPE = 'application/json'
+
+
+def make_response(data, code=200):
+    return Response(
+        response=data,
+        status=code,
+        mimetype=MIME_TYPE
+    )
+
+
+def error(msg='Could not understand request.', code=400):
+    """
+    Returns an error json response.
+
+    :Parameters:
+        - `msg`: Error message to be returned in json string.
+        - `code`: The code to return as status code for the response.
+    """
+    return make_response(json.dumps([{'error': msg}]), code)
 
 
 @v1.route('/status.json')
@@ -38,35 +58,43 @@ def status():
     """
     Return the status of the service.
     """
-    return json.dumps({
+    return make_response(json.dumps({
         'eol': EOL.isoformat(),
         'supported': datetime.datetime.now() <= EOL,
         'version': '1',
         'recommended': False,
         'endpoint': '/service/v1/'
-    })
+    }))
 
 
-@v1.route('/update/<int:revision>/')
+@v1.route('/update/<revision>/')
 def update(revision):
-    result = []
-    for item in Hash.objects(_v1__db_version__gte=int(revision)):
-        newitem = {}
-        newitem['name'] = item['name']
-        newitem['vendor'] = item['vendor']
-        newitem['status'] = 'In Database'
-        newitem['format'] = item['format'].upper()
-        newitem['version'] = item['version']
-        newitem['submitter'] = item['submitter']
-        newitem['hash'] = item['hashes']['sha512']['combined']
-        newitem['db_version'] = int(item['_v1']['db_version'])
-        newitem['cves'] = ','.join(item['cves'].keys())
-        newitem['submitter'] = str(item['submitter'])
-        result.append({'fields': newitem})
-    return json.dumps(result)
+    try:
+        revision = int(revision)
+        result = []
+        for item in Hash.objects(_v1__db_version__gte=int(revision)):
+            newitem = {}
+            newitem['name'] = item['name']
+            newitem['vendor'] = item['vendor']
+            newitem['status'] = 'In Database'
+            newitem['format'] = item['format'].upper()
+            newitem['version'] = item['version']
+            newitem['submitter'] = item['submitter']
+            newitem['hash'] = item['hashes']['sha512']['combined']
+            newitem['db_version'] = int(item['_v1']['db_version'])
+            newitem['cves'] = ','.join(item['cves'].keys())
+            newitem['submitter'] = str(item['submitter'])
+            result.append({'fields': newitem})
+        return make_response(json.dumps(result))
+    except:
+        return error()
 
 
-@v1.route('/remove/<int:revision>/')
+@v1.route('/remove/<revision>/')
 @cache.cached()
 def remove(revision):
-    return json.dumps([])
+    try:
+        revision = int(revision)
+        return make_response(json.dumps([]))
+    except:
+        return error()

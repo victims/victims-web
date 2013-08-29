@@ -42,17 +42,20 @@ class TestServiceV2(UserTestCase):
         for kind in self.points:
             resp = self.app.get('/service/v2/%s/1970-01-01T00:00:00/' % kind)
             assert resp.status_code == 200
+            assert resp.content_type == 'application/json'
 
         # V1 returns empty list when nothing is available
         for kind in self.points:
             resp = self.app.get('/service/v2/%s/4000-01-01T00:00:00/' % kind)
             assert resp.status_code == 200
+            assert resp.content_type == 'application/json'
 
         # Anything that is not an int should be a 404
         for kind in self.points:
             for badtype in [0, 'NotAnInt', 10.436, 0x80, u'bleh']:
                 resp = self.app.get('/service/v2/%s/%s/' % (kind, badtype))
                 assert resp.status_code == 400
+                assert resp.content_type == 'application/json'
 
     def verify_data_structure(self, result, expected, two_way=False):
         assert len(result) > 0
@@ -141,8 +144,9 @@ class TestServiceV2(UserTestCase):
         Verifies the status data is correct.
         """
         resp = self.app.get('/service/v2/status.json')
-        result = json.loads(resp.data)
+        assert resp.content_type == 'application/json'
 
+        result = json.loads(resp.data)
         assert result['version'] == '2'
         assert result['recommended'] is True
         assert result['eol'] is None
@@ -158,6 +162,7 @@ class TestServiceV2(UserTestCase):
         resp = self.app.get(
             '/service/v2/remove/1970-01-01T00:00:00', follow_redirects=True)
         assert resp.status_code == 200
+        assert resp.content_type == 'application/json'
         assert test_hash in resp.data
 
     def json_submit(self, group, status_code=403, apikey=None, secret=None):
@@ -180,6 +185,7 @@ class TestServiceV2(UserTestCase):
             follow_redirects=True
         )
         assert resp.status_code == status_code
+        assert resp.content_type == 'application/json'
 
     def test_java_submission_authenticated(self):
         """
