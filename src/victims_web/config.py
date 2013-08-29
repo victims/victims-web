@@ -1,5 +1,3 @@
-#$import os
-
 from os import environ
 from os.path import isfile
 from datetime import timedelta
