@@ -130,6 +130,7 @@ def submit_archive():
             for (ondisk, filename, suffix) in files:
                 submit(login.current_user.username, ondisk, group, filename,
                        suffix, cves, meta)
+            current_app.config['INDEX_REFRESH_FLAG'] = True
             flash('Archive Submitted for processing', 'info')
         except ValueError, ve:
             flash(ve.message, 'error')

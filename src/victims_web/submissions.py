@@ -24,9 +24,9 @@ from os.path import isdir, isfile, join
 from uuid import uuid4
 from subprocess import check_output, CalledProcessError
 
-from flask import current_app
 from werkzeug import secure_filename
 
+from victims_web import config
 from victims_web.models import Hash, Submission
 from victims_web.plugin.charon import download
 
@@ -36,10 +36,8 @@ def groups():
     Retrieve a list of groups with the default '---' group added.
     """
     submission_groups = {'---': []}
-    if 'SUBMISSION_GROUPS' in current_app.config:
-        configured_groups = current_app.config['SUBMISSION_GROUPS']
-        for group in configured_groups:
-            submission_groups[group] = configured_groups[group]
+    for group in config.SUBMISSION_GROUPS:
+        submission_groups[group] = config.SUBMISSION_GROUPS[group]
     return submission_groups
 
 
@@ -48,9 +46,7 @@ def allowed_groups():
     Retrieve a list of groups that we know of. All configured group names are
     returned.
     """
-    if 'SUBMISSION_GROUPS' in current_app.config:
-        return current_app.config['SUBMISSION_GROUPS'].keys()
-    return []
+    return config.SUBMISSION_GROUPS.keys()
 
 
 def group_keys(group):
@@ -85,16 +81,17 @@ def set_hash(submission):
     Helper method to process an archive at source where possible from a
     submission.
     """
+    if not submission.entry is None:
+        return
+
     if not isfile(submission.source):
         return
 
-    config = current_app.config
-    key = 'HASHING_COMMANDS'
-
-    if key not in config or submission.group not in config[key]:
+    if submission.group not in config.HASHING_COMMANDS:
         return
 
-    command = config[key][submission.group].format(archive=submission.source)
+    command = config.HASHING_COMMANDS[submission.group].format(
+        archive=submission.source)
     try:
         output = check_output(command, shell=True).strip()
         json_data = json.loads(output)
@@ -110,18 +107,16 @@ def set_hash(submission):
         try:
             remove(submission.source)
         except:
-            current_app.logger.warn(
-                'Deletion failed for %s' % (submission.source))
+            config.LOGGER.warn('Deletion failed for %s' % (submission.source))
     except CalledProcessError:
-        current_app.logger.debug(
-            'Command execution failed for "%s"' % (command))
+        config.LOGGER.debug('Command execution failed for "%s"' % (command))
     except Exception as e:
-        current_app.logger.warn('Failed to hash: ' + e.message)
+        config.LOGGER.warn('Failed to hash: ' + e.message)
 
 
 def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
            meta={}, entry=None, approval='REQUESTED'):
-    current_app.logger.info('Submitting: %s' % (
+    config.LOGGER.info('Submitting: %s' % (
         ', '.join(['%s:%s' % (k, v) for (k, v) in locals().items()])))
     submission = Submission()
     submission.source = source
@@ -137,11 +132,8 @@ def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
     submission.validate()
     submission.save()
 
-    if entry is None:
-        # TODO: Make this async
-        set_hash(submission)
-
-    current_app.config['INDEX_REFRESH_FLAG'] = True
+    # TODO: Make this async
+    set_hash(submission)
 
 
 def get_upload_folder():
@@ -149,9 +141,9 @@ def get_upload_folder():
     Helper methed to fetch configured upload directory. If the directory does
     not exist, it is created.
     """
-    upload_dir = current_app.config['UPLOAD_FOLDER']
+    upload_dir = config.UPLOAD_FOLDER
     if not isdir(upload_dir):
-        current_app.logger.info('Creating upload directory: %s' % (upload_dir))
+        config.LOGGER.info('Creating upload directory: %s' % (upload_dir))
         makedirs(upload_dir, 0755)
     return upload_dir
 
@@ -168,7 +160,7 @@ def upload_file(archive):
     upload_dir = get_upload_folder()
 
     suffix = archive.filename[archive.filename.rindex('.') + 1:]
-    if suffix not in current_app.config['ALLOWED_EXTENSIONS']:
+    if suffix not in config.ALLOWED_EXTENSIONS:
         raise ValueError('Invalid archive: %s' % (archive.filename))
 
     filename = secure_filename(archive.filename)
@@ -176,7 +168,7 @@ def upload_file(archive):
     ondisk = join(upload_dir, sfilename)
     archive.save(ondisk)
 
-    current_app.logger.info(
+    config.LOGGER.info(
         'Uploaded %s' % (filename))
 
     return (ondisk, filename, suffix)
