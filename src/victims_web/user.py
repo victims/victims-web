@@ -51,8 +51,8 @@ def authenticate(username, password):
     return False
 
 
-def generate_signature(apikey, method, path, content_type, date, data_md5):
-    ordered = [method, path, content_type, date, data_md5]
+def generate_signature(apikey, method, path, date, data_md5):
+    ordered = [method, path, date, data_md5]
     string = ''
     for content in ordered:
         if content is None:
@@ -117,7 +117,6 @@ def validate_signature():
 
         expected = generate_signature(
             apikey, request.method, request.path,
-            request.headers['Content-Type'],
             request.headers['Date'],
             md5(request.data).hexdigest()
         )

@@ -177,7 +177,7 @@ class TestServiceV2(UserTestCase):
         headers = [('Date', date)]
         if apikey is not None and secret is not None:
             signature = generate_signature(
-                apikey, 'PUT', path, content_type, date, data_md5
+                apikey, 'PUT', path, date, data_md5
             )
             headers.append(('Victims-Api', '%s:%s' % (apikey, signature)))
         resp = self.app.put(
