@@ -40,11 +40,13 @@ MONGODB_SETTINGS = {
 SESSION_PROTECTION = 'strong'
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_NAME = 'victims'
-SESSION_COOKIE_SECURE = not DEBUG
+
+# Cookie
+REMEMBER_COOKIE_DURATION = timedelta(1)
 
 # CSRF Protection
 CSRF_COOKIE_NAME = 'victimsc'
-#CSRF_COOKIE_TIMEOUT =
+#CSRF_COOKIE_TIMEOUT = timedelta(1)
 CSRF_DISABLED = False
 
 # Captcha
@@ -94,6 +96,8 @@ if CFG_KEY in environ and isfile(environ[CFG_KEY]):
             globals()[key] = envconfig.__dict__[key]
 
 # Post load actions
+
+SESSION_COOKIE_SECURE = not DEBUG
 
 ## We do not need https when debugging
 if DEBUG:
