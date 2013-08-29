@@ -1,5 +1,5 @@
-from os import environ
-from os.path import isfile
+from os import environ, makedirs
+from os.path import isfile, isdir
 from datetime import timedelta
 from imp import load_source
 from logging import getLogger
@@ -8,6 +8,7 @@ _ENFORCE = True
 _ENFORCE_KEYS = ['SECRET_KEY', 'DEBUG', 'TESTING']
 
 LOGGER = getLogger()
+LOG_FOLDER = environ.get('VICTIMS_LOG_DIR', './logs')
 
 DEBUG = True
 TESTING = True
@@ -90,10 +91,18 @@ if CFG_KEY in environ and isfile(environ[CFG_KEY]):
         if not key.startswith('_') and key in globals():
             globals()[key] = envconfig.__dict__[key]
 
+# Post load actions
+
+## We do not need https when debugging
 if DEBUG:
     PREFERRED_URL_SCHEME = 'http'
 else:
     PREFERRED_URL_SCHEME = 'https'
+
+## Create any required directories
+for folder in [LOG_FOLDER, UPLOAD_FOLDER, DOWNLOAD_FOLDER]:
+    if not isdir(folder):
+        makedirs(folder)
 
 ## Debug Toolbar
 #DEBUG_TB_HOSTS = '127.0.0.1'
