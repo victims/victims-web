@@ -53,14 +53,9 @@ logging.basicConfig(
     level=logging.DEBUG,
 )
 
-app._logger = logging.getLogger()
+app.config.from_object('config')
+app._logger = app.config.get('LOGGER')
 csrf = SeaSurf(app)
-
-CFG_KEY = 'VICTIMS_CONFIG'
-if CFG_KEY in os.environ and os.path.exists(os.environ[CFG_KEY]):
-    app.config.from_pyfile(os.environ[CFG_KEY])
-else:
-    app.config.from_pyfile('application.cfg')
 
 if app.debug and not app.testing:
     try:

@@ -1,16 +1,20 @@
-import datetime
-import os
+#$import os
+
+from os import environ
+from os.path import isfile
+from datetime import timedelta
+from imp import load_source
+from logging import getLogger
+
+_ENFORCE = True
+_ENFORCE_KEYS = ['SECRET_KEY', 'DEBUG', 'TESTING']
+
+LOGGER = getLogger()
 
 DEBUG = True
 TESTING = True
 SECRET_KEY = b'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
-PERMANENT_SESSION_LIFETIME = datetime.timedelta(1)
-
-if DEBUG:
-    PREFERRED_URL_SCHEME = 'http'
-else:
-    PREFERRED_URL_SCHEME = 'https'
-
+PERMANENT_SESSION_LIFETIME = timedelta(1)
 
 # File upload
 UPLOAD_FOLDER = "./uploads"
@@ -31,25 +35,15 @@ MONGODB_SETTINGS = {
     'PORT': 27017,
 }
 
-if not DEBUG:
-    # In production we can use the env variables
-    MONGODB_SETTINGS = {
-        'DB': 'victimsweb',
-        'HOST': os.environ['OPENSHIFT_MONGODB_DB_HOST'],
-        'USERNAME': os.environ['OPENSHIFT_MONGODB_DB_USERNAME'],
-        'PASSWORD': os.environ['OPENSHIFT_MONGODB_DB_PASSWORD'],
-        'PORT': int(os.environ['OPENSHIFT_MONGODB_DB_PORT']),
-    }
-
 # Auth Configuration
 SESSION_PROTECTION = 'strong'
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_NAME = 'victims'
-SESSION_COOKIE_SECURE = not DEBUG 
+SESSION_COOKIE_SECURE = not DEBUG
 
 # CSRF Protection
 CSRF_COOKIE_NAME = 'victimsc'
-#CSRF_COOKIE_TIMEOUT = 
+#CSRF_COOKIE_TIMEOUT =
 CSRF_DISABLED = False
 
 # Captcha
@@ -82,6 +76,26 @@ HASHING_COMMANDS = {
 # Optional settings
 ## Sentry Configuration
 #SENTRY_DSN = ''
+
+# Load custom configuration if available, this will override defaults above
+CFG_KEY = 'VICTIMS_CONFIG'
+if CFG_KEY in environ and isfile(environ[CFG_KEY]):
+    envconfig = load_source('envconfig', environ[CFG_KEY])
+    if _ENFORCE:
+        for key in _ENFORCE_KEYS:
+            if key not in envconfig.__dict__:
+                raise ImportError(
+                    'Custom config requires the following keys to be set: %s' %
+                    (','.join(_ENFORCE_KEYS))
+                )
+    for key in envconfig.__dict__:
+        if not key.startswith('_') and key in globals():
+            globals()[key] = envconfig.__dict__[key]
+
+if DEBUG:
+    PREFERRED_URL_SCHEME = 'http'
+else:
+    PREFERRED_URL_SCHEME = 'https'
 
 ## Debug Toolbar
 #DEBUG_TB_HOSTS = '127.0.0.1'
