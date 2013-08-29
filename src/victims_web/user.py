@@ -22,11 +22,12 @@ from hashlib import md5, sha512
 from time import strptime, mktime
 from datetime import datetime, timedelta
 
-from flask import redirect, request, url_for, current_app
+from flask import redirect, request, url_for
 
 from flask.ext.login import current_user
 from flask.ext.bcrypt import check_password_hash, generate_password_hash
 
+from victims_web import config
 from victims_web.models import Account
 
 
@@ -104,7 +105,7 @@ def api_request_user():
 
 
 def validate_signature():
-    expiry = current_app.config.get('API_REQUEST_EXPIRY_MINS', 3)
+    expiry = config.API_REQUEST_EXPIRY_MINS
     try:
         (apikey, signature) = api_request_tokens()
 
@@ -127,7 +128,7 @@ def validate_signature():
 
 def make_password_hash(password):
     return generate_password_hash(
-        password, current_app.config['BCRYPT_LOG_ROUNDS'])
+        password, config.BCRYPT_LOG_ROUNDS)
 
 
 def create_user(username, password, endorsements=[], email=None):
