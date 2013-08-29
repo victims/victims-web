@@ -5,23 +5,24 @@ Charon ferries the victims from their repositories to the judge of limbo.
 """
 from abc import ABCMeta, abstractmethod
 from uuid import uuid4
-from os import makedirs
-from os.path import isdir
-from logging import getLogger
+
+from victims_web import config
 from victims_web.plugin.maven import (
     Artifact, MavenHttpRemoteRepos, DownloadException
 )
 
 
-DEFAULT_DOWNLOADS_DIR = './downloads'
-DEFAULT_LOGGER = getLogger('plugin.charon')
+DOWNLOADS_DIR = config.DOWNLOAD_FOLDER
+LOGGER = config.LOGGER
 
-
-DOWNLOADS_DIR = DEFAULT_DOWNLOADS_DIR
-LOGGER = DEFAULT_LOGGER
+# Set up repositories
 REPOSITORIES = [
     ('public', 'http://repo1.maven.org/maven2/'),
 ]
+for (name, uri) in config.MAVEN_REPOSITORIES:
+    if (name, uri) not in REPOSITORIES:
+        REPOSITORIES.append(name, uri)
+
 MANAGERS = {}
 
 
@@ -98,46 +99,10 @@ MANAGERS = {
 }
 
 
-def _initialize(downloads_dir=DEFAULT_DOWNLOADS_DIR, repositories=[],
-                logger=DEFAULT_LOGGER):
-    """
-    Initialize this ferry.
-    """
-    global MANAGERS, REPOSITORIES, DOWNLOADS_DIR, LOGGER
-
-    DOWNLOADS_DIR = downloads_dir
-    LOGGER = logger
-
-    for (name, uri) in repositories:
-        if (name, uri) not in REPOSITORIES:
-            REPOSITORIES.append(name, uri)
-
-
-def initialize():
-    """
-    Helper method to initiate plugin dynamically. If flask context is
-    available, use app config, else use defaults.
-    """
-    try:
-        from flask import current_app as app
-
-        download_dir = app.config.get('DOWNLOADS_FOLDER', DOWNLOADS_DIR)
-        repositories = app.config.get('MAVEN_REPOSITORIES', [])
-
-        if not isdir(download_dir):
-            makedirs(download_dir)
-
-        _initialize(download_dir, repositories, app.logger)
-    except ImportError:
-        LOGGER.warn('Skipping dynamic initialization since not in app context')
-        _initialize()
-
-
 def download(group, info):
     """
     Let Charon find the archive(s), download them and give them to minos.
     """
-    initialize()
     if group not in MANAGERS:
         ValueError('Unknown group')
     LOGGER.info('[%s] Downloading for %s' % (group, info))
