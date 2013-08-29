@@ -159,7 +159,11 @@ def upload_file(archive):
 
     upload_dir = get_upload_folder()
 
-    suffix = archive.filename[archive.filename.rindex('.') + 1:]
+    try:
+        suffix = archive.filename[archive.filename.rindex('.') + 1:]
+    except ValueError:
+        raise ValueError('Filename has no extension')
+
     if suffix not in config.ALLOWED_EXTENSIONS:
         raise ValueError('Invalid archive: %s' % (archive.filename))
 
