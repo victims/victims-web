@@ -42,21 +42,23 @@ app = Flask('victims_web')
 # SSLify
 sslify = SSLify(app)
 
-log_dir = os.environ.get('VICTIMS_LOG_DIR', 'logs/')
-if not os.path.isdir(log_dir):
-    os.makedirs(log_dir)
+# CSRF protection
+csrf = SeaSurf(app)
 
+# configuration
+app.config.from_object('victims_web.config')
+
+# logging
 logging.basicConfig(
-    filename=os.path.join(log_dir, 'server.log'),
+    filename=os.path.join(app.config.get('LOG_FOLDER'), 'server.log'),
     format='%(asctime)s - %(levelname)s: %(message)s',
     datefmt='%a %b %d %Y %H:%M:%S %Z',
     level=logging.DEBUG,
 )
-
-app.config.from_object('victims_web.config')
 app._logger = app.config.get('LOGGER')
-csrf = SeaSurf(app)
 
+
+# debug enhancements
 if app.debug and not app.testing:
     try:
         from flask_debugtoolbar import DebugToolbarExtension
