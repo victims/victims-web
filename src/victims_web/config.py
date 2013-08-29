@@ -24,6 +24,8 @@ DOWNLOAD_FOLDER = "./downloads"
 
 # Cache Configuration
 CACHE_TYPE = 'null'
+CACHE_DIR = environ.get('VICTIMS_CACHE_DIR', './cache')
+CACHE_NO_NULL_WARNING = True
 CACHE_DEFAULT_TIMEOUT = 60 * 60
 CACHE_THRESHOLD = 20
 
@@ -100,7 +102,7 @@ else:
     PREFERRED_URL_SCHEME = 'https'
 
 ## Create any required directories
-for folder in [LOG_FOLDER, UPLOAD_FOLDER, DOWNLOAD_FOLDER]:
+for folder in [LOG_FOLDER, UPLOAD_FOLDER, DOWNLOAD_FOLDER, CACHE_DIR]:
     if not isdir(folder):
         makedirs(folder)
 
