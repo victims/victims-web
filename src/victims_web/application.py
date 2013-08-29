@@ -53,7 +53,7 @@ logging.basicConfig(
     level=logging.DEBUG,
 )
 
-app.config.from_object('config')
+app.config.from_object('victims_web.config')
 app._logger = app.config.get('LOGGER')
 csrf = SeaSurf(app)
 
