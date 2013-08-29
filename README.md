@@ -64,14 +64,14 @@ $ curl -v -X PUT -H "Victims-Api: $APIKEY:$SIGNATURE" -H "Date: Thu, 22 Aug 2013
 Each account on victi.ms is allocated an API Key and Secret key by default. This can be retrieved by visiting ```https://victi.ms/account```. These can be regenerated using the form at ```https://victi.ms/account_edit```.
 
 #### Signature
-The signature is generated using ```HTTP Method```, ```Path```, ```Content-Type```, ```Date``` and the *MD5 hexdigest*.
+The signature is generated using ```HTTP Method```, ```Path```, ```Date``` and the *MD5 hexdigest*.
 
 The following is a reference implementation in python:
 ```py
 from hmac import HMAC
 
-def generate_signature(secret, method, path, content_type, date, data_md5):
-    ordered = [method, path, content_type, date, data_md5]
+def generate_signature(secret, method, path, date, data_md5):
+    ordered = [method, path, date, data_md5]
     string = ''
 
     for content in ordered:
