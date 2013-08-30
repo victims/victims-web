@@ -19,7 +19,7 @@ Authentication related views.
 """
 
 from flask import (
-    Blueprint, current_app, flash, render_template, request,
+    Blueprint, current_app, escape, flash, render_template, request,
     url_for, redirect)
 
 from flask.ext import login
@@ -150,7 +150,7 @@ def user_edit():
         except ValidationError as ve:
             invalids = ','.join([f.title() for f in ve.errors.keys()])
             msg = 'Invalid: %s' % (invalids)
-            flash(msg, category='error')
+            flash(escape(msg), category='error')
         except Exception as ex:
             current_app.logger.info(ex)
             flash('An unknown error has occured.', category='error')
@@ -172,7 +172,8 @@ def register_user():
     # Someone with a session can not make a new user
     if login.current_user.is_authenticated():
         flash(
-            'You are already logged in as %s' % (login.current_user.username),
+            'You are already logged in as %s' % (
+                escape(login.current_user.username)),
             category='info')
         return redirect(url_for('ui.index'))
 
@@ -205,9 +206,9 @@ def register_user():
         except ValidationError, ve:
             invalids = ','.join([f.title() for f in ve.errors.keys()])
             msg = 'Invalid: %s' % (invalids)
-            flash(msg, category='error')
+            flash(escape(msg), category='error')
         except ValueError, ve:
-            flash(ve.message, category='error')
+            flash(escape(ve.message), category='error')
         except (KeyError, IndexError):
             flash('Missing information.', category='error')
         except Exception, ex:
