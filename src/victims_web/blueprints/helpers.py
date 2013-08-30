@@ -17,9 +17,9 @@
 """
 Helpers that can be reused in blueprints.
 """
-
+from urlparse import urlparse, urljoin
 from functools import wraps
-from flask import Response, current_app, request
+from flask import Response, current_app, request, flash
 from victims_web.user import authenticate, validate_signature
 
 
@@ -69,3 +69,16 @@ def check_api_auth(view):
         return view(*args, **kwargs)
 
     return decorated
+
+
+def safe_redirect_url():
+    forward = request.args.get('next')
+    if forward:
+        host_url = urlparse(request.host_url)
+        redirect_url = urlparse(urljoin(request.host_url, forward))
+        if redirect_url.scheme in ('http', 'https') and \
+                host_url.netloc == redirect_url.username:
+            return forward
+        else:
+            flash('Invalid redirect: %s' % (forward), category='info')
+    return None
