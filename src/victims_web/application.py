@@ -90,9 +90,33 @@ login_manager.login_message_category = 'error'
 login_manager.init_app(app)
 
 
+@app.errorhandler(403)
+def error_403(e):
+    return render_template(
+        'error.html',
+        header='403 Forbidden',
+        message='Hmm, looking for the bat cave?'
+        + 'Perhaps try logging in as Bruce or Alfred? Unless you are "him"!'
+    ), 403
+
+
+@app.errorhandler(404)
+def error_404(e):
+    return render_template(
+        'error.html',
+        header='Resource not found!',
+        message='Oops, think you are lost. Or we are, if so, report a bug!'
+    ), 404
+
+
 @app.errorhandler(500)
 def error_500(e):
-    return render_template('500.html'), 500
+    return render_template(
+        'error.html',
+        title='Be back soon!',
+        message='Victi.ms is undergoing maintenance (or possibly a bug). '
+        + 'We should be back up shortly.'
+    ), 500
 
 
 @login_manager.user_loader
