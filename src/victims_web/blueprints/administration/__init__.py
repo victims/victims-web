@@ -41,9 +41,7 @@ class ViewRequiresAuthorization(object):
         The user must be authenticated and have the admin endorsement.
         """
         if login.current_user.is_authenticated():
-            if 'admin' in login.current_user.endorsements:
-                return True
-        return False
+            return login.current_user.is_admin()
 
 
 class SafeAdminIndexView(ViewRequiresAuthorization, AdminIndexView):

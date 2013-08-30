@@ -251,6 +251,9 @@ class User(object):
     def is_anonymous(self):
         return not self.authenticated
 
+    def is_admin(self):
+        return 'admin' in self.endorsements
+
     def is_active(self):
         return self.active
 
