@@ -64,7 +64,9 @@ def index():
 
         # Generate counts for objects and for each format
         # data will contain hashes, hashes_jars, hashes_eggs etc.
-        groups = allowed_groups() + ['all']
+        groups = allowed_groups()
+        groups.sort()
+        groups = ['all'] + groups
         data = {'groups': groups, 'stats': {}}
         for group in groups:
             stat = {}
