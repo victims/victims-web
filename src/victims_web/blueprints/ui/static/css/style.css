@@ -129,3 +129,36 @@ li.info {
   padding: 30px 0px 0px 0px;
   float: right;
 }
+
+#statustable
+{
+	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+	font-size: 12px;
+	//margin: 45px;
+	//width: 480px;
+	text-align: left;
+	border-collapse: collapse;
+	border: 1px solid #FFF;
+}
+
+#statustable th
+{
+	padding: 12px 17px 12px 17px;
+	font-weight: bold;
+    font-size: 30px;
+    color: #000;
+	border-bottom: 1px dashed #000;
+}
+
+#statustable td
+{
+    font-size: 30px;
+	padding: 7px 17px 7px 17px;
+	color: #000;
+}
+
+#statustable tbody tr:hover td
+{
+	color: #339;
+	background: #d0dafd;
+}

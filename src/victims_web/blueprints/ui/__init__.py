@@ -30,7 +30,7 @@ from victims_web.errors import ValidationError
 from victims_web.models import Hash, Submission
 from victims_web.cache import cache
 from victims_web.submissions import submit, upload
-from victims_web.util import groups, process_metadata
+from victims_web.util import allowed_groups, groups, process_metadata
 
 ui = Blueprint(
     'ui', __name__,
@@ -64,14 +64,16 @@ def index():
 
         # Generate counts for objects and for each format
         # data will contain hashes, hashes_jars, hashes_eggs etc.
-        data = {}
-        formats = ['Jar', 'Egg']
-        for key in stats:
-            data[key.lower()] = len(stats[key])
-            for fmt in formats:
-                entry = '%s_%ss' % (key.lower(), fmt.lower())
-                data[entry] = len(stats[key].filter(format=fmt))
-
+        groups = allowed_groups() + ['all']
+        data = {'groups': groups, 'stats': {}}
+        for group in groups:
+            stat = {}
+            for key in stats:
+                if group == 'all':
+                    stat[key] = len(stats[key])
+                else:
+                    stat[key] = len(stats[key].filter(group=group))
+            data['stats'][group] = stat
         return data
 
     if current_app.config.get('INDEX_REFRESH_FLAG', False):
@@ -82,16 +84,16 @@ def index():
 
 
 @ui.route('/hashes/', methods=['GET'])
-@ui.route('/hashes/<format>/', methods=['GET'])
 @cache.memoize()
 def hashes(format=None):
     hashes = Hash.objects(status='RELEASED')
 
-    if format:
-        if format not in Hash.objects.distinct('format'):
-            flash('Format not found', 'error')
+    group = request.args.get('group', 'all')
+    if group != 'all':
+        if format not in Hash.objects.distinct('group'):
+            flash('Group of hashes not found', 'error')
         else:
-            hashes = hashes.filter(format=format)
+            hashes = hashes.filter(group=group)
 
     return render_template('hashes.html', hashes=hashes)
 

@@ -2,17 +2,23 @@
 
 {% block content %}
 <div class="main">
-  <p class="fat">
-    <span class="huge"><a href="{{ url_for('.hashes') }}">{{ hashes }}</a></span> unique hashes
-    (<span class="huge">{{ submitted }}</span> submitted, <span class="huge">{{ pending }}</span> pending)
-  </p>
-  <p class="fat">
-    <span class="huge"><a href="{{ url_for('.hashes', format='Jar') }}">{{ hashes_jars }}</a></span> JAR hashes
-    (<span class="huge">{{ submitted_jars }}</span> submitted, <span class="huge">{{ pending_jars }}</span> pending)
-  </p>
-  <p class="fat">
-    <span class="huge"><a href="{{ url_for('.hashes', format='Egg') }}">{{ hashes_eggs }}</a></span> EGG hashes
-    (<span class="huge">{{ submitted_eggs }}</span> submitted, <span class="huge">{{ pending_eggs }}</span> pending)
-  </p>
+  <table id="statustable">
+      <thead>
+          <tr>
+          <th>Hash Group</th>
+          <th>Hashes</th>
+          <th>Submitted</th>
+          <th>Pending</th>
+      </tr>
+  </thead>
+      {% for group in groups %}
+      <tr>
+          <td>{{ group.title() }}</td>
+          <td><a href="{{ url_for('.hashes', group=group) }}">{{ stats[group]['hashes']}}</a></td>
+          <td>{{ stats[group]['submitted']}}</td>
+          <td>{{ stats[group]['pending']}}</td>
+      </tr>
+      {% endfor %}
+  </table>
 </div>
 {% endblock %}
