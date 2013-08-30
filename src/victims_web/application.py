@@ -62,8 +62,9 @@ if app.debug and not app.testing:
     try:
         from flask_debugtoolbar import DebugToolbarExtension
         toolbar = DebugToolbarExtension(app)
-    except:
+    except Exception as e:
         # Helpful for debugging but not needed
+        app.logger.debug('Skipping Debug Toolbar')
         pass
 
 # mongodb and sessions
