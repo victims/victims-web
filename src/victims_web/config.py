@@ -42,7 +42,9 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_NAME = 'victims'
 
 # Cookie
+REMEMBER_COOKIE_NAME = 'remember_token'
 REMEMBER_COOKIE_DURATION = timedelta(1)
+REMEMBER_COOKIE_DOMAIN = None
 
 # CSRF Protection
 CSRF_COOKIE_NAME = 'victimsc'
