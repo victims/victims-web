@@ -54,7 +54,7 @@ You should be able to see the victims page at _http://localhost:5000/_ if everyt
 
 ## Usage
 ### Secured API Access
-Submission end points like ```/service/submit/archive/java``` are secured by an implementation similar to what is used by AWS. The authorization is expected in a header named ```Victims-Api```. If this is not present or if validation/authorization fails, check falls back to *BASIC AUTH*.
+Submission endpoints like ```/service/submit/archive/java``` are secured by an implementation similar to what is used by AWS. The authentication token is expected in a HTTP header named ```Victims-Api```. If this is not present or if validation/authentication fails, then it falls back to *BASIC AUTH*.
 
 An example using curl is as follows:
 ```sh
@@ -67,8 +67,8 @@ Each account on victi.ms is allocated an API Key and Secret key by default. This
 The signature is generated using ```HTTP Method```, ```Path```, ```Date``` and the *MD5 hexdigest*.
 
 _Notes:_
-* The ```Path``` includes the arguments. Eg: ```/service/submit/archive/java?cves=CVE-0000-0000```
-* The MD5 include the data (if available) and of all files that are being submitted. The checksums are sorted in ascending order before adding to the string.
+* The ```Path``` includes the query string parameters, e.g: ```/service/submit/archive/java?cves=CVE-0000-0000```
+* The MD5 checksum includes the data (if available) of all files that are being submitted. The checksums are sorted in ascending order before adding to the string.
 * The date is expected to be in ```GMT```. Eg: ```Thu, 22 Aug 2013 15:20:37 GMT```.
 
 The following is a reference implementation in python:
