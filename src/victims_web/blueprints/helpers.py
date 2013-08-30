@@ -77,7 +77,7 @@ def safe_redirect_url():
         host_url = urlparse(request.host_url)
         redirect_url = urlparse(urljoin(request.host_url, forward))
         if redirect_url.scheme in ('http', 'https') and \
-                host_url.netloc == redirect_url.username:
+                host_url.netloc == redirect_url.netloc:
             return forward
         else:
             flash('Invalid redirect: %s' % (forward), category='info')
