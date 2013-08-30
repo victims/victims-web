@@ -29,7 +29,7 @@ from os.path import isdir
 from test import UserTestCase
 
 from victims_web.config import UPLOAD_FOLDER
-from victims_web.models import Removal
+from victims_web.models import Removal, Submission
 from victims_web.user import generate_signature
 
 
@@ -44,6 +44,9 @@ class TestServiceV2(UserTestCase):
     def tearDown(self):
         if isdir(UPLOAD_FOLDER):
             rmtree(UPLOAD_FOLDER)
+            for submission in Submission.objects(submitter=self.username):
+                submission.delete()
+
         UserTestCase.tearDown(self)
 
     def test_uri_endpoints(self):
