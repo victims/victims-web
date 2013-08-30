@@ -25,7 +25,7 @@ from flask import flash, redirect, url_for
 from flask.ext.admin.base import (
     Admin, AdminIndexView, MenuLink, BaseView, expose)
 from flask.ext.admin.contrib.mongoengine import ModelView
-from victims_web.models import Account, Hash
+from victims_web.models import Account, Hash, Submission
 from victims_web.cache import cache
 
 from flask.ext import login
@@ -104,6 +104,11 @@ class HashView(SafeModelView):
                    'status', 'submittedon', 'date')
 
 
+class SubmissionView(SafeModelView):
+    column_filters = ('submitter', 'submittedon', 'approval', )
+    column_exclude_list = ('entry', 'source')
+
+
 def administration_setup(app):
     """
     Hack to use the backend administration.
@@ -113,6 +118,7 @@ def administration_setup(app):
     administration.init_app(app)
     administration.add_view(AccountView(Account))
     administration.add_view(HashView(Hash))
+    administration.add_view(SubmissionView(Submission))
     administration.add_view(CacheAdminView(name='Cache', endpoint='cache'))
 
     # Add links
