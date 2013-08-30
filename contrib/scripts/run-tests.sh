@@ -29,7 +29,6 @@ if ! type -p nosetests > /dev/null; then
 	echo "[ERROR] nosetests not found. Cannot run tests."
 else
     CMD="python $(which nosetests) -v"
-    echo $CMD
     if [ $# -gt 0 ]; then
         $CMD $@
     else
