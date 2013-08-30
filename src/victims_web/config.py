@@ -72,8 +72,8 @@ MAVEN_REPOSITORIES = [
 
 # Hashing commands for each group
 # This will be used as command.format(archive=filename)
+# Eg: 'java': 'victims-java hash {archive!s}'
 HASHING_COMMANDS = {
-    'java': 'victims-java hash {archive!s}',
 }
 
 # Optional settings
