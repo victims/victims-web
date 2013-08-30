@@ -224,7 +224,7 @@ class Submission(JsonifyMixin, ValidatedDocument):
     filename = StringField()
     format = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
     metadata = DictField(default={})
-    cves = ListField()
+    cves = ListField(StringField())
     group = StringField()
     comment = StringField()
     approval = StringField(
