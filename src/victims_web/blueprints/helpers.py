@@ -80,5 +80,5 @@ def safe_redirect_url():
                 host_url.netloc == redirect_url.netloc:
             return forward
         else:
-            flash('Invalid redirect: %s' % (forward), category='info')
+            flash('Invalid redirect requested.', category='info')
     return None

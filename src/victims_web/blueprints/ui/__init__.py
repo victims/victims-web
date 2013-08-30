@@ -21,7 +21,7 @@ Main web ui.
 import re
 
 from flask import (
-    Blueprint, current_app, render_template, helpers,
+    Blueprint, current_app, escape, render_template, helpers,
     url_for, request, redirect, flash)
 
 from flask.ext import login
@@ -133,9 +133,9 @@ def submit_archive():
             current_app.config['INDEX_REFRESH_FLAG'] = True
             flash('Archive Submitted for processing', 'info')
         except ValueError, ve:
-            flash(ve.message, 'error')
+            flash(escape(ve.message), 'error')
         except ValidationError, ve:
-            flash(ve.message, 'error')
+            flash(escape(ve.message), 'error')
         except OSError, oe:
             flash('Could not upload file due to a server side error', 'error')
             current_app.logger.debug(oe)
