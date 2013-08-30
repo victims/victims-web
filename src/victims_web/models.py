@@ -164,6 +164,7 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
     name = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
     version = StringField(
         default='UNKNOWN', regex='^[a-zA-Z0-9_\-\.]*$')
+    group = StringField()
     format = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
     hashes = DictField(default={})
     vendor = StringField(
