@@ -56,7 +56,7 @@ class UserTestCase(FlaskTestCase):
     username = 'defaulttester'
     password = 'f30Fw@@Do&itpHGFf'
 
-    def _login(self, username, password):
+    def _login(self, username, password, redirect=None, follow=False):
         """
         Shortcut for logging a user in.
         """
@@ -70,8 +70,12 @@ class UserTestCase(FlaskTestCase):
             '_csrf_token': csrf_token,
         }
 
+        path = '/login'
+        if redirect:
+            path = '%s?next=%s' % (path, redirect)
+
         resp = self.app.post(
-            '/login', data=form_data, follow_redirects=False)
+            path, data=form_data, follow_redirects=follow)
         return resp
 
     def _logout(self):

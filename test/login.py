@@ -18,8 +18,6 @@
 Tests for logins.
 """
 
-import re
-
 from test import UserTestCase
 
 
@@ -27,11 +25,19 @@ class TestLogin(UserTestCase):
     """
     Tests user login.
     """
+    username = 'logintester'
+    password = 'f30Fw@@Do&itpHGFf'
+
+    def setUp(self):
+        self.create_user(self.username, self.password)
+        UserTestCase.setUp(self)
+
     def tearDown(self):
         """
         Issue a logout on every test.
         """
         self.app.get('/logout', follow_redirects=True)
+        UserTestCase.tearDown(self)
 
     def test_unknown_username(self):
         """
@@ -45,24 +51,7 @@ class TestLogin(UserTestCase):
         """
         Make sure a wrong password does not work.
         """
-        username = 'wrongpassword'
-        password = 'f30Fw@@Do&itpHGFf'
-
-        resp = self.app.get('/register')
-        csrf_token = re.search(
-            '_csrf_token" value="([^"]*)">', resp.data).group(1)
-
-        form_data = {
-            'username': username,
-            'password': password,
-            'verify_password': password,
-            '_csrf_token': csrf_token
-        }
-        resp = self.app.post(
-            '/register', data=form_data, follow_redirects=False)
-        self.app.get('/logout', follow_redirects=True)
-
-        resp = self._login(username, 'WRONGPASSWORD')
+        resp = self._login(self.username, 'WRONGPASSWORD')
         assert resp.status_code == 200
         assert 'Invalid username/password' in resp.data
 
@@ -70,24 +59,7 @@ class TestLogin(UserTestCase):
         """
         Make sure a successful login works.
         """
-        username = 'logintest'
-        password = 'f30Fw@@Do&itpHGFf'
-
-        resp = self.app.get('/register')
-        csrf_token = re.search(
-            '_csrf_token" value="([^"]*)">', resp.data).group(1)
-
-        form_data = {
-            'username': username,
-            'password': password,
-            'verify_password': password,
-            '_csrf_token': csrf_token
-        }
-        resp = self.app.post(
-            '/register', data=form_data, follow_redirects=False)
-        self.app.get('/logout', follow_redirects=True)
-
-        resp = self._login(username, password)
+        resp = self._login(self.username, self.password)
         assert resp.status_code == 302
         assert resp.location == 'http://localhost/'
 
@@ -95,3 +67,20 @@ class TestLogin(UserTestCase):
         resp = self.app.get('/login')
         assert resp.status_code == 302
         assert resp.location == 'http://localhost/'
+
+    def test_login_redirect_good(self):
+        """
+        Make sure login redirects work as expected
+        """
+        resp = self._login(self.username, self.password, '/account')
+        assert resp.status_code == 302
+        assert resp.location == 'http://localhost/account'
+
+    def test_login_redirect_bad(self):
+        """
+        Ensure malicious redirects are thwarted
+        """
+        for redirect in ['http://google.com']:
+            resp = self._login(self.username, self.password, redirect, True)
+            assert resp.status_code == 200
+            assert 'Invalid redirect' in resp.data
