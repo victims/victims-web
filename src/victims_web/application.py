@@ -22,7 +22,7 @@ import logging.config
 import os
 
 from flask import Flask, render_template
-from flask.ext.mongoengine import MongoEngine
+from flask.ext.mongoengine import MongoEngine, MongoEngineSessionInterface
 from flask.ext.seasurf import SeaSurf
 from flask.ext import login
 from flask_sslify import SSLify
@@ -57,7 +57,6 @@ logging.basicConfig(
 )
 app._logger = app.config.get('LOGGER')
 
-
 # debug enhancements
 if app.debug and not app.testing:
     try:
@@ -67,8 +66,14 @@ if app.debug and not app.testing:
         # Helpful for debugging but not needed
         pass
 
+# mongodb and sessions
 app.db = MongoEngine(app)
+app.session_interface = MongoEngineSessionInterface(app.db)
+
+# cache
 cache.init_app(app)
+
+# admin setup
 administration_setup(app)
 
 # CSRF exemptions
