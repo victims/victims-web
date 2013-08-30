@@ -111,15 +111,16 @@ for folder in [LOG_FOLDER, UPLOAD_FOLDER, DOWNLOAD_FOLDER, CACHE_DIR]:
         makedirs(folder)
 
 ## Debug Toolbar
-#DEBUG_TB_HOSTS = '127.0.0.1'
-#DEBUG_TB_PROFILER_ENABLED = True
-#DEBUG_TB_PANELS = (
-# 'flask_debugtoolbar.panels.versions.VersionDebugPanel',
-# 'flask_debugtoolbar.panels.timer.TimerDebugPanel',
-# 'flask_debugtoolbar.panels.headers.HeaderDebugPanel',
-# 'flask_debugtoolbar.panels.request_vars.RequestVarsDebugPanel',
-# 'flask_debugtoolbar.panels.template.TemplateDebugPanel',
-# 'flask.ext.mongoengine.panels.MongoDebugPanel',
-# 'flask_debugtoolbar.panels.logger.LoggingPanel',
-# 'flask_debugtoolbar.panels.profiler.ProfilerDebugPanel',
-#)
+if DEBUG:
+    DEBUG_TB_HOSTS = '127.0.0.1'
+    DEBUG_TB_PROFILER_ENABLED = True
+    DEBUG_TB_PANELS = (
+        'flask_debugtoolbar.panels.versions.VersionDebugPanel',
+        'flask_debugtoolbar.panels.timer.TimerDebugPanel',
+        'flask_debugtoolbar.panels.headers.HeaderDebugPanel',
+        'flask_debugtoolbar.panels.request_vars.RequestVarsDebugPanel',
+        'flask_debugtoolbar.panels.template.TemplateDebugPanel',
+        'flask.ext.mongoengine.panels.MongoDebugPanel',
+        'flask_debugtoolbar.panels.logger.LoggingPanel',
+        'flask_debugtoolbar.panels.profiler.ProfilerDebugPanel',
+    )
