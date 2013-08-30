@@ -28,7 +28,13 @@ fi
 if ! type -p nosetests > /dev/null; then
 	echo "[ERROR] nosetests not found. Cannot run tests."
 else
-	python "$(which nosetests)" --with-coverage --cover-package=victims_web --cover-min-percentage=0 -v ${TEST_DIR}/*.py
+    CMD="python $(which nosetests) -v"
+    echo $CMD
+    if [ $# -gt 0 ]; then
+        $CMD $@
+    else
+        $CMD --with-coverage --cover-package=victims_web --cover-min-percentage=0 ${TEST_DIR}/*.py
+    fi
 fi
 
 # stop db
