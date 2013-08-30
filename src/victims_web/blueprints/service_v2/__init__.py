@@ -26,9 +26,9 @@ from flask import Blueprint, Response, request, current_app
 from victims_web.user import api_request_user
 from victims_web.cache import cache
 from victims_web.models import Hash, Removal, JsonifyMixin
-from victims_web.submissions import (submit, allowed_groups, process_metadata,
-                                     upload)
+from victims_web.submissions import submit, upload
 from victims_web.blueprints.helpers import check_api_auth
+from victims_web.util import allowed_groups, process_metadata
 
 
 v2 = Blueprint('service_v2', __name__)
@@ -236,7 +236,7 @@ def submit_hash(group):
         entry = Hash()
         entry.load_json(user, json_data)
         submit(
-            user, 'json-api-hash', group, entry=entry,
+            user, 'json-api-hash', group, suffix='Hash', entry=entry,
             approval='PENDING_APPROVAL')
         return success()
     except Exception as e:

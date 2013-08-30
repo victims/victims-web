@@ -29,10 +29,8 @@ from flask.ext import login
 from victims_web.errors import ValidationError
 from victims_web.models import Hash, Submission
 from victims_web.cache import cache
-from victims_web.submissions import (
-    groups, process_metadata, submit, upload
-)
-
+from victims_web.submissions import submit, upload
+from victims_web.util import groups, process_metadata
 
 ui = Blueprint(
     'ui', __name__,

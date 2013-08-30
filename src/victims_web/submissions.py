@@ -17,101 +17,16 @@
 """
 Submission module. Handle submission related logic.
 """
-import json
-
-from os import makedirs, remove
-from os.path import isdir, isfile, join
+from os import makedirs
+from os.path import isdir, join
 from uuid import uuid4
-from subprocess import check_output, CalledProcessError
 
 from werkzeug import secure_filename
 
 from victims_web import config
-from victims_web.models import Hash, Submission
+from victims_web.models import Submission
 from victims_web.plugin.charon import download
-
-
-def groups():
-    """
-    Retrieve a list of groups with the default '---' group added.
-    """
-    submission_groups = {'---': []}
-    for group in config.SUBMISSION_GROUPS:
-        submission_groups[group] = config.SUBMISSION_GROUPS[group]
-    return submission_groups
-
-
-def allowed_groups():
-    """
-    Retrieve a list of groups that we know of. All configured group names are
-    returned.
-    """
-    return config.SUBMISSION_GROUPS.keys()
-
-
-def group_keys(group):
-    """
-    Retrieve the metadata keys associated with a given group.
-    """
-    return groups().get(group, [])
-
-
-def process_metadata(group, values={}, noprefix=False):
-    """
-    Process any group specific metadata that was provided in the submission
-    form.
-    """
-    meta = {}
-    current_groups = groups()
-    if group.strip().lower() in current_groups:
-        for field in current_groups[group]:
-            if noprefix:
-                name = field
-            else:
-                name = '%s-%s' % (group, field)
-            if name in values:
-                value = values[name].strip()
-                if len(value) > 0:
-                    meta[field] = value
-    return meta
-
-
-def set_hash(submission):
-    """
-    Helper method to process an archive at source where possible from a
-    submission.
-    """
-    if not submission.entry is None:
-        return
-
-    if not isfile(submission.source):
-        return
-
-    if submission.group not in config.HASHING_COMMANDS:
-        return
-
-    command = config.HASHING_COMMANDS[submission.group].format(
-        archive=submission.source)
-    try:
-        output = check_output(command, shell=True).strip()
-        json_data = json.loads(output)
-        json_data['cves'] = submission.cves
-        entry = Hash()
-        entry.load_json(submission.submitter, json_data)
-        submission.entry = entry
-        submission.approval = 'PENDING_APPROVAL'
-        submission.validate()
-        submission.save()
-
-        # we are done safely, now remove the source
-        try:
-            remove(submission.source)
-        except:
-            config.LOGGER.warn('Deletion failed for %s' % (submission.source))
-    except CalledProcessError:
-        config.LOGGER.debug('Command execution failed for "%s"' % (command))
-    except Exception as e:
-        config.LOGGER.warn('Failed to hash: ' + e.message)
+from victims_web.util import allowed_groups, set_hash
 
 
 def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
