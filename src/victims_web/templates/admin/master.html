@@ -1,0 +1,7 @@
+{% import 'util.html' as util with context %}
+{% extends admin_base_template %}
+
+{% block tail %}
+    {{ super() }}
+    {{ util.fix_csrf() }}
+{% endblock %}

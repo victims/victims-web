@@ -1,5 +1,4 @@
 {% extends 'admin/master.html' %}
-{% import 'util.html' as util with context %}
 {% import 'admin/lib.html' as lib with context %}
 
 {% block body %}
@@ -8,6 +7,5 @@
     <span>This file cannot be edited for now.</span>
     {% else %}
     {{ lib.render_form(form, dir_url) }}
-    {{ util.fix_csrf() }}
     {% endif %}
 {% endblock %}
