@@ -33,3 +33,10 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+testdb/*
+victims.dev/*
+
+# application default directories
+logs/*
+uploads/*
+downloads/*
