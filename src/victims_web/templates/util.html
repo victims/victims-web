@@ -1,0 +1,18 @@
+{# CSRF #}
+{% macro fix_csrf() %}
+    <script language="javascript">
+        var csrf_field = document.createElement("input");
+        csrf_field.setAttribute("type", "hidden");
+        csrf_field.setAttribute("name", "_csrf_token");
+        csrf_field.setAttribute("value", "{{ csrf_token() }}");
+        for (var i=0; i < document.forms.length; i++) {
+            if (!(!"_csrf_token" in document.forms[i])) {
+                document.forms[i].appendChild(csrf_field);
+            };
+        };
+    </script>
+{% endmacro %}
+
+{% macro csrf_field(token) %}
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+{% endmacro %}
