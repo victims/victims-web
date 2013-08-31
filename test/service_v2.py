@@ -179,7 +179,8 @@ class TestServiceV2(UserTestCase):
         assert resp.content_type == 'application/json'
         assert test_hash in resp.data
 
-    def json_submit(self, path, data, content_type, md5sums, status_code, apikey, secret):
+    def json_submit(self, path, data, content_type, md5sums, status_code,
+                    apikey, secret):
         date = datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
         headers = [('Date', date)]
         if apikey is not None and secret is not None:
@@ -241,7 +242,9 @@ class TestServiceV2(UserTestCase):
         """
         self.create_user(self.username, self.password)
         self._login(self.username, self.password)
-        self.json_submit_hash('java', 201, self.account.apikey, self.account.secret)
+        self.json_submit_hash(
+            'java', 201, self.account.apikey, self.account.secret
+        )
         self.json_submit_file(
             'java', 400, None, self.account.apikey, self.account.secret
         )
