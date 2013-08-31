@@ -6,9 +6,9 @@ services:
 before_script:
   - mongoimport -d victims -c hashes test/mongo_test_hash.json
   - mongoimport -d victims -c users test/mongo_test_user.json
-  - pip install coverage pep8 --use-mirrors
+  - pip install coverage pep8
 install:
-  - pip install -e . --use-mirrors
+  - pip install -e . 
 script:
   - pep8 --repeat src/
   - nosetests --with-coverage --cover-package=victims_web --cover-min-percentage=0 -v test/*.py
