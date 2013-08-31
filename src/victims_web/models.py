@@ -151,6 +151,14 @@ class Removal(JsonifyMixin, ValidatedDocument):
     )
 
 
+class CVE(EmbeddedDocument):
+    """
+    A CVE record for embedded use.
+    """
+    id = StringField(required=True)
+    addedon = DateTimeField(required=True)
+
+
 class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
     """
     A hash record.
@@ -169,7 +177,7 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
     hashes = DictField(default={})
     vendor = StringField(
         default='UNKNOWN', regex='^[a-zA-Z0-9_\-\.]*$')
-    cves = DictField(default={})
+    cves = ListField(EmbeddedDocumentField(CVE), default=[])
     status = StringField(
         choices=(('SUBMITTED', 'SUBMITTED'), ('RELEASED', 'RELEASED')),
         default='SUBMITTED')
@@ -177,16 +185,27 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
     submitter = StringField()
     submittedon = DateTimeField(default=datetime.datetime.utcnow)
 
+    def cve_list(self):
+        """
+        Get the CVE(s) associated with this hash object as a list.
+        """
+        cves = []
+        for cve in self.cves:
+            cves.append(cve.id)
+        return cves
+
+    def append_cves(self, cves=[]):
+        """
+        Append a list of cves to this instance. The current datetime is used.
+        """
+        for cve in cves:
+            self.cves.append(CVE(id=cve, addedon=datetime.datetime.utcnow()))
+
     def jsonify(self, fields=None):
         """
         Update jsonify to flatten some fields.
         """
-        new_cves = []
-        # Workaround to handle both old lists, and newer dicts
-        for cve in self.cves:
-            new_cves.append(cve)
-        self.cves = new_cves
-
+        self.cves = self.cve_list()
         return JsonifyMixin.jsonify(self, fields)
 
     def load_json(self, submitter, json_data):
@@ -204,11 +223,7 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
             if field in json_data:
                 setattr(self, key, json_data[field])
 
-        cves = {}
-        for cve in json_data['cves']:
-            cves[cve] = datetime.datetime.utcnow()
-
-        self.cves = cves
+        self.append_cves(json_data['cves'])
         self.submitter = submitter
         self.submittedon = datetime.datetime.utcnow()
 

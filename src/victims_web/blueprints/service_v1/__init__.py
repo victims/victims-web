@@ -82,7 +82,7 @@ def update(revision):
             newitem['submitter'] = item['submitter']
             newitem['hash'] = item['hashes']['sha512']['combined']
             newitem['db_version'] = int(item['_v1']['db_version'])
-            newitem['cves'] = ','.join(item['cves'].keys())
+            newitem['cves'] = ','.join(item.cve_list())
             newitem['submitter'] = str(item['submitter'])
             result.append({'fields': newitem})
         return make_response(json.dumps(result))
