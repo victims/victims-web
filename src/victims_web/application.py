@@ -27,11 +27,11 @@ from flask.ext.seasurf import SeaSurf
 from flask.ext import login
 from flask_sslify import SSLify
 
+from victims_web.admin import administration_setup
 from victims_web.blueprints.service_v1 import v1
 from victims_web.blueprints.service_v2 import v2, SUBMISSION_ROUTES
 from victims_web.blueprints.ui import ui
 from victims_web.blueprints.auth import auth
-from victims_web.blueprints.administration import administration_setup
 
 from victims_web.cache import cache
 from victims_web.user import User
