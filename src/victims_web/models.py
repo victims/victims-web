@@ -156,7 +156,7 @@ class CVE(EmbeddedDocument):
     A CVE record for embedded use.
     """
     id = StringField(required=True)
-    addedon = DateTimeField(required=True)
+    addedon = DateTimeField(default=datetime.datetime.utcnow, required=True)
 
 
 class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
