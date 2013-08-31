@@ -28,10 +28,15 @@ class TestAdministration(UserTestCase):
     username = 'admintests'
     nonadmin = 'nonadmintests'
     password = 'arj/^fakhsDDASm491'
-    routes = [
-        '/admin/', '/admin/accountview/', '/admin/hashview/',
-        '/admin/cache/',
+    prefix = '/admin'
+    views = [
+        '', 'cache', 'cache/clear', 'accounts', 'hashes', 'submissions',
+        'downloads', 'uploads'
     ]
+
+    @property
+    def routes(self):
+        return ['%s/%s' % (self.prefix, view) for view in self.views]
 
     def setUp(self):
         UserTestCase.setUp(self)
@@ -43,7 +48,7 @@ class TestAdministration(UserTestCase):
 
     def visit_all(self, expected_status):
         for route in self.routes:
-            resp = self.app.get(route)
+            resp = self.app.get(route, follow_redirects=True)
             assert resp.status_code == expected_status
 
     def test_admin_access(self):

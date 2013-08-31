@@ -30,6 +30,11 @@ setup(
     author='Steve Milner',
     url='http://www.victi.ms',
 
+    dependency_links=[
+        'https://github.com/mrjoes/flask-admin/tarball/master'
+        + '#egg=Flask-Admin-1.0.6.git.master',
+    ],
+
     install_requires=[
         'Flask>=0.10',
         'Flask-Login>=0.1.1',

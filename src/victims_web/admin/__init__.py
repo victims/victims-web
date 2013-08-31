@@ -21,17 +21,18 @@ Administration interface.
 import datetime
 
 from flask import flash, redirect, url_for
-
 from flask.ext.admin.base import (
     Admin, AdminIndexView, MenuLink, BaseView, expose)
 from flask.ext.admin.contrib.mongoengine import ModelView
+from flask.ext.admin.contrib.fileadmin import FileAdmin
+
 from victims_web.models import Account, Hash, Submission
 from victims_web.cache import cache
 
 from flask.ext import login
 
 
-class ViewRequiresAuthorization(object):
+class SecureMixin(object):
     """
     All admin views should mix this in.
     """
@@ -44,21 +45,21 @@ class ViewRequiresAuthorization(object):
             return login.current_user.is_admin()
 
 
-class SafeAdminIndexView(ViewRequiresAuthorization, AdminIndexView):
+class SafeAdminIndexView(SecureMixin, AdminIndexView):
     """
     Mixes in ViewRequiresAuthorization to require authorization.
     """
     pass
 
 
-class SafeBaseView(ViewRequiresAuthorization, BaseView):
+class SafeBaseView(SecureMixin, BaseView):
     """
     Mixes in ViewRequiresAuthorization to require authorization.
     """
     pass
 
 
-class SafeModelView(ViewRequiresAuthorization, ModelView):
+class SafeModelView(SecureMixin, ModelView):
     """
     Mixes in ViewRequiresAuthorization to require authorization.
     """
@@ -109,6 +110,10 @@ class SubmissionView(SafeModelView):
     column_exclude_list = ('entry', 'source')
 
 
+class FileView(SecureMixin, FileAdmin):
+    pass
+
+
 def administration_setup(app):
     """
     Hack to use the backend administration.
@@ -116,10 +121,31 @@ def administration_setup(app):
     administration = Admin(
         name="Victims Admin", index_view=SafeAdminIndexView())
     administration.init_app(app)
-    administration.add_view(AccountView(Account))
-    administration.add_view(HashView(Hash))
-    administration.add_view(SubmissionView(Submission))
+
+    # Application administration
     administration.add_view(CacheAdminView(name='Cache', endpoint='cache'))
+
+    # Database management
+    administration.add_view(AccountView(
+        Account, name='Accounts', endpoint='accounts', category='Database')
+    )
+    administration.add_view(HashView(
+        Hash, name='Hashes', endpoint='hashes', category='Database')
+    )
+    administration.add_view(SubmissionView(
+        Submission, name='Submissions', endpoint='submissions',
+        category='Database')
+    )
+
+    # File Management
+    administration.add_view(FileView(
+        app.config['UPLOAD_FOLDER'], '/uploads/', endpoint='uploads',
+        name='User Uploads', category='Files')
+    )
+    administration.add_view(FileView(
+        app.config['DOWNLOAD_FOLDER'], '/downloads/', endpoint='downloads',
+        name='Charon Downloads', category='Files')
+    )
 
     # Add links
     administration.add_link(MenuLink(name='Front End', endpoint='ui.index'))
