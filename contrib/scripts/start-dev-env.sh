@@ -12,8 +12,8 @@ CMD="pip install"
 
 function initialize {
     $CMD "$(pwd)"
-    $CMD coverage nose pep8 --use-mirrors
-    $CMD -e . --use-mirrors
+    $CMD coverage nose pep8
+    $CMD -e .
 }
 
 function vitualize {
@@ -26,7 +26,7 @@ function vitualize {
     fi
 
     # Make sure we install any new dependencies
-    $CMD -e . --upgrade --use-mirrors
+    $CMD -e . --upgrade
 
     export PYTHONPATH=$PYTHONPATH:$(pwd)/src
 
