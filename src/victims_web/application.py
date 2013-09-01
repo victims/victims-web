@@ -24,8 +24,7 @@ import os
 from flask import Flask, render_template
 from flask.ext.mongoengine import MongoEngine, MongoEngineSessionInterface
 from flask.ext.seasurf import SeaSurf
-from flask.ext import login
-from flask_sslify import SSLify
+from flask.ext.sslify import SSLify
 
 from victims_web.admin import administration_setup
 from victims_web.blueprints.service_v1 import v1
@@ -34,7 +33,7 @@ from victims_web.blueprints.ui import ui
 from victims_web.blueprints.auth import auth
 
 from victims_web.cache import cache
-from victims_web.user import User
+from victims_web.handlers.identity import setup_identity_management
 
 # Set up the application
 app = Flask('victims_web')
@@ -82,12 +81,8 @@ for submit in SUBMISSION_ROUTES:
     csrf.exempt(submit)
 
 
-# Login manager
-login_manager = login.LoginManager()
-login_manager.login_view = 'auth.login_user'
-login_manager.login_message = 'You are not authorized to access this resource.'
-login_manager.login_message_category = 'error'
-login_manager.init_app(app)
+# SetUp identity management
+setup_identity_management(app)
 
 
 @app.errorhandler(403)
@@ -117,11 +112,6 @@ def error_500(e):
         message='Victi.ms is undergoing maintenance (or possibly a bug). '
         + 'We should be back up shortly.'
     ), 500
-
-
-@login_manager.user_loader
-def load_user(userid):
-    return User(userid)
 
 
 # Register blueprints

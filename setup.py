@@ -38,6 +38,7 @@ setup(
     install_requires=[
         'Flask>=0.10',
         'Flask-Login>=0.1.1',
+        'Flask-Principal',
         'Flask-Bcrypt',
         'Flask-SeaSurf',
         'Flask-Cache',

@@ -27,11 +27,14 @@ from hmac import HMAC
 from uuid import uuid4
 from bson.dbref import DBRef
 
+from flask.ext.bcrypt import generate_password_hash
 from flask.ext.mongoengine import Document
 from mongoengine import (
     StringField, DateTimeField, DictField, BooleanField, EmbeddedDocument,
     EmbeddedDocumentField, ListField, EmailField
 )
+
+from victims_web.config import BCRYPT_LOG_ROUNDS
 
 
 def generate_client_secret(apikey):
@@ -126,6 +129,9 @@ class Account(ValidatedDocument):
 
     def update_api_tokens(self):
         (self.apikey, self.secret) = generate_api_tokens(self.username)
+
+    def set_password(self, plain):
+        self.password = generate_password_hash(plain, BCRYPT_LOG_ROUNDS)
 
     def save(self):
         if self.apikey is None or len(self.apikey) == 0:

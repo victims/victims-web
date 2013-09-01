@@ -2,6 +2,9 @@ from json import loads
 from os import remove
 from os.path import isfile
 from subprocess import check_output, CalledProcessError
+from urlparse import urlparse, urljoin
+
+from flask import request, flash
 
 from victims_web import config
 from victims_web.models import Hash
@@ -88,3 +91,19 @@ def set_hash(submission):
         config.LOGGER.debug('Command execution failed for "%s"' % (command))
     except Exception as e:
         config.LOGGER.warn('Failed to hash: ' + e.message)
+
+
+def safe_redirect_url():
+    """
+    Returns request.args['next'] if the url is safe, else returns none.
+    """
+    forward = request.args.get('next')
+    if forward:
+        host_url = urlparse(request.host_url)
+        redirect_url = urlparse(urljoin(request.host_url, forward))
+        if redirect_url.scheme in ('http', 'https') and \
+                host_url.netloc == redirect_url.netloc:
+            return forward
+        else:
+            flash('Invalid redirect requested.', category='info')
+    return None

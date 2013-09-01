@@ -22,13 +22,13 @@ from flask import (
     Blueprint, current_app, escape, flash, render_template, request,
     url_for, redirect)
 
-from flask.ext import login
+from flask.ext.login import fresh_login_required, login_required, current_user
 from recaptcha.client import captcha
 from mongoengine import ValidationError
 
 from victims_web.blueprints.helpers import safe_redirect_url
-from victims_web.user import (authenticate, create_user, User, get_account,
-                              make_password_hash)
+from victims_web.handlers.identity import login, logout
+from victims_web.user import create_user, get_account
 from victims_web.models import Account
 
 auth = Blueprint('auth', __name__, template_folder='templates')
@@ -43,33 +43,30 @@ def login_user():
         return redirect(forward or url_for('ui.index'))
 
     # If you are already logged in, go away!
-    if not login.current_user.is_anonymous():
+    if not current_user.is_anonymous():
         return redirect_url()
 
     if request.method == 'POST':
         username = request.form.get('username', '')
-        user_data = authenticate(
-            username,
-            request.form.get('password', ''))
-        if user_data:
-            if login.login_user(user=User(username)):
-                return redirect_url()
+        if login(username, request.form.get('password', '')):
+            return redirect_url()
+
         flash("Invalid username/password", category='error')
 
     return render_template("login.html")
 
 
 @auth.route("/logout", methods=['GET'])
-@login.login_required
+@login_required
 def logout_user():
-    login.logout_user()
+    logout()
     return redirect(url_for('ui.index'))
 
 
 @auth.route('/account', methods=['GET'])
-@login.login_required
+@login_required
 def user_account():
-    account = get_account(login.current_user.username)
+    account = get_account(current_user.username)
     content = {
         'username': account.username,
         'email': account.email,
@@ -117,22 +114,16 @@ def validate_captcha():
 
 
 @auth.route('/account_edit', methods=['GET', 'POST'])
-@login.login_required
+@login_required
+@fresh_login_required
 def user_edit():
     if request.method == 'POST':
         try:
-            password = request.form['current_password']
-            if len(password.strip()) == 0:
-                raise ValueError('Please enter your current password')
-
-            if not authenticate(login.current_user.username, password):
-                raise ValueError('Wrong password')
-
-            account = get_account(login.current_user.username)
+            account = get_account(current_user.username)
 
             if request.form.get('change_password', 'off') == 'on':
                 validate_password(account.username)
-                account.password = make_password_hash(request.form['password'])
+                account.set_password(request.form['password'])
 
             if request.form.get('change_email', 'off') == 'on':
                 account.email = request.form['email'].strip()
@@ -170,10 +161,10 @@ def register_user():
     }
 
     # Someone with a session can not make a new user
-    if login.current_user.is_authenticated():
+    if current_user.is_authenticated():
         flash(
             'You are already logged in as %s' % (
-                escape(login.current_user.username)),
+                escape(current_user.username)),
             category='info')
         return redirect(url_for('ui.index'))
 
@@ -199,7 +190,7 @@ def register_user():
                 request.form['username'],
                 request.form['password'],
                 email=email)
-            login.login_user(user)
+            login(request.form['username'], request.form['password'])
             flash('Registration successful, welcome %s!' % (user.username),
                   category='info')
             return redirect(url_for('ui.index'))

@@ -25,7 +25,7 @@ from datetime import datetime, timedelta
 from flask import redirect, request, url_for
 
 from flask.ext.login import current_user
-from flask.ext.bcrypt import check_password_hash, generate_password_hash
+from flask.ext.bcrypt import check_password_hash
 
 from victims_web import config
 from victims_web.models import Account
@@ -144,16 +144,10 @@ def validate_signature():
         return False
 
 
-def make_password_hash(password):
-    return generate_password_hash(
-        password, config.BCRYPT_LOG_ROUNDS)
-
-
 def create_user(username, password, endorsements=[], email=None):
-    passhash = make_password_hash(password)
     new_user = Account()
     new_user.username = username
-    new_user.password = passhash
+    new_user.set_password(password)
     if email is not None:
         new_user.email = email.strip()
 
@@ -240,6 +234,10 @@ class User(object):
     @property
     def endorsements(self):
         return self.__endorsements
+
+    @property
+    def roles(self):
+        return self.endorsements.keys()
 
     @property
     def username(self):

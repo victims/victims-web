@@ -36,6 +36,9 @@ MONGODB_SETTINGS = {
     'PORT': 27017,
 }
 
+# Available roles
+VICTIMS_ROLES = ['admin', 'trusted']
+
 # Auth Configuration
 SESSION_PROTECTION = 'strong'
 SESSION_COOKIE_HTTPONLY = True
