@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from mongoengine import StringField, URLField, LongField, DateTimeField, ListField
+from mongoengine import (
+    StringField, URLField, LongField, DateTimeField, ListField)
 from yaml import load
 from urlparse import urljoin
 
@@ -89,7 +90,8 @@ class RubySecDatabase():
         for f in files:
             content = open(self.repository.absolute_filepath(f), 'r')
             obj = load(content)
-            advisory = get_advisory(urljoin(self.repository.repourl, f.strip()))
+            advisory = get_advisory(
+                urljoin(self.repository.repourl, f.strip()))
             advisory.mongify(obj)
             advisory.save()
 
