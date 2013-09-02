@@ -105,6 +105,11 @@ class JsonifyMixin(object):
 
         return json.dumps(data, default=handle_special_objs)
 
+    def mongify(self, data):
+        for field in self._db_field_map:
+            if self._db_field_map[field] in data:
+                setattr(self, self._db_field_map[field], data[field])
+
 
 class Account(ValidatedDocument):
     """
@@ -214,24 +219,15 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
         self.cves = self.cve_list()
         return JsonifyMixin.jsonify(self, fields)
 
-    def load_json(self, submitter, json_data):
+    def mongify(self, data):
         """
         Load from json
         """
-        fields = [
-            'name', 'version', 'format', 'vendor', 'hash', 'hashes', 'meta'
-        ]
-        field_names = {
-            'meta': 'metadata',
-        }
-        for field in fields:
-            key = field_names.get(field, field)
-            if field in json_data:
-                setattr(self, key, json_data[field])
-
-        self.append_cves(json_data['cves'])
-        self.submitter = submitter
-        self.submittedon = datetime.datetime.utcnow()
+        obj = data
+        if 'cves' in obj:
+            self.append_cves(obj['cves'])
+            obj.pop('cves', None)
+        JsonifyMixin.mongify(self, obj)
 
 
 class Submission(JsonifyMixin, ValidatedDocument):
@@ -252,9 +248,9 @@ class Submission(JsonifyMixin, ValidatedDocument):
     approval = StringField(
         choices=(
             ('REQUESTED', 'REQUESTED'),
-            ('PENDING_APPROVAL', 'PENDING_APPROVAL'),
+            ('PENDING_APPROVAL', 'PENDING APPROVAL'),
             ('APPROVED', 'APPROVED'),
-            ('IN_DATABASE', 'IN_DATABASE'),
+            ('IN_DATABASE', 'IN DATABASE'),
             ('DECLINED', 'DECLINED'),
             ('INVALID', 'INVALID')
         ),

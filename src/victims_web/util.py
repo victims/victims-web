@@ -76,7 +76,8 @@ def set_hash(submission):
         json_data = loads(output)
         json_data['cves'] = submission.cves
         entry = Hash()
-        entry.load_json(submission.submitter, json_data)
+        entry.mongify(json_data)
+        entry.submitter = submission.submitter
         submission.entry = entry
         submission.approval = 'PENDING_APPROVAL'
         submission.validate()

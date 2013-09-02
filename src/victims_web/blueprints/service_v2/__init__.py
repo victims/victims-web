@@ -234,7 +234,8 @@ def submit_hash(group):
         if 'cves' not in json_data:
             raise ValueError('No CVE provided')
         entry = Hash()
-        entry.load_json(user, json_data)
+        entry.mongify(json_data)
+        entry.submitter = user
         submit(
             user, 'json-api-hash', group, suffix='Hash', entry=entry,
             approval='PENDING_APPROVAL')
