@@ -15,7 +15,56 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from victims_web.plugin.github import GitHub
+from mongoengine import StringField, URLField, LongField, DateTimeField, ListField
+from yaml import load
+from urlparse import urljoin
+
+from victims_web.models import Hash, ValidatedDocument, JsonifyMixin
+from victims_web.plugin import get_config
+from victims_web.plugin.github import Repository
+
+
+_CONFIG = get_config('rubysec')
+
+
+class RubySecAdvisory(JsonifyMixin, ValidatedDocument):
+    """
+    A RubySec Advisory
+    """
+    meta = {'collection': 'rubysec'}
+
+    source = URLField()
+    title = StringField()
+    description = StringField()
+    url = URLField()
+    cve = StringField()
+    cvss_2 = StringField()
+    osvdb = LongField()
+    date = DateTimeField()
+    gem = StringField()
+    framework = StringField()
+    patched_versions = ListField(StringField())
+
+    def get_hash_entry(self):
+        entry = Hash()
+        entry.group = 'ruby'
+        entry.submitter = 'plugin.rubysec'
+        entry.append_cves([
+            'CVE-%s' % (cve) for cve in self.cve.strip().split(',')
+        ])
+        return entry
+
+    def save(self):
+        # add/update a hash entry
+        ValidatedDocument.save(self)
+
+
+def get_advisory(source):
+    advisory = RubySecAdvisory.objects(source=source).first()
+    if advisory is None:
+        advisory = RubySecAdvisory()
+        advisory.source = source
+    return advisory
 
 
 class RubySecDatabase():
@@ -23,16 +72,25 @@ class RubySecDatabase():
     GITHUB_REPO = 'ruby-advisory-db'
 
     def __init__(self):
-        self.github = GitHub(self.GITHUB_USER, self.GITHUB_REPO)
-        self.last_updated = '2013-07-14T16:00:49Z'
+        self.repository = Repository(self.GITHUB_USER, self.GITHUB_REPO)
+        if not self.repository.is_cloned():
+            self.repository.clone()
 
-    def get_updated_files(self):
-        updated = []
-        commits = self.github.get_commits(
-            path='gems/', since=self.last_updated)
-        for commit in commits:
-            for f in self.github.get_commit(commit['sha']).get('files', []):
-                fileurl = f['raw_url']
-                if fileurl not in updated:
-                    updated.append(fileurl)
-        return updated
+    def update(self):
+        previous = _CONFIG.get('prev_head')
+        files = []
+        if previous is None:
+            self.repository.pull()
+            files = self.repository.files('gems/', '\.yml')
+        else:
+            files = self.repository.files_changed(
+                previous, 'HEAD', 'gems/', '\.yml')
+
+        for f in files:
+            content = open(self.repository.absolute_filepath(f), 'r')
+            obj = load(content)
+            advisory = get_advisory(urljoin(self.repository.repourl, f.strip()))
+            advisory.mongify(obj)
+            advisory.save()
+
+        _CONFIG.set('prev_head', self.repository.head())
