@@ -283,5 +283,22 @@ class Submission(JsonifyMixin, ValidatedDocument):
     entry = EmbeddedDocumentField(Hash)
 
 
+class Plugin(Document):
+    """
+    A key value store for plugins
+    """
+    meta = {'collection': 'plugins'}
+
+    plugin = StringField(primary_key=True)
+    config = DictField()
+
+    def set(self, key, value):
+        self.config[key] = value
+        self.save()
+
+    def get(self, key):
+        return self.config.get(key, None)
+
+
 # All the models in the event something would like to grab them all
 MODELS = [Hash, Account, Submission]
