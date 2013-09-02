@@ -120,7 +120,7 @@ class StreamedSerialResponseValue(object):
             jsons = self._json(item)
             if jsons == '{}':
                 continue
-            data = '{"fields": ' + + '}'
+            data = '{"fields": ' + jsons + '}'
             if count != self.result_count:
                 yield data + ",\n"
             else:
