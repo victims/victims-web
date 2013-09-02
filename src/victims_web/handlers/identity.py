@@ -123,7 +123,7 @@ def load_user(userid):
 def setup_login_manager(app):
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login_user'
-    login_manager.login_message = 'You are not authorized to access this resource.'
+    login_manager.login_message = 'Resource access not authorized.'
     login_manager.login_message_category = 'error'
     login_manager.init_app(app)
     login_manager.user_loader(load_user)
