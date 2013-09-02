@@ -174,7 +174,7 @@ def update(since):
             items = items.only(*fields)
         return stream_items(items, fields)
     except Exception as e:
-        print(e)
+        current_app.logger.debug(e)
         return error()
 
 
