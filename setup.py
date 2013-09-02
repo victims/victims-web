@@ -31,8 +31,8 @@ setup(
     url='http://www.victi.ms',
 
     dependency_links=[
-        'https://github.com/mrjoes/flask-admin/tarball/master'
-        + '#egg=Flask-Admin-1.0.6.git.master',
+        'https://github.com/mrjoes/flask-admin/tarball/f164aeb/'
+        + '#egg=Flask-Admin-1.0.6-f164aeb/',
     ],
 
     install_requires=[
