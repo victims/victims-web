@@ -101,14 +101,38 @@ class JsonifyMixin(object):
 
         for key in data.keys():
             if key.startswith('_') or (fields and key not in fields):
-                del data[key]
+                if key in data:
+                    del data[key]
 
         return json.dumps(data, default=handle_special_objs)
 
     def mongify(self, data):
+        """
+        Populates this instance from a dictionary loaded from a JSON string.
+        Only known fields are populated. JSON fieldname maps directly to DB
+        field name not model field.
+        """
         for field in self._db_field_map:
             if self._db_field_map[field] in data:
                 setattr(self, self._db_field_map[field], data[field])
+
+    @classmethod
+    def fieldname(cls, injson):
+        """
+        Convert a JSON fieldname to a Model fieldname. JSON fieldname maps
+        directly to the DB fieldname.
+
+        Returns None if no match is found.
+        """
+        if injson in cls._fields:
+            return injson
+
+        if injson in cls._db_field_map.values():
+            for field in cls._db_field_map.keys():
+                if injson == cls._db_field_map[field]:
+                    return field
+
+        return None
 
 
 class Account(ValidatedDocument):

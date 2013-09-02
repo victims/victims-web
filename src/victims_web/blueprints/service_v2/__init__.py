@@ -117,7 +117,10 @@ class StreamedSerialResponseValue(object):
         count = 0
         for item in self.result:
             count += 1
-            data = '{"fields": ' + self._json(item) + '}'
+            jsons = self._json(item)
+            if jsons == '{}':
+                continue
+            data = '{"fields": ' + + '}'
             if count != self.result_count:
                 yield data + ",\n"
             else:
@@ -164,12 +167,14 @@ def update(since):
             fields = []
             for field in request.args.get(
                     'fields').replace(' ', '').split(','):
-                if field in Hash._fields.keys():
-                    fields.append(field)
+                inmodel = Hash.fieldname(field)
+                if inmodel:
+                    fields.append(inmodel)
 
             items = items.only(*fields)
         return stream_items(items, fields)
-    except:
+    except Exception as e:
+        print(e)
         return error()
 
 
