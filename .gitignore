@@ -1,5 +1,8 @@
 *.py[cod]
 
+# vim
+*.swp
+
 # C extensions
 *.so
 
@@ -37,6 +40,7 @@ testdb/*
 victims.dev/*
 
 # application default directories
+cache/*
 logs/*
 uploads/*
 downloads/*
