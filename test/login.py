@@ -19,6 +19,9 @@ Tests for logins.
 """
 
 from test import UserTestCase
+from datetime import datetime
+
+from victims_web.user import get_account
 
 
 class TestLogin(UserTestCase):
@@ -84,3 +87,12 @@ class TestLogin(UserTestCase):
             resp = self._login(self.username, self.password, redirect, True)
             assert resp.status_code == 200
             assert 'Invalid redirect' in resp.data
+
+    def test_lastlogin(self):
+        """
+        Ensure that lastlogin field is updated
+        """
+        lastlogin = datetime.utcnow()
+        self._login(self.username, self.password)
+        account = get_account(self.username)
+        assert lastlogin < account.lastlogin

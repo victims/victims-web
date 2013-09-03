@@ -23,9 +23,8 @@ import json
 
 from flask import Blueprint, Response, request, current_app
 
-from victims_web.user import api_request_user
 from victims_web.cache import cache
-from victims_web.handlers.security import apiauth
+from victims_web.handlers.security import apiauth, api_request_user
 from victims_web.models import Hash, Removal, JsonifyMixin
 from victims_web.submissions import submit, upload
 from victims_web.util import allowed_groups, process_metadata

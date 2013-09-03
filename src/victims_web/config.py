@@ -2,13 +2,14 @@ from os import environ, makedirs
 from os.path import isfile, isdir
 from datetime import timedelta
 from imp import load_source
-from logging import getLogger
+from logging import getLogger, DEBUG
 
 _ENFORCE = True
 _ENFORCE_KEYS = ['SECRET_KEY', 'DEBUG', 'TESTING']
 
 LOGGER = getLogger()
 LOG_FOLDER = environ.get('VICTIMS_LOG_DIR', './logs')
+LOG_LEVEL = DEBUG
 
 DEBUG = True
 TESTING = True

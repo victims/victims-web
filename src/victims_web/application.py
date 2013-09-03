@@ -52,7 +52,7 @@ logging.basicConfig(
     filename=os.path.join(app.config.get('LOG_FOLDER'), 'server.log'),
     format='%(asctime)s - %(levelname)s: %(message)s',
     datefmt='%a %b %d %Y %H:%M:%S %Z',
-    level=logging.DEBUG,
+    level=app.config['LOG_LEVEL'],
 )
 app._logger = app.config.get('LOGGER')
 
@@ -127,5 +127,4 @@ if app.config.get('SENTRY_DSN', None):
 
 
 if __name__ == '__main__':
-    # If we are called locally run with debug on
-    app.run(debug=True)
+    app.run(debug=app.config['DEBUG'])

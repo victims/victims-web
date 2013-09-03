@@ -30,7 +30,7 @@ from test import UserTestCase
 
 from victims_web.config import UPLOAD_FOLDER
 from victims_web.models import Removal, Submission
-from victims_web.user import generate_signature
+from victims_web.handlers.security import generate_signature
 
 
 class TestServiceV2(UserTestCase):
@@ -235,6 +235,19 @@ class TestServiceV2(UserTestCase):
             rmtree(UPLOAD_FOLDER)
         else:
             assert len(files) == 0
+
+    def test_lastapi(self):
+        """
+        Verify that last api time is updated
+        """
+        self.create_user(self.username, self.password)
+        self._login(self.username, self.password)
+        last = datetime.utcnow()
+        self.json_submit_hash(
+            'java', 201, self.account.apikey, self.account.secret
+        )
+        self.account.reload()
+        assert last < self.account.lastapi
 
     def test_java_submission_authenticated(self):
         """

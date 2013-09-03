@@ -17,15 +17,20 @@
 """
 Identity handlers.
 """
+from hmac import HMAC
+from hashlib import md5, sha512
+from time import strptime, mktime
+from datetime import datetime, timedelta
 from functools import wraps
 from urlparse import urlparse, urljoin
 
 from flask import Response, current_app, request, flash
+from flask.ext.bcrypt import check_password_hash
 from flask.ext.login import (
-    LoginManager, current_user, login_user, logout_user)
+    LoginManager, current_user, login_user, logout_user, user_logged_in)
 
-from victims_web.user import (
-    AnonymousUser, User, authenticate, validate_signature)
+from victims_web import config
+from victims_web.user import (AnonymousUser, User, get_account)
 
 
 def safe_redirect_url():
@@ -39,6 +44,115 @@ def safe_redirect_url():
         else:
             flash('Invalid redirect requested.', category='info')
     return None
+
+
+def authenticate(username, password):
+    user = get_account(str(username))
+    if user:
+        if check_password_hash(user.password, password):
+            return True
+    return False
+
+
+def generate_signature(apikey, method, path, date, md5sums):
+    md5sums.sort()
+    ordered = [method, path, date] + md5sums
+    string = ''
+    for content in ordered:
+        if content is None:
+            raise ValueError('Required header not found')
+        string += str(content)
+
+    user = get_account(apikey, 'apikey')
+    if user is None:
+        raise ValueError('Invalid apikey')
+    if user.secret is None:
+        raise ValueError('No client secret known')
+
+    return HMAC(
+        key=bytes(user.secret),
+        msg=string.lower(),
+        digestmod=sha512
+    ).hexdigest().upper()
+
+
+def api_username(apikey):
+    """
+    Fetch the username who holds a given apikey. Returns None if no match.
+
+    :Parameters:
+        - `apikey`: API Key to search for.
+    """
+    account = get_account(apikey, 'apikey')
+    if account:
+        return account.username
+    return None
+
+
+def api_request_tokens():
+    """
+    Checks for the 'Victims-Api' header in the requst and parses the apikey
+    and signature
+    """
+    if 'Victims-Api' not in request.headers:
+        raise ValueError('Victims-Api header not present in request')
+    (apikey, signature) = request.headers['Victims-Api'].strip().split(':')
+    return (apikey, signature)
+
+
+def api_request_user():
+    """
+    Get username associated with the API request
+    """
+    (apikey, _) = api_request_tokens()
+    return api_username(apikey)
+
+
+def api_request_user_account():
+    """
+    Get the account associated with the current API requrst
+    """
+    (apikey, _) = api_request_tokens()
+    return get_account(api_username(apikey))
+
+
+def validate_signature():
+    expiry = config.API_REQUEST_EXPIRY_MINS
+    try:
+        (apikey, signature) = api_request_tokens()
+
+        t = strptime(request.headers['Date'], '%a, %d %b %Y %H:%M:%S %Z')
+        request_date = datetime.fromtimestamp(mktime(t))
+        delta = datetime.utcnow() - request_date
+        if delta > timedelta(minutes=expiry) or delta < timedelta(0):
+            return False
+
+        # prepare path with args
+        path = request.path
+        if len(request.args) > 0:
+            args = []
+            for key in request.args.keys():
+                args.append('%s=%s' % (key, request.args[key]))
+            path = '%s?%s' % (path, '&'.join(args))
+
+        # prepare md5 sums
+        md5sums = []
+        if len(request.data) > 0:
+            md5sums.append(md5(request.data).hexdigest())
+
+        if len(request.files) > 0:
+            for f in request.files.values():
+                md5sums.append(md5(f.stream.getvalue()).hexdigest())
+
+        expected = generate_signature(
+            apikey, request.method, path,
+            request.headers['Date'],
+            md5sums
+        )
+        return signature.upper() == expected
+    except Exception as e:
+        config.LOGGER.debug(e)
+        return False
 
 
 def basicauth(view):
@@ -60,6 +174,16 @@ def basicauth(view):
         return view(*args, **kwargs)
 
     return decorated
+
+
+def update_api_access():
+    """
+    Update user information upon API access
+    """
+    user = api_request_user_account()
+    if user:
+        user.lastapi = datetime.utcnow()
+        user.save()
 
 
 def apiauth(view):
@@ -84,6 +208,7 @@ def apiauth(view):
             return Response('Forbidden', mimetype='application/json',
                             status=403)
 
+        update_api_access()
         return view(*args, **kwargs)
 
     return decorated
@@ -118,7 +243,38 @@ def require_one_role(view):
     return decorated
 
 
+def log_login(app, user):
+    """
+    Logs the users login.
+    """
+    app.logger.info(user.username + " logged in")
+
+
+def update_login_details(app, user):
+    """
+    Updates user information upon login.
+    """
+    user.user_obj.lastlogin = datetime.utcnow()
+    try:
+        user.user_obj.lastip = request.headers.getlist('X-Forwarded-For')[0]
+    except:
+        user.user_obj.lastip = request.remote_addr
+    user.user_obj.save()
+
+
+def on_login(app, user):
+    """
+    Actions to perform when a user is logged in.
+    """
+    log_login(app, user)
+    update_login_details(app, user)
+
+
 def login(username, password):
+    """
+    Login, given a username/pasword combination. Returns True if successful,
+    else return False.
+    """
     user_data = authenticate(username, password)
     if user_data:
         user = User(username)
@@ -128,6 +284,9 @@ def login(username, password):
 
 
 def logout():
+    """
+    Helper to logout the current user.
+    """
     logout_user()
 
 
@@ -136,6 +295,9 @@ def load_user(username):
 
 
 def setup_login_manager(app):
+    """
+    Configure the LoginManager for the provided app.
+    """
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login_user'
     login_manager.login_message = 'Resource access not authorized.'
@@ -143,6 +305,7 @@ def setup_login_manager(app):
     login_manager.anonymous_user = AnonymousUser
     login_manager.init_app(app)
     login_manager.user_loader(load_user)
+    user_logged_in.connect(on_login, app)
 
 
 def setup_security(app):

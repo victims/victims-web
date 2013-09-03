@@ -17,134 +17,23 @@
 """
 User related functions.
 """
-from hmac import HMAC
-from hashlib import md5, sha512
-from time import strptime, mktime
-from datetime import datetime, timedelta
-
-from flask import request
 
 from flask.ext.login import UserMixin, AnonymousUserMixin
-from flask.ext.bcrypt import check_password_hash
 
-from victims_web import config
 from victims_web.models import Account
 
 
-# Helper functions
-def get_account(value, field='username'):
-    """
-    Retrieve an Account object.
-
-    :Parameters:
-        - `value`: Value to filter by.
-        - `field`: Field to filter on. Default field is username.
-    """
-    return Account.objects(**{field: value}).first()
-
-
-def authenticate(username, password):
-    user = get_account(str(username))
-    if user:
-        if check_password_hash(user.password, password):
-            return True
-    return False
-
-
-def generate_signature(apikey, method, path, date, md5sums):
-    md5sums.sort()
-    ordered = [method, path, date] + md5sums
-    string = ''
-    for content in ordered:
-        if content is None:
-            raise ValueError('Required header not found')
-        string += str(content)
-
-    user = get_account(apikey, 'apikey')
-    if user is None:
-        raise ValueError('Invalid apikey')
-    if user.secret is None:
-        raise ValueError('No client secret known')
-
-    return HMAC(
-        key=bytes(user.secret),
-        msg=string.lower(),
-        digestmod=sha512
-    ).hexdigest().upper()
-
-
-def api_username(apikey):
-    """
-    Fetch the username who holds a given apikey. Returns None if no match.
-
-    :Parameters:
-        - `apikey`: API Key to search for.
-    """
-    account = get_account(apikey, 'apikey')
-    if account:
-        return account.username
-    return None
-
-
-def api_request_tokens():
-    """
-    Checks for the 'Victims-Api' header in the requst and parses the apikey
-    and signature
-    """
-    if 'Victims-Api' not in request.headers:
-        raise ValueError('Victims-Api header not present in request')
-    (apikey, signature) = request.headers['Victims-Api'].strip().split(':')
-    return (apikey, signature)
-
-
-def api_request_user():
-    """
-    Get username associated with the API request
-    """
-    (apikey, _) = api_request_tokens()
-    return api_username(apikey)
-
-
-def validate_signature():
-    expiry = config.API_REQUEST_EXPIRY_MINS
-    try:
-        (apikey, signature) = api_request_tokens()
-
-        t = strptime(request.headers['Date'], '%a, %d %b %Y %H:%M:%S %Z')
-        request_date = datetime.fromtimestamp(mktime(t))
-        delta = datetime.utcnow() - request_date
-        if delta > timedelta(minutes=expiry) or delta < timedelta(0):
-            return False
-
-        # prepare path with args
-        path = request.path
-        if len(request.args) > 0:
-            args = []
-            for key in request.args.keys():
-                args.append('%s=%s' % (key, request.args[key]))
-            path = '%s?%s' % (path, '&'.join(args))
-
-        # prepare md5 sums
-        md5sums = []
-        if len(request.data) > 0:
-            md5sums.append(md5(request.data).hexdigest())
-
-        if len(request.files) > 0:
-            for f in request.files.values():
-                md5sums.append(md5(f.stream.getvalue()).hexdigest())
-
-        expected = generate_signature(
-            apikey, request.method, path,
-            request.headers['Date'],
-            md5sums
-        )
-        return signature.upper() == expected
-    except Exception as e:
-        config.LOGGER.debug(e)
-        return False
-
-
+# Helpers
 def create_user(username, password, roles=[], email=None):
+    """
+    Create a new user
+
+    :Parameters:
+        - `username`: User Name
+        - `password`: Plain-text password
+        - `roles`: A list of roles to assign the user
+        - `email`: The user's email address
+    """
     new_user = Account()
     new_user.username = username
     new_user.set_password(password)
@@ -158,6 +47,17 @@ def create_user(username, password, roles=[], email=None):
     new_user.save()
 
     return User(username)
+
+
+def get_account(value, field='username'):
+    """
+    Retrieve an Account object.
+
+    :Parameters:
+        - `value`: Value to filter by.
+        - `field`: Field to filter on. Default field is username.
+    """
+    return Account.objects(**{field: value}).first()
 
 
 def delete_user(username):
