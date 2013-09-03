@@ -345,8 +345,7 @@ class Submission(JsonifyMixin, ValidatedDocument):
 
     def valid_entry(self):
         if (not self.group
-                or len(self.group.strip()) == 0
-                or self.group == '---'):
+                or len(self.group.strip()) == 0):
             self.add_comment('[auto] no group specified')
             return False
         if len(self.cves) == 0:

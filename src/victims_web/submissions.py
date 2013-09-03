@@ -26,7 +26,7 @@ from werkzeug import secure_filename
 from victims_web import config
 from victims_web.models import Submission
 from victims_web.plugin.charon import download
-from victims_web.util import allowed_groups, set_hash
+from victims_web.util import allowed_groups, set_hash, DEFAULT_GROUP
 
 
 def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
@@ -35,7 +35,8 @@ def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
         ', '.join(['%s:%s' % (k, v) for (k, v) in locals().items()])))
     submission = Submission()
     submission.source = source
-    submission.group = group
+    if group and (group != DEFAULT_GROUP or len(group) == 0):
+        submission.group = group
     submission.filename = filename
     if suffix:
         submission.format = suffix.title()

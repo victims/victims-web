@@ -30,6 +30,7 @@ from flask.ext.admin.contrib.fileadmin import FileAdmin
 
 from victims_web.models import Account, Hash, Submission
 from victims_web.cache import cache
+from victims_web.util import allowed_groups, set_hash
 
 from flask.ext import login
 
@@ -113,8 +114,8 @@ class AccountView(SafeModelView):
         return form_class
 
     def on_model_change(self, form, model):
-        if len(model.plaintext_password) > 0:
-            model.password.set_password(model.plaintext_password)
+        if len(form.plaintext_password.data) > 0:
+            model.password.set_password(form.plaintext_password.data)
 
 
 class HashView(SafeModelView):
@@ -126,6 +127,28 @@ class HashView(SafeModelView):
 class SubmissionView(SafeModelView):
     column_filters = ('submitter', 'submittedon', 'approval', )
     column_exclude_list = ('entry', 'source')
+    form_excluded_columns = ('group', )
+
+    def scaffold_form(self):
+        form_class = super(SafeModelView, self).scaffold_form()
+        form_class.request_hashing = fields.BooleanField('Request Auto-hash')
+        groups = [('---', 'unset')]
+        for group in allowed_groups():
+            groups.append((group, group))
+        form_class.setgroup = fields.SelectField(
+            'Group',
+            [validators.required(), validators.AnyOf(allowed_groups())],
+            choices=groups,
+            default='---'
+        )
+        return form_class
+
+    def on_model_change(self, form, model):
+        grp = form.setgroup.data.strip()
+        if len(grp) > 0:
+            model.group = grp
+        if form.request_hashing:
+            set_hash(model)
 
 
 class FileView(SecureMixin, FileAdmin):
