@@ -296,6 +296,10 @@ class Plugin(Document):
         self.config[key] = value
         self.save()
 
+    def pop(self, key):
+        self.config.pop(key)
+        self.save()
+
     def get(self, key):
         return self.config.get(key, None)
 
