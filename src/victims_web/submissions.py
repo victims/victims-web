@@ -48,7 +48,7 @@ def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
     submission.metadata = meta
     submission.submitter = submitter
     if entry:
-        submission.entry = [entry]
+        submission.entry = entry
     submission.approval = approval
     submission.validate()
     submission.save()
