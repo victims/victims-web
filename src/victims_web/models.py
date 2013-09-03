@@ -98,7 +98,9 @@ class JsonifyMixin(object):
         # workaround to remove default values when using only(*fields)
         # Note that this will not work for embedded documents with defaults
         if fields:
-            fields = [f.split('.', 1)[0].strip() for f in fields]
+            fields = [
+                self.jsonname(f.split('.', 1)[0].strip()) for f in fields
+            ]
 
         for key in data.keys():
             if key.startswith('_') or (fields and key not in fields):
@@ -134,6 +136,14 @@ class JsonifyMixin(object):
                     return field
 
         return None
+
+    @classmethod
+    def jsonname(cls, inmodel):
+        """
+        Convert a Model fieldname to a JSON fieldname. If no match found, the
+        input fieldname is returned.
+        """
+        return cls._db_field_map.get(inmodel, inmodel)
 
 
 class Account(ValidatedDocument):
