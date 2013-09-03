@@ -347,8 +347,19 @@ class Submission(JsonifyMixin, ValidatedDocument):
             return False
         return True
 
+    def rule_check(self):
+        if self.approval in ['REQUESTED', 'PENDING_APPROVAL']:
+            if self.entry is not None and self.submitter:
+                user = Account.objects(username=self.submitter).first()
+                if user:
+                    for role in ['admin', 'moderator', 'trusted_submitter']:
+                        if role in user.roles:
+                            self.add_comment('[auto] trusted user')
+                            return True
+        return False
+
     def pre_save_hook(self):
-        if self.approval == 'APPROVED':
+        if self.approval == 'APPROVED' or self.rule_check():
             if self.entry is not None:
                 if not self.valid_entry():
                     # we cannot autopush
