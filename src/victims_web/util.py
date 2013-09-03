@@ -1,3 +1,4 @@
+from copy import deepcopy
 from json import loads
 from os import remove
 from os.path import isfile
@@ -73,16 +74,29 @@ def set_hash(submission):
         archive=submission.source)
     try:
         output = check_output(command, shell=True).strip()
-        json_data = loads(output)
-        json_data['cves'] = submission.cves
-        entry = Hash()
-        entry.mongify(json_data)
-        entry.submitter = submission.submitter
-        submission.entry = entry
-        submission.approval = 'PENDING_APPROVAL'
-        submission.validate()
-        submission.save()
-
+        count = 0
+        for line in output.split('\n'):
+            json_data = loads(line)
+            json_data['cves'] = submission.cves
+            meta = json_data.get('metadata', [])
+            if isinstance(meta, dict):
+                meta = [meta]
+            json_data['metadata'] = meta
+            entry = Hash()
+            entry.mongify(json_data)
+            entry.status = 'SUBMITTED'
+            entry.submitter = submission.submitter
+            if count > 0:
+                # create a new submission for each embedded entry
+                s = deepcopy(submission)
+                s.id = None
+            else:
+                s = submission
+            s.entry = entry
+            s.approval = 'PENDING_APPROVAL'
+            s.validate()
+            s.save()
+            count += 1
         # we are done safely, now remove the source
         try:
             remove(submission.source)

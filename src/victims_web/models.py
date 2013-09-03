@@ -223,14 +223,14 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
     date = DateTimeField(default=datetime.datetime.utcnow)
     createdon = DateTimeField(default=datetime.datetime.utcnow)
     hash = StringField(regex='^[a-fA-F0-9]*$')
-    name = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
+    name = StringField()
     version = StringField(
         default='UNKNOWN', regex='^[a-zA-Z0-9_\-\.]*$')
     group = StringField()
     format = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
     hashes = DictField(default={})
     vendor = StringField(
-        default='UNKNOWN', regex='^[a-zA-Z0-9_\-\.]*$')
+        default='UNKNOWN')
     cves = ListField(EmbeddedDocumentField(CVE), default=[])
     status = StringField(
         choices=(('SUBMITTED', 'SUBMITTED'), ('RELEASED', 'RELEASED')),
@@ -252,8 +252,10 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
         """
         Append a list of cves to this instance. The current datetime is used.
         """
+        cvelist = [cve.id for cve in self.cves]
         for cve in cves:
-            self.cves.append(CVE(id=cve))
+            if cve not in cvelist:
+                self.cves.append(CVE(id=cve))
 
     def jsonify(self, fields=None):
         """
