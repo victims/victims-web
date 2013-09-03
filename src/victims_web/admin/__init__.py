@@ -113,7 +113,7 @@ class AccountView(SafeModelView):
         form_class.confirm = fields.PasswordField('Confirm')
         return form_class
 
-    def on_model_change(self, form, model):
+    def on_model_change(self, form, model, is_created):
         if len(form.plaintext_password.data) > 0:
             model.password.set_password(form.plaintext_password.data)
 
@@ -143,11 +143,12 @@ class SubmissionView(SafeModelView):
         )
         return form_class
 
-    def on_model_change(self, form, model):
+    def on_model_change(self, form, model, is_created):
         grp = form.setgroup.data.strip()
         if len(grp) > 0:
             model.group = grp
-        if form.request_hashing:
+        if form.request_hashing.data:
+            model.entry = None
             set_hash(model)
 
 
