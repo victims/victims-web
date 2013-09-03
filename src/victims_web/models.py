@@ -141,8 +141,8 @@ class Account(ValidatedDocument):
     """
     meta = {'collection': 'users'}
 
-    username = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
-    password = StringField()
+    username = StringField(regex='^[a-zA-Z0-9_\-\.]*$', required=True)
+    password = StringField(required=True)
     email = EmailField()
     roles = ListField(
         StringField(choices=(
