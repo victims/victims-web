@@ -54,7 +54,7 @@ You should be able to see the victims page at _http://localhost:5000/_ if everyt
 
 ## Usage
 ### Secured API Access
-Submission endpoints like ```/service/submit/archive/java``` are secured by an implementation similar to what is used by AWS. The authentication token is expected in a HTTP header configured via the ```VICTIMS_API_HEADER``` configuration (default: ```Victims-Api```). If this is not present or if validation/authentication fails, then it falls back to *BASIC AUTH*.
+Submission endpoints like ```/service/submit/archive/java``` are secured by an implementation similar to what is used by AWS. The authentication token is expected in a HTTP header configured via the ```VICTIMS_API_HEADER``` configuration (default: ```X-Victims-Api```). If this is not present or if validation/authentication fails, then it falls back to *BASIC AUTH*.
 
 An example using curl is as follows:
 ```sh
