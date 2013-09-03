@@ -114,10 +114,13 @@ class Repository():
     def absolute_filepath(self, relative):
         return join(self.repodir, relative)
 
-    def files_changed(self, start, end='HEAD', path='', pattern=None):
+    def files_changed(self, start=None, end='HEAD', path='', pattern=None):
         self.pull()
-        files = self.diff('--name-only', start, end).split()
-        return self.filter_files(files, path, pattern)
+        if start:
+            files = self.diff('--name-only', start, end).split()
+            return self.filter_files(files, path, pattern)
+        else:
+            return self.files(self, path, pattern)
 
     def files(self, path='', pattern=None):
         oldpath = path
@@ -127,6 +130,7 @@ class Repository():
             for root, dirs, fs in walk(path):
                 for f in fs:
                     if not pattern or search(pattern, f):
+                        # add the relative path
                         files.append(join(
                             root.replace(path, oldpath).strip(sep), f))
         return files
