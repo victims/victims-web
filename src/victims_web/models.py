@@ -313,9 +313,12 @@ class Submission(JsonifyMixin, ValidatedDocument):
         new_hash.status = 'RELEASED'
         new_hash.submitter = self.submitter
         new_hash.submittedon = self.submittedon
-        new_hash.name = self.filename
-        new_hash.format = self.format
-        new_hash.metadata.append({'properties': self.metadata})
+        if self.filename:
+            new_hash.name = self.filename
+        if self.format:
+            new_hash.format = self.format
+        if len(self.metadata) > 0:
+            new_hash.metadata.append({'properties': self.metadata})
         new_hash.append_cves(self.cves)
         new_hash.group = self.group
         new_hash.save()

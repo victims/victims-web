@@ -40,6 +40,10 @@ def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
     if suffix:
         submission.format = suffix.title()
     submission.cves = cves
+    if entry and entry.cves:
+        for cve in entry.cves:
+            if cve not in entry.cves:
+                submission.cves.append(cve)
     submission.metadata = meta
     submission.submitter = submitter
     submission.entry = entry
