@@ -32,13 +32,12 @@ setup(
 
     dependency_links=[
         'https://github.com/mrjoes/flask-admin/tarball/f164aeb/'
-        + '#egg=Flask-Admin-1.0.6-f164aeb/',
+        + '#egg=Flask-Admin-1.0.6-f164aeb',
     ],
 
     install_requires=[
         'Flask>=0.10',
         'Flask-Login>=0.1.1',
-        'Flask-Principal',
         'Flask-Bcrypt',
         'Flask-SeaSurf',
         'Flask-Cache',
