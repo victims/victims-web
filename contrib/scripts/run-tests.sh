@@ -34,6 +34,8 @@ else
     else
         $CMD --with-coverage --cover-package=victims_web --cover-min-percentage=0 ${TEST_DIR}/*.py
     fi
+    echo "[INFO] Running pep8 ..."
+    pep8 --repeat ${TEST_DIR}/../src/
 fi
 
 # stop db
