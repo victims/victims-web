@@ -97,7 +97,7 @@ class TestServiceV2(UserTestCase):
             'vendor': basestring,
             'cves': list,
             'status': basestring,
-            'meta': dict,
+            'meta': list,
             'submitter': basestring,
             'submittedon': basestring,
         }

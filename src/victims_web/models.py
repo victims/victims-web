@@ -21,6 +21,7 @@ Data models.
 import datetime
 import json
 
+from copy import deepcopy
 from os import urandom
 from hashlib import sha1
 from hmac import HMAC
@@ -169,10 +170,10 @@ class Account(ValidatedDocument):
     def set_password(self, plain):
         self.password = generate_password_hash(plain, BCRYPT_LOG_ROUNDS)
 
-    def save(self):
+    def save(self, *args, **kwargs):
         if self.apikey is None or len(self.apikey) == 0:
             self.update_api_tokens()
-        ValidatedDocument.save(self)
+        ValidatedDocument.save(self, *args, **kwargs)
 
 
 class Removal(JsonifyMixin, ValidatedDocument):
@@ -209,7 +210,8 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
 
     # Temporary item for v1 mapping
     _v1 = DictField(default={})
-    date = DateTimeField(default=None)
+    date = DateTimeField(default=datetime.datetime.utcnow)
+    createdon = DateTimeField(default=datetime.datetime.utcnow)
     hash = StringField(regex='^[a-fA-F0-9]*$')
     name = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
     version = StringField(
@@ -223,7 +225,7 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
     status = StringField(
         choices=(('SUBMITTED', 'SUBMITTED'), ('RELEASED', 'RELEASED')),
         default='SUBMITTED')
-    metadata = DictField(db_field='meta', default={})
+    metadata = ListField(DictField(), db_field='meta', default=[])
     submitter = StringField()
     submittedon = DateTimeField(default=datetime.datetime.utcnow)
 
@@ -241,7 +243,7 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
         Append a list of cves to this instance. The current datetime is used.
         """
         for cve in cves:
-            self.cves.append(CVE(id=cve, addedon=datetime.datetime.utcnow()))
+            self.cves.append(CVE(id=cve))
 
     def jsonify(self, fields=None):
         """
@@ -259,6 +261,22 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
             self.append_cves(obj['cves'])
             obj.pop('cves', None)
         JsonifyMixin.mongify(self, obj)
+
+    def save(self, *args, **kwargs):
+        """
+        Ensure that the date is updated
+        """
+        self.date = datetime.datetime.utcnow()
+        ValidatedDocument.save(self, *args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """
+        Update the removals collection when a document is deleted
+        """
+        if self.status == 'RELEASED':
+            removal = Removal(hash=self.hash)
+            removal.save()
+        ValidatedDocument.delete(self, *args, **kwargs)
 
 
 class Submission(JsonifyMixin, ValidatedDocument):
@@ -287,7 +305,63 @@ class Submission(JsonifyMixin, ValidatedDocument):
         ),
         default='REQUESTED'
     )
-    entry = EmbeddedDocumentField(Hash)
+    entry = EmbeddedDocumentField(Hash, default=None)
+
+    def push_to_db(self):
+        new_hash = deepcopy(self.entry)
+        new_hash.id = None
+        new_hash.status = 'RELEASED'
+        new_hash.submitter = self.submitter
+        new_hash.submittedon = self.submittedon
+        new_hash.name = self.filename
+        new_hash.format = self.format
+        new_hash.metadata.append({'properties': self.metadata})
+        new_hash.append_cves(self.cves)
+        new_hash.group = self.group
+        new_hash.save()
+
+    def add_comment(self, comment):
+        if self.comment and len(self.comment.strip()) > 0:
+            self.comment += '\n'
+        else:
+            self.comment = ''
+        now = datetime.datetime.utcnow().isoformat()
+        self.comment += '[%s] %s' % (now, comment)
+
+    def valid_entry(self):
+        if (not self.group
+                or len(self.group.strip()) == 0
+                or self.group == '---'):
+            self.add_comment('[auto] no group specified')
+            return False
+        if len(self.cves) == 0:
+            self.add_comment('[auto] no cves provided')
+            return False
+        if self.entry.hash and len(self.entry.hash.strip()) > 0:
+            return True
+        if len(self.entry.hashes) == 0:
+            self.add_comment('[auto] no hashes provided')
+            return False
+        return True
+
+    def pre_save_hook(self):
+        if self.approval == 'APPROVED':
+            if self.entry is not None:
+                if not self.valid_entry():
+                    # we cannot autopush
+                    self.approval = 'INVALID'
+                    return None
+                # Add a new hash record
+                self.push_to_db()
+                self.approval = 'IN_DATABASE'
+                self.add_comment('[auto] moved to database')
+            else:
+                self.approval = 'INVALID'
+                self.add_comment('[auto] no entry to move to database')
+
+    def save(self, *args, **kwargs):
+        self.pre_save_hook()
+        ValidatedDocument.save(self, *args, **kwargs)
 
 
 class Plugin(Document):
