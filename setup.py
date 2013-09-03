@@ -45,8 +45,9 @@ setup(
         'Flask-Views',
         'Flask-MongoEngine',
         'Flask-SSLify',
-        'requests',
+        'blinker',
         'PyYAML',
         'recaptcha-client',
+        'requests',
     ],
 )
