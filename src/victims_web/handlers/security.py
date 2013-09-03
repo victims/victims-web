@@ -91,12 +91,13 @@ def api_username(apikey):
 
 def api_request_tokens():
     """
-    Checks for the 'Victims-Api' header in the requst and parses the apikey
-    and signature
+    Checks for the VICTIMS_API_HEADER (default: X-Victims-Api) in the requst
+    and parses the apikey and signature
     """
-    if 'Victims-Api' not in request.headers:
-        raise ValueError('Victims-Api header not present in request')
-    (apikey, signature) = request.headers['Victims-Api'].strip().split(':')
+    header = config.VICTIMS_API_HEADER
+    if header not in request.headers:
+        raise ValueError('%s header not present in request' % (header))
+    (apikey, signature) = request.headers[header].strip().split(':')
     return (apikey, signature)
 
 

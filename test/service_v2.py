@@ -28,7 +28,7 @@ from os.path import isdir
 
 from test import UserTestCase
 
-from victims_web.config import UPLOAD_FOLDER
+from victims_web.config import UPLOAD_FOLDER, VICTIMS_API_HEADER
 from victims_web.models import Removal, Submission
 from victims_web.handlers.security import generate_signature
 
@@ -185,7 +185,7 @@ class TestServiceV2(UserTestCase):
         headers = [('Date', date)]
         if apikey is not None and secret is not None:
             signature = generate_signature(apikey, 'PUT', path, date, md5sums)
-            headers.append(('Victims-Api', '%s:%s' % (apikey, signature)))
+            headers.append((VICTIMS_API_HEADER, '%s:%s' % (apikey, signature)))
         resp = self.app.put(
             path, headers=headers,
             data=data,

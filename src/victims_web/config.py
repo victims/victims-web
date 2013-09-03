@@ -72,6 +72,7 @@ SUBMISSION_GROUPS = {
 }
 
 # API Configuration
+VICTIMS_API_HEADER = 'X-Victims-Api'
 API_REQUEST_EXPIRY_MINS = 3
 
 # plugin.charon
