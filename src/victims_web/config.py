@@ -67,6 +67,7 @@ BCRYPT_LOG_ROUNDS = 13
 SUBMISSION_GROUPS = {
     'java': ['groupId', 'artifactId', 'versionId'],
     'python': ['package-name', 'version'],
+    'ruby': ['gem', 'version'],
 }
 
 # API Configuration
