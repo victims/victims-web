@@ -18,13 +18,45 @@
 from victims_web.models import Plugin
 
 
-def get_config(plugin):
+class PluginConfig(object):
     """
-    Helper to get a plugin's configuration
+    A plugin configuration object to wrap a persisted configuration in the DB.
+
+    If a previous configuration exists for this plugin an empty one is created.
     """
-    config = Plugin.objects(plugin=plugin).first()
-    if config is None:
-        config = Plugin()
-        config.plugin = plugin
-        config.save()
-    return config
+    def __init__(self, plugin):
+        self._config = Plugin.objects(plugin=plugin).first()
+        if self._config is None:
+            self._config = Plugin()
+            self._config.plugin = plugin
+            self._config.save()
+
+    def __getattr__(self, attr):
+        try:
+            return object.__getattr__(self, attr)
+        except AttributeError:
+            return self._config.get(attr)
+
+    def __setattr__(self, attr, value):
+        if attr in self.__dict__ or '_config' not in self.__dict__:
+            # If this instance has this attr or _config not yet set
+            object.__setattr__(self, attr, value)
+        else:
+            self._config.set(attr, value)
+
+    def keys(self):
+        return self._config.config.keys()
+
+    def clear(self):
+        self._config.config = {}
+        self._config.save()
+
+    def delete(self):
+        self._config.config = {}
+        self._config.delete()
+
+    def pop(self):
+        self._config.pop()
+
+    def __repr__(self):
+        return str(self._config.config)

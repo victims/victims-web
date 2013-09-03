@@ -21,11 +21,11 @@ from yaml import load
 from urlparse import urljoin
 
 from victims_web.models import Hash, ValidatedDocument, JsonifyMixin
-from victims_web.plugin import get_config
+from victims_web.plugin import PluginConfig
 from victims_web.plugin.github import Repository
 
 
-_CONFIG = get_config('rubysec')
+_CONFIG = PluginConfig('rubysec')
 
 
 class RubySecAdvisory(JsonifyMixin, ValidatedDocument):
@@ -78,14 +78,11 @@ class RubySecDatabase():
             self.repository.clone()
 
     def update(self):
-        previous = _CONFIG.get('prev_head')
+        previous = _CONFIG.get.prev_head
         files = []
-        if previous is None:
-            self.repository.pull()
-            files = self.repository.files('gems/', '\.yml')
-        else:
-            files = self.repository.files_changed(
-                previous, 'HEAD', 'gems/', '\.yml')
+        self.repository.pull()
+        files = self.repository.files_changed(
+            previous, 'HEAD', 'gems/', '\.yml')
 
         for f in files:
             content = open(self.repository.absolute_filepath(f), 'r')
@@ -95,4 +92,4 @@ class RubySecDatabase():
             advisory.mongify(obj)
             advisory.save()
 
-        _CONFIG.set('prev_head', self.repository.head())
+        _CONFIG.prev_head = self.repository.head()
