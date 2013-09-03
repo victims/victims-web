@@ -20,6 +20,8 @@ Administration interface.
 
 import datetime
 
+from wtforms import fields, validators
+
 from flask import flash, redirect, url_for
 from flask.ext.admin.base import (
     Admin, AdminIndexView, MenuLink, BaseView, expose)
@@ -97,6 +99,22 @@ class CacheAdminView(SafeBaseView):
 class AccountView(SafeModelView):
     column_filters = ('username', )
     column_exclude_list = ('password', 'apikey', 'secret')
+    form_excluded_columns = ('password', 'apikey', 'secret', 'createdon',
+                             'lastip', 'lastlogin', 'lastapi')
+
+    def scaffold_form(self):
+        form_class = super(SafeModelView, self).scaffold_form()
+        form_class.plaintext_password = fields.PasswordField(
+            'Password', [
+                validators.EqualTo('confirm', message='Passwords must match'),
+            ]
+        )
+        form_class.confirm = fields.PasswordField('Confirm')
+        return form_class
+
+    def on_model_change(self, form, model):
+        if len(model.plaintext_password) > 0:
+            model.password.set_password(model.plaintext_password)
 
 
 class HashView(SafeModelView):
