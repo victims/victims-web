@@ -143,15 +143,22 @@ class Account(ValidatedDocument):
 
     username = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
     password = StringField()
-    endorsements = DictField(default={})
+    email = EmailField()
+    roles = ListField(
+        StringField(choices=(
+            ('admin', 'Administrator'),
+            ('moderator', 'Moderator'),
+            ('trusted_submitter', 'Trusted Submitter'),
+        )),
+        default=[]
+    )
     active = BooleanField(default=False)
     createdon = DateTimeField(default=datetime.datetime.utcnow)
-    lastlogin = DateTimeField(default=datetime.datetime.utcnow)
+    lastlogin = DateTimeField()
     lastip = StringField()
-    email = EmailField()
     apikey = StringField(min_length=32, max_length=32)
     secret = StringField(min_length=40, max_length=40)
-    lastapi = DateTimeField(default=None)
+    lastapi = DateTimeField()
 
     def __str__(self):
         return str(self.username)

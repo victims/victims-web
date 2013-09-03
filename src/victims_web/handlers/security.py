@@ -18,21 +18,30 @@
 Identity handlers.
 """
 from functools import wraps
+from urlparse import urlparse, urljoin
 
-from flask import Response, current_app, request
-from flask.ext.login import LoginManager, current_user, login_user, logout_user
-from flask.ext.principal import (
-    Permission, Principal, RoleNeed, UserNeed, identity_loaded
-)
+from flask import Response, current_app, request, flash
+from flask.ext.login import (
+    LoginManager, current_user, login_user, logout_user)
 
-from victims_web.config import VICTIMS_ROLES as ROLES
-from victims_web.user import User, authenticate, validate_signature
-
-
-PERMISSIONS = {role: Permission(RoleNeed(role)) for role in ROLES}
+from victims_web.user import (
+    AnonymousUser, User, authenticate, validate_signature)
 
 
-def check_for_auth(view):
+def safe_redirect_url():
+    forward = request.args.get('next')
+    if forward:
+        host_url = urlparse(request.host_url)
+        redirect_url = urlparse(urljoin(request.host_url, forward))
+        if redirect_url.scheme in ('http', 'https') and \
+                host_url.netloc == redirect_url.netloc:
+            return forward
+        else:
+            flash('Invalid redirect requested.', category='info')
+    return None
+
+
+def basicauth(view):
     """
     Checks for basic auth in calls and returns a 403 if it's not a
     valid account. Does not stop anonymous users or throttle at this
@@ -53,7 +62,7 @@ def check_for_auth(view):
     return decorated
 
 
-def check_api_auth(view):
+def apiauth(view):
     """
     Checks for a valid signature in api request. If VICTIMS-API header is not
     present, we try basic auth. If neither is valid, we return a 403.
@@ -86,7 +95,27 @@ def require_role(view):
     """
     @wraps(view)
     def decorated(role, *args, **kwargs):
-        return PERMISSIONS[role].require(view, args, kwargs)
+        if current_user.has_role(role):
+            return view(*args, **kwargs)
+
+        return Response('Forbidden', status=403)
+
+    return decorated
+
+
+def require_one_role(view):
+    """
+    Ensures that the current_user has one of the provided roles
+    """
+    @wraps(view)
+    def decorated(roles, *args, **kwargs):
+        for role in roles:
+            if role in current_user.roles:
+                return view(*args, **kwargs)
+
+        return Response('Forbidden', status=403)
+
+    return decorated
 
 
 def login(username, password):
@@ -102,22 +131,8 @@ def logout():
     logout_user()
 
 
-def on_identity_loaded(sender, identity):
-    # Set the identity user object
-    identity.user = current_user
-
-    # Add the UserNeed to the identity
-    if hasattr(current_user, 'username'):
-        identity.provides.add(UserNeed(current_user.username))
-
-    # identity with the roles that the user provides
-    if hasattr(current_user, 'roles'):
-        for role in current_user.roles:
-            identity.provides.add(RoleNeed(role.name))
-
-
-def load_user(userid):
-    return User(userid)
+def load_user(username):
+    return User(username)
 
 
 def setup_login_manager(app):
@@ -125,17 +140,12 @@ def setup_login_manager(app):
     login_manager.login_view = 'auth.login_user'
     login_manager.login_message = 'Resource access not authorized.'
     login_manager.login_message_category = 'error'
+    login_manager.anonymous_user = AnonymousUser
     login_manager.init_app(app)
     login_manager.user_loader(load_user)
 
 
-def setup_princial(app):
-    principal = Principal()
-    principal.init_app(app)
-    identity_loaded.connect_via(app, on_identity_loaded)
-
-
-def setup_identity_management(app):
+def setup_security(app):
     """
     Helper to setup things during app initialization
     """

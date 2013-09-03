@@ -60,14 +60,14 @@ class TestAccountInfo(UserTestCase):
         """
         Helper function to attempt account details update.
         """
-        resp = self.app.get('/account_edit')
+        resp = self.app.get('/account/edit')
         csrf_token = re.search(
             '_csrf_token" value="([^"]*)">', resp.data).group(1)
 
         form_data['_csrf_token'] = csrf_token
 
         resp = self.app.post(
-            '/account_edit', data=form_data, follow_redirects=True
+            '/account/edit', data=form_data, follow_redirects=True
         )
         assert resp.status_code == 200
         assert 'Account information was successfully updated!' in resp.data

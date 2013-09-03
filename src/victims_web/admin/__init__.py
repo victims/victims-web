@@ -42,7 +42,7 @@ class SecureMixin(object):
         The user must be authenticated and have the admin endorsement.
         """
         if login.current_user.is_authenticated():
-            return login.current_user.is_admin()
+            return login.current_user.has_role('admin')
 
 
 class SafeAdminIndexView(SecureMixin, AdminIndexView):

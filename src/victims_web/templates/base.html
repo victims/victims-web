@@ -31,7 +31,7 @@
         <a href="{{ url_for('ui.static_page', page='bugs') }}">Bugs</a>
         {% if current_user and current_user.is_authenticated() %}
         <a href="{{ url_for('ui.submit_archive') }}">Submit an archive</a>
-            {% if current_user.has_endorsement('moderator') or current_user.has_endorsement('admin') %}
+            {% if current_user.has_role('moderator') or current_user.has_role('admin') %}
             <a href="{{ url_for('admin.index') }}">Admin</a>
             {% endif %}
         {% endif %}

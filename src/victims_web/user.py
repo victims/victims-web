@@ -22,9 +22,9 @@ from hashlib import md5, sha512
 from time import strptime, mktime
 from datetime import datetime, timedelta
 
-from flask import redirect, request, url_for
+from flask import request
 
-from flask.ext.login import current_user
+from flask.ext.login import UserMixin, AnonymousUserMixin
 from flask.ext.bcrypt import check_password_hash
 
 from victims_web import config
@@ -144,18 +144,14 @@ def validate_signature():
         return False
 
 
-def create_user(username, password, endorsements=[], email=None):
+def create_user(username, password, roles=[], email=None):
     new_user = Account()
     new_user.username = username
     new_user.set_password(password)
     if email is not None:
         new_user.email = email.strip()
 
-    all_endorsements = {}
-    for end in endorsements:
-        all_endorsements[end] = end
-
-    new_user.endorsements = all_endorsements
+    new_user.roles = roles
     new_user.active = True
 
     new_user.validate()
@@ -169,97 +165,34 @@ def delete_user(username):
         account.delete()
 
 
-def endorsements_required(endorsements, always_allow=['admin']):
-    """
-    Enforces required endorsements.
+class VictimsUserMixin(object):
 
-    :Parameters:
-       - `endorsements`: List of endorsement names *required* to access
-           the resource
-       - `always_allow`: List of endorsements which if the user has at
-           least one applied to their user let's them access the resource.
-    """
-    def wraps(fn):
-
-        def decorated_view(*args, **kwargs):
-            approved = False
-            for always_allowed in always_allow:
-                if current_user.has_endorsement(always_allowed):
-                    approved = True
-            if not approved:
-                for endorsement in endorsements:
-                    if not current_user.has_endorsement(endorsement):
-                        return redirect(url_for('auth.login_user'))
-            return fn(*args, **kwargs)
-
-        return decorated_view
-
-    return wraps
-
-
-def user_allowed(user, endorsements):
-    if user.has_endorsement('admin'):
-        return True
-    for endorsement in endorsements:
-        if current_user.has_endorsement(endorsement):
-            return True
-    return redirect(url_for('auth.login_user'))
-
-
-class User(object):
-
-    def __init__(self, username, user_obj=None):
-        """
-        Creates a user instance.
-        """
-        self.__authenticated = True
-        self.__active = False
-        self.__username = username
-        self.__endorsements = []
-
-        if not user_obj:
-            user_obj = get_account(username)
-
-        self.__active = user_obj.active
-        self.__endorsements = user_obj.endorsements
-
-    @property
-    def authenticated(self):
-        return self.__authenticated
-
-    @property
-    def active(self):
-        return self.__active
-
-    @property
-    def endorsements(self):
-        return self.__endorsements
-
-    @property
-    def roles(self):
-        return self.endorsements.keys()
+    def __init__(self, user_obj=None):
+        self.user_obj = user_obj
 
     @property
     def username(self):
-        return self.__username
-
-    def is_authenticated(self):
-        return self.authenticated
-
-    def is_anonymous(self):
-        return not self.authenticated
-
-    def is_admin(self):
-        return 'admin' in self.endorsements
+        if not self.is_anonymous() and self.user_obj:
+            return self.user_obj.username
+        else:
+            return '<Anonymous>'
 
     def is_active(self):
-        return self.active
+        if self.user_obj:
+            return self.user_obj.active
+        return False
 
     def get_id(self):
-        return unicode(self.__username)
+        return self.username
 
-    def has_endorsement(self, name):
-        return name in self.__endorsements
+    @property
+    def roles(self):
+        if not self.is_anonymous():
+            return self.user_obj.roles
+        return []
+
+    def has_role(self, role):
+        return role in self.roles
 
     def __repr__(self):
         if self.is_anonymous():
@@ -267,6 +200,15 @@ class User(object):
         return '<User: username="%s">' % (self.username)
 
     def __str__(self):
-        if self.is_anonymous():
-            return 'Anonymous'
         return self.username
+
+
+class User(VictimsUserMixin, UserMixin):
+    def __init__(self, username, user_obj=None):
+        if not user_obj:
+            user_obj = get_account(username)
+        VictimsUserMixin.__init__(self, user_obj)
+
+
+class AnonymousUser(VictimsUserMixin, AnonymousUserMixin):
+    pass

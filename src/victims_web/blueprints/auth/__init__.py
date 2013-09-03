@@ -26,12 +26,48 @@ from flask.ext.login import fresh_login_required, login_required, current_user
 from recaptcha.client import captcha
 from mongoengine import ValidationError
 
-from victims_web.blueprints.helpers import safe_redirect_url
-from victims_web.handlers.identity import login, logout
+from victims_web.handlers.security import login, logout, safe_redirect_url
 from victims_web.user import create_user, get_account
 from victims_web.models import Account
 
 auth = Blueprint('auth', __name__, template_folder='templates')
+
+
+def validate_password(username=None):
+    # Password checks to make sure they are at least somewhat sane
+    for char in request.form['password']:
+        cnt = request.form['password'].count(char)
+        if cnt / float(len(request.form['password'])) > 0.3:
+            raise ValueError((
+                'You can not use the same '
+                'char for more than 30% of the password'))
+        if not username:
+            username = request.form['username']
+        if request.form['password'] == username:
+            raise ValueError(
+                'Password can not be the same as the username.')
+        if len(request.form['password']) <= 8:
+            raise ValueError('Password to simple.')
+        if request.form['password'] != request.form['verify_password']:
+            raise ValueError('Passwords do not match.')
+
+
+def validate_username():
+    if Account.objects(username=request.form['username']).first():
+        raise ValueError('Username is not available.')
+
+
+def validate_captcha():
+    if (not current_app.config['DEBUG'] or not current_app.config['TESTING']):
+        # First things first, test the captcha
+        response = captcha.submit(
+            request.form['recaptcha_challenge_field'],
+            request.form['recaptcha_response_field'],
+            current_app.config['RECAPTCHA_PRIVATE_KEY'],
+            request.remote_addr,
+        )
+        if not response.is_valid:
+            raise ValueError('Captcha did not match.')
 
 
 @auth.route("/login", methods=['GET', 'POST'])
@@ -76,44 +112,7 @@ def user_account():
     return render_template('account.html', **content)
 
 
-def validate_password(username=None):
-    # Password checks to make sure they are at least somewhat sane
-    for char in request.form['password']:
-        cnt = request.form['password'].count(char)
-        if cnt / float(len(request.form['password'])) > 0.3:
-            raise ValueError((
-                'You can not use the same '
-                'char for more than 30% of the password'))
-        if not username:
-            username = request.form['username']
-        if request.form['password'] == username:
-            raise ValueError(
-                'Password can not be the same as the username.')
-        if len(request.form['password']) <= 8:
-            raise ValueError('Password to simple.')
-        if request.form['password'] != request.form['verify_password']:
-            raise ValueError('Passwords do not match.')
-
-
-def validate_username():
-    if Account.objects(username=request.form['username']).first():
-        raise ValueError('Username is not available.')
-
-
-def validate_captcha():
-    if (not current_app.config['DEBUG'] or not current_app.config['TESTING']):
-        # First things first, test the captcha
-        response = captcha.submit(
-            request.form['recaptcha_challenge_field'],
-            request.form['recaptcha_response_field'],
-            current_app.config['RECAPTCHA_PRIVATE_KEY'],
-            request.remote_addr,
-        )
-        if not response.is_valid:
-            raise ValueError('Captcha did not match.')
-
-
-@auth.route('/account_edit', methods=['GET', 'POST'])
+@auth.route('/account/edit', methods=['GET', 'POST'])
 @login_required
 @fresh_login_required
 def user_edit():

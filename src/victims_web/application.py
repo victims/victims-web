@@ -33,7 +33,7 @@ from victims_web.blueprints.ui import ui
 from victims_web.blueprints.auth import auth
 
 from victims_web.cache import cache
-from victims_web.handlers.identity import setup_identity_management
+from victims_web.handlers.security import setup_security
 
 # Set up the application
 app = Flask('victims_web')
@@ -82,7 +82,7 @@ for submit in SUBMISSION_ROUTES:
 
 
 # SetUp identity management
-setup_identity_management(app)
+setup_security(app)
 
 
 @app.errorhandler(403)
