@@ -40,7 +40,7 @@ class TestAdmin(UserTestCase):
 
     def setUp(self):
         UserTestCase.setUp(self)
-        self.create_user(self.username, self.password, ['admin'])
+        self.create_user(self.username, self.password, roles=['admin'])
         self.create_user(self.nonadmin, self.password)
 
     def tearDown(self):

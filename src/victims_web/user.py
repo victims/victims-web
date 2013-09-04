@@ -24,7 +24,7 @@ from victims_web.models import Account
 
 
 # Helpers
-def create_user(username, password, roles=[], email=None):
+def create_user(username, password, email=None, roles=[]):
     """
     Create a new user
 

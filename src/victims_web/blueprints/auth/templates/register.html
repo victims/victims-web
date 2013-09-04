@@ -3,34 +3,19 @@
 {% block title %}register{% endblock %}
 
 {% block content %}
-<script type="text/javascript">
-    var RecaptchaOptions = {
-theme : '{{ recaptcha.theme }}'
-    };
-</script>
-
 <form method="POST" action="{{ url_for('.register_user') }}">
     <table>
-        {% for key in fields %}
-        <tr>
-            <th>{{ key.title() }}: </th>
-            <td>
-                <input name="{{ fields[key]['name'] }}"
-                {% if 'type' in fields[key] %} type={{ fields[key]['type'] }}
-                {% endif %}
-                {% if fields[key].get('req', False) %} required {% endif %}
-                />
-            </td>
-        </tr>
-        {% endfor %}
+            {% for fieldname in ['username', 'password', 'verify_password', 'email'] %}
+            <tr>
+                {% set field = form._fields[fieldname]%}
+                <th>{{ field.label }}</th>
+                <td>{{ field }}</td>
+            </tr>
+            {% endfor %}
     </table>
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-            <script type="text/javascript" src="https://www.google.com/recaptcha/api/challenge?k={{ recaptcha.public_key }}"></script>
-            <noscript>
-                <iframe src="https://www.google.com/recaptcha/api/noscript?k={{ recaptcha.public_key }}" height="300" width="500" frameborder="0"></iframe><br />
-                <textarea name="recaptcha_challenge_field" rows="3" cols="40"></textarea>
-                <input type='hidden' name='recaptcha_response_field' value='manual_challenge' />
-            </noscript>
-            <input type="submit" value="Register" />
+    <br>
+    <p>{{ form.recaptcha }}</p>
+    <br>
+    <input type="submit" value="Register" />
 </form>
 {% endblock %}

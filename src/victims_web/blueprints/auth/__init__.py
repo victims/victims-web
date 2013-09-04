@@ -23,9 +23,9 @@ from flask import (
     url_for, redirect)
 
 from flask.ext.login import fresh_login_required, login_required, current_user
-from recaptcha.client import captcha
 from mongoengine import ValidationError
 
+from victims_web.handlers.forms import RegistrationForm, flash_errors
 from victims_web.handlers.security import login, logout, safe_redirect_url
 from victims_web.user import create_user, get_account
 from victims_web.models import Account
@@ -48,26 +48,11 @@ def validate_password(username=None):
                 'Password can not be the same as the username.')
         if len(request.form['password']) <= 8:
             raise ValueError('Password to simple.')
-        if request.form['password'] != request.form['verify_password']:
-            raise ValueError('Passwords do not match.')
 
 
 def validate_username():
     if Account.objects(username=request.form['username']).first():
         raise ValueError('Username is not available.')
-
-
-def validate_captcha():
-    if (not current_app.config['DEBUG'] or not current_app.config['TESTING']):
-        # First things first, test the captcha
-        response = captcha.submit(
-            request.form['recaptcha_challenge_field'],
-            request.form['recaptcha_response_field'],
-            current_app.config['RECAPTCHA_PRIVATE_KEY'],
-            request.remote_addr,
-        )
-        if not response.is_valid:
-            raise ValueError('Captcha did not match.')
 
 
 @auth.route("/login", methods=['GET', 'POST'])
@@ -148,49 +133,32 @@ def user_edit():
     return render_template('account_edit.html')
 
 
-@auth.route("/register", methods=['GET', 'POST'])
+@auth.route('/register', methods=['GET', 'POST'])
 def register_user():
-
-    fields = {
-        'Username': {'name': 'username', 'req': True},
-        'Password': {'name': 'password', 'type': 'password', 'req': True},
-        'Verify Password': {'name': 'verify_password', 'type': 'password',
-                            'req': True},
-        'Email': {'name': 'email', 'type': 'email'},
-    }
-
-    # Someone with a session can not make a new user
     if current_user.is_authenticated():
         flash(
-            'You are already logged in as %s' % (
-                escape(current_user.username)),
-            category='info')
+            'You are already logged in as %s' % (escape(current_user.username))
+        )
         return redirect(url_for('ui.index'))
 
-    # Request to make a new user
-    if request.method == 'POST':
-        try:
-            for fname in fields:
-                field = fields[fname]
-                if field.get('req', False):
-                    key = field['name']
-                    if (key not in request.form.keys() or
-                            len(request.form[key].strip()) == 0):
-                        raise ValueError('%s is required' % (fname))
+    form = RegistrationForm()
 
-            # perform validation
-            validate_captcha()
+    if form.validate_on_submit():
+        try:
             validate_username()
             validate_password()
 
-            email = request.form.get('email', '').strip()
-            email = None if len(email) == 0 else email
-            user = create_user(
-                request.form['username'],
-                request.form['password'],
-                email=email)
-            login(request.form['username'], request.form['password'])
-            flash('Registration successful, welcome %s!' % (user.username),
+            username = form.username.data
+            password = form.password.data
+            email = form.email.data.strip()
+
+            if len(email) == 0:
+                email = None
+
+            create_user(username, password, email)
+            login(username, password)
+
+            flash('Registration successful, welcome %s!' % (username),
                   category='info')
             return redirect(url_for('ui.index'))
         except ValidationError, ve:
@@ -199,15 +167,10 @@ def register_user():
             flash(escape(msg), category='error')
         except ValueError, ve:
             flash(escape(ve.message), category='error')
-        except (KeyError, IndexError):
-            flash('Missing information.', category='error')
         except Exception, ex:
             current_app.logger.info(ex)
             flash('An unknown error has occured.', category='error')
+    else:
+        flash_errors(form)
 
-    # Default
-    recaptcha = {
-        'public_key': current_app.config['RECAPTCHA_PUBLIC_KEY'],
-        'theme': current_app.config['RECAPTCHA_THEME'],
-    }
-    return render_template('register.html', recaptcha=recaptcha, fields=fields)
+    return render_template('register.html', form=form)

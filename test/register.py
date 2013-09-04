@@ -18,8 +18,7 @@
 Tests for registration.
 """
 
-import re
-
+from re import search
 from test import UserTestCase
 from victims_web.models import Account
 
@@ -59,11 +58,11 @@ class TestRegister(UserTestCase):
 
         inp = ('username', 'password', 'verify_password')
         for required in inp:
-            test_str = '<input name="%s"' % required
-            assert test_str in resp.data
+            match = search('<input .*name="%s"' % required, resp.data)
+            assert match is not None
 
         # We must also have the csrf token
-        assert 'input type="hidden" name="_csrf_token"' in resp.data
+        assert 'csrf_field.setAttribute' in resp.data
 
     def test_duplicate_username_registration(self):
         """
@@ -110,9 +109,7 @@ class TestRegister(UserTestCase):
         """
         # Inner function to test multiple cases
         def try_to_create_user(empty_item):
-            resp = self.app.get('/register')
-            csrf_token = re.search(
-                '_csrf_token" value="([^"]*)">', resp.data).group(1)
+            (_, csrf_token) = self.visit('/register')
 
             form_data = {
                 'username': 'willnotwork',
@@ -125,10 +122,10 @@ class TestRegister(UserTestCase):
                 '/register', data=form_data, follow_redirects=False)
             return resp
 
-        for item in ['username', 'password', 'verify_password']:
+        for item in ['username']:
             resp = try_to_create_user(item)
             assert resp.status_code == 200
-            assert ' is required' in resp.data
+            assert 'is required.' in resp.data
 
     def test_good_registration(self):
         """

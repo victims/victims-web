@@ -19,10 +19,10 @@ Victims Forms Handler
 """
 
 from flask import flash
-from flask_wtf import Form
+from flask_wtf import Form, RecaptchaField
 from wtforms import fields, validators, ValidationError
 
-from victims_web.config import SUBMISSION_GROUPS
+from victims_web.config import SUBMISSION_GROUPS, DEBUG, TESTING
 
 
 def is_field_value(form, fieldname, value, negate=False):
@@ -146,7 +146,7 @@ class ArchiveSubmit(Form):
             '^CVE-\d+-\d+(\s*,\s*CVE-\d+-\d+)*$',
             message='Invalid CVE. Multiple CVEs can seperated with commas.'
         ),
-        validators.Required(),
+        validators.required(),
     ])
     archive = fields.FileField('Archive')
     group = GroupSelectField([validators.AnyOf(GroupSelectField.VALID_GROUPS)])
@@ -157,6 +157,27 @@ class ArchiveSubmit(Form):
                     HasFile('archive'), GroupRequired('group')])
                 exec('%s_%s' % (g, f)
                      + ' = fields.StringField(f, [validator])')
+
+
+class RegistrationForm(Form):
+    """
+    Registration Form
+    """
+    username = fields.StringField('Username',  [
+        validators.Regexp('^[\w\.]*$', message='Invalid Username'),
+        validators.required(),
+    ])
+    password = fields.PasswordField('Password', [
+        validators.required(),
+        validators.EqualTo('verify_password', 'Passwords do not match.'),
+    ])
+    verify_password = fields.PasswordField('Verify Password')
+    email = fields.StringField('Email')
+
+    if not (DEBUG or TESTING):
+        recaptcha = RecaptchaField()
+    else:
+        recaptcha = fields.HiddenField('Recaptcha')
 
 
 def flash_errors(form):

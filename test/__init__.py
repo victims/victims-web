@@ -44,7 +44,10 @@ class FlaskTestCase(unittest.TestCase):
         if '_csrf_token' in resp.data:
             return (
                 resp,
-                re.search('_csrf_token" value="([^"]*)">', resp.data).group(1)
+                re.search(
+                    'csrf_field.setAttribute\("value", "([^"]*)',
+                    resp.data
+                ).group(1)
             )
         return (resp, None)
 
