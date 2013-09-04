@@ -4,51 +4,48 @@
 <form method="POST" enctype="multipart/form-data" action="{{ url_for('auth.user_edit') }}">
     <table>
         <tr>
-            <th>Current Password: </th>
-            <td><input name="current_password" type="password" required></td>
-        </tr>
-        <tr/>
-        <tr>
             <th>Update Password: </th>
-            <td><input name="change_password" type="checkbox"></td>
+            <td>{{ form.change_password  }}</td>
         </tr>
         <tr class="change_password">
-            <th>New Password
-            <td><input name="password" type="password"></td>
-            <td><input name="verify_password" type="password"></td>
+            <th>New Password: </th>
+            <td>{{ form.password }}</td>
+            <td>{{ form.verify_password }}</td>
         </tr>
         <tr/>
         <tr>
             <th>Update Email: </th>
-            <td><input name="change_email" type="checkbox"></td>
+            <td>{{ form.change_email }}</td>
         </tr>
         <tr class="change_email">
             <th>New Email: </th>
-            <td><input name="email" type="email"></td>
+            <td>{{ form.email }}</td>
         </tr>
         <tr/>
         <tr>
             <th>Regenerate API tokens: </th>
-            <td><input name="regenerate" type="checkbox"></td>
+            <td>{{ form.regenerate }}</td>
         </tr>
-        <script type=text/javascript>
-            $('input[type="checkbox"]').each(function() {
-                    $('tr[class="' + this.name + '"]').hide();
-            })
-        </script>
-        <script type=text/javascript> 
-            $('input[type="checkbox"]').change(function() {
-                    var name = 'tr[class="' + this.name + '"]';
-                    if (this.checked) {
-                        $(name).show();
-                    } else {
-                        $(name).hide();
-                    }
-            });
-        </script>
-        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
     </table>
     <input type="submit" name="submit" value="Save" />
     <a href="{{ url_for('auth.user_account') }}"><input type="button" name="cancel" value="Cancel" /></a>
 </form>
+
+<script type=text/javascript>
+    $('input[type="checkbox"]').each(function() {
+        $('tr[class="' + this.name + '"]').hide();
+    })
+</script>
+
+<script type=text/javascript>
+    $('input[type="checkbox"]').change(function() {
+        var name = 'tr[class="' + this.name + '"]';
+        if (this.checked) {
+            $(name).show();
+        } else {
+            $(name).hide();
+        }
+    });
+</script>
+
 {% endblock %}

@@ -23,6 +23,7 @@ from flask_wtf import Form, RecaptchaField
 from wtforms import fields, validators, ValidationError
 
 from victims_web.config import SUBMISSION_GROUPS, DEBUG, TESTING
+from victims_web.models import Account
 
 
 def is_field_value(form, fieldname, value, negate=False):
@@ -137,6 +138,42 @@ class HasFile():
             raise ValidationError('No file provided')
 
 
+class Password():
+    """
+    Password Validator
+    """
+    def __init__(self, username_field='username'):
+        self.username_field = username_field
+
+    def __call__(self, form, field):
+        username = form._fields.get(self.username_field)
+        password = field.data
+        if username:
+            username = username.data
+            if password == username:
+                raise ValidationError(
+                    'Password can not be the same as the username.')
+
+        for char in password:
+            cnt = password.count(char)
+            if cnt / float(len(password)) > 0.3:
+                raise ValidationError((
+                    'You can not use the same '
+                    'char for more than 30% of the password'))
+
+        if len(password) <= 8:
+            raise ValidationError('Password to simple.')
+
+
+class UserName():
+    """
+    Username Validator
+    """
+    def __call__(self, form, field):
+        if Account.objects(username=field.data).first():
+            raise ValidationError('Username is not available.')
+
+
 class ArchiveSubmit(Form):
     """
     Archive submission form
@@ -166,10 +203,12 @@ class RegistrationForm(Form):
     username = fields.StringField('Username',  [
         validators.Regexp('^[\w\.]*$', message='Invalid Username'),
         validators.required(),
+        UserName(),
     ])
     password = fields.PasswordField('Password', [
         validators.required(),
         validators.EqualTo('verify_password', 'Passwords do not match.'),
+        Password('username'),
     ])
     verify_password = fields.PasswordField('Verify Password')
     email = fields.StringField('Email')
@@ -178,6 +217,22 @@ class RegistrationForm(Form):
         recaptcha = RecaptchaField()
     else:
         recaptcha = fields.HiddenField('Recaptcha')
+
+
+class AccountEditForm(Form):
+    """
+    Edit user account information
+    """
+    change_password = fields.BooleanField('Update Password')
+    password = fields.PasswordField('New Password', [
+        validators.required(),
+        validators.EqualTo('verify_password', 'Passwords do not match.'),
+        Password('username'),
+    ])
+    verify_password = fields.PasswordField('Verify Password')
+    change_email = fields.BooleanField('Update Email')
+    email = fields.StringField('Email')
+    regenerate = fields.BooleanField('Regenereate API tokens')
 
 
 def flash_errors(form):

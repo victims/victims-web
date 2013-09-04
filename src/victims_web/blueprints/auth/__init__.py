@@ -25,34 +25,12 @@ from flask import (
 from flask.ext.login import fresh_login_required, login_required, current_user
 from mongoengine import ValidationError
 
-from victims_web.handlers.forms import RegistrationForm, flash_errors
+from victims_web.handlers.forms import (
+    AccountEditForm, RegistrationForm, flash_errors)
 from victims_web.handlers.security import login, logout, safe_redirect_url
 from victims_web.user import create_user, get_account
-from victims_web.models import Account
 
 auth = Blueprint('auth', __name__, template_folder='templates')
-
-
-def validate_password(username=None):
-    # Password checks to make sure they are at least somewhat sane
-    for char in request.form['password']:
-        cnt = request.form['password'].count(char)
-        if cnt / float(len(request.form['password'])) > 0.3:
-            raise ValueError((
-                'You can not use the same '
-                'char for more than 30% of the password'))
-        if not username:
-            username = request.form['username']
-        if request.form['password'] == username:
-            raise ValueError(
-                'Password can not be the same as the username.')
-        if len(request.form['password']) <= 8:
-            raise ValueError('Password to simple.')
-
-
-def validate_username():
-    if Account.objects(username=request.form['username']).first():
-        raise ValueError('Username is not available.')
 
 
 @auth.route("/login", methods=['GET', 'POST'])
@@ -101,18 +79,22 @@ def user_account():
 @login_required
 @fresh_login_required
 def user_edit():
-    if request.method == 'POST':
+    form = AccountEditForm()
+
+    if form.validate_on_submit():
         try:
             account = get_account(current_user.username)
+            if form.change_password.data:
+                if form.password.data == current_user.username:
+                    raise ValidationError(
+                        'Password can not be the same as the username.')
+                account.set_password(form.password.data)
 
-            if request.form.get('change_password', 'off') == 'on':
-                validate_password(account.username)
-                account.set_password(request.form['password'])
+            if form.change_email.data:
+                email = form.email.strip()
+                account.email = email if len(email) > 0 else None
 
-            if request.form.get('change_email', 'off') == 'on':
-                account.email = request.form['email'].strip()
-
-            if request.form.get('regenerate', 'off') == 'on':
+            if form.regenerate.data:
                 account.update_api_tokens()
 
             account.validate()
@@ -130,7 +112,7 @@ def user_edit():
             current_app.logger.info(ex)
             flash('An unknown error has occured.', category='error')
 
-    return render_template('account_edit.html')
+    return render_template('account_edit.html', form=form)
 
 
 @auth.route('/register', methods=['GET', 'POST'])
@@ -145,9 +127,6 @@ def register_user():
 
     if form.validate_on_submit():
         try:
-            validate_username()
-            validate_password()
-
             username = form.username.data
             password = form.password.data
             email = form.email.data.strip()
