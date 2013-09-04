@@ -26,26 +26,6 @@ def group_keys(group):
     return groups().get(group, [])
 
 
-def process_metadata(group, values={}, noprefix=False):
-    """
-    Process any group specific metadata that was provided in the submission
-    form.
-    """
-    meta = {}
-    current_groups = groups()
-    if group.strip().lower() in current_groups:
-        for field in current_groups[group]:
-            if noprefix:
-                name = field
-            else:
-                name = '%s-%s' % (group, field)
-            if name in values:
-                value = values[name].strip()
-                if len(value) > 0:
-                    meta[field] = value
-    return meta
-
-
 def set_hash(submission):
     """
     Helper method to process an archive at source where possible from a
