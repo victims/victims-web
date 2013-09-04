@@ -26,11 +26,13 @@ from flask import (
 
 from flask.ext import login
 
+from victims_web.config import SUBMISSION_GROUPS
 from victims_web.errors import ValidationError
+from victims_web.handlers.forms import ArchiveSubmit, flash_errors
 from victims_web.models import Hash, Submission
 from victims_web.cache import cache
 from victims_web.submissions import submit, upload
-from victims_web.util import allowed_groups, groups, process_metadata
+
 
 ui = Blueprint(
     'ui', __name__,
@@ -64,7 +66,7 @@ def index():
 
         # Generate counts for objects and for each format
         # data will contain hashes, hashes_jars, hashes_eggs etc.
-        groups = allowed_groups()
+        groups = SUBMISSION_GROUPS.keys()
         groups.sort()
         groups = ['all'] + groups
         data = {'groups': groups, 'stats': {}}
@@ -109,39 +111,46 @@ def hash(hash):
     return redirect(url_for('ui.hashes'))
 
 
-@ui.route('/submit_archive/', methods=['GET', 'POST'])
+def process_submission(form):
+    try:
+        cves = []
+        for cve in form.cves.data.split(','):
+            cves.append(cve.strip())
+
+        group = form.group.data
+        meta = {}
+        for field in SUBMISSION_GROUPS.get(group, []):
+            value = form._fields.get('%s_%s' % (group, field)).data.strip()
+            if len(value) > 0:
+                meta[field] = value
+
+        files = upload(group, request.files.get('archive', None), meta)
+        for (ondisk, filename, suffix) in files:
+            submit(login.current_user.username, ondisk, group, filename,
+                   suffix, cves, meta)
+
+        current_app.config['INDEX_REFRESH_FLAG'] = True
+
+        flash('Archive Submitted for processing', 'info')
+    except ValueError, ve:
+        flash(escape(ve.message), 'error')
+    except ValidationError, ve:
+        flash(escape(ve.message), 'error')
+    except OSError, oe:
+        flash('Could not upload file due to a server side error', 'error')
+        current_app.logger.debug(oe)
+
+
+@ui.route('/submit/archive/', methods=['GET', 'POST'])
 @login.login_required
 def submit_archive():
-    # If a file is submitted
-    if request.method == "POST":
-        try:
-            cve_field = request.form['cves'].strip()
-            if len(cve_field) == 0:
-                raise ValueError('No CVE provided')
-            cves = []
-            for cve in cve_field.split(','):
-                cve = cve.strip().upper()
-                if re.match('^CVE-\d+-\d+$', cve) is None:
-                    raise ValueError('Invalid CVE provided: "%s"' % (cve))
-                cves.append(cve)
-
-            group = request.form['group']
-            meta = process_metadata(group, request.form)
-
-            files = upload(group, request.files.get('archive', None), meta)
-            for (ondisk, filename, suffix) in files:
-                submit(login.current_user.username, ondisk, group, filename,
-                       suffix, cves, meta)
-            current_app.config['INDEX_REFRESH_FLAG'] = True
-            flash('Archive Submitted for processing', 'info')
-        except ValueError, ve:
-            flash(escape(ve.message), 'error')
-        except ValidationError, ve:
-            flash(escape(ve.message), 'error')
-        except OSError, oe:
-            flash('Could not upload file due to a server side error', 'error')
-            current_app.logger.debug(oe)
-    return render_template('submit_archive.html', groups=groups())
+    form = ArchiveSubmit()
+    if form.validate_on_submit():
+        process_submission(form)
+    elif request.method == 'POST':
+        flash_errors(form)
+    return render_template(
+        'submit_archive.html', form=form, groups=SUBMISSION_GROUPS.keys())
 
 
 @ui.route('/<page>.html', methods=['GET'])

@@ -1,3 +1,4 @@
+{% import 'util.html' as util with context %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -53,7 +54,10 @@
     <div id="footer">
         <p>&copy; 2009-2013 Steve 'Ashcrow' Milner and the Victi.ms team. Server licensed under the <a href="http://www.gnu.org/licenses/agpl-3.0.html">AGPL 3.0 License</a> (<a href="https://github.com/victims/victims-web/">Source</a>)</p>
         <p><img src="{{ url_for('ui.static', filename='images/victims-button.png') }}" /></p>
-    </div> 
+    </div>
 </div>
+{% block tail %}
+    {{ util.fix_csrf() }}
+{% endblock %}
 </body>
 </html>

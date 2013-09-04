@@ -31,7 +31,7 @@ from flask.ext.admin.contrib.fileadmin import FileAdmin
 from victims_web.models import Account, Hash, Submission
 from victims_web.cache import cache
 from victims_web.handlers.forms import GroupSelectField, ValidateOnlyIf
-from victims_web.util import allowed_groups, set_hash
+from victims_web.util import groups, set_hash
 
 from flask.ext import login
 
@@ -142,7 +142,7 @@ class SubmissionView(SafeModelView):
         return form_class
 
     def on_model_change(self, form, model, is_created):
-        if form.setgroup.data in allowed_groups():
+        if form.setgroup.data in groups():
             model.group = form.setgroup.data
         super(SubmissionView, self).on_model_change(form, model, is_created)
 

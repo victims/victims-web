@@ -26,7 +26,7 @@ from werkzeug import secure_filename
 from victims_web import config
 from victims_web.models import Submission
 from victims_web.plugin.charon import download
-from victims_web.util import allowed_groups, set_hash, DEFAULT_GROUP
+from victims_web.util import set_hash
 
 
 def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
@@ -35,8 +35,7 @@ def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
         ', '.join(['%s:%s' % (k, v) for (k, v) in locals().items()])))
     submission = Submission()
     submission.source = source
-    if group and (group != DEFAULT_GROUP or len(group) == 0):
-        submission.group = group
+    submission.group = group
     submission.filename = filename
     if suffix:
         submission.format = suffix.title()
@@ -103,7 +102,7 @@ def upload_from_metadata(group, meta):
     """
     Given only metadata of an archive ask charon to retrive it where possible
     """
-    if group not in allowed_groups():
+    if group not in config.SUBMISSION_GROUPS.keys():
         raise ValueError('Invalid group')
     return download(group, meta)
 

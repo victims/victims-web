@@ -79,6 +79,9 @@ API_REQUEST_EXPIRY_MINS = 3
 MAVEN_REPOSITORIES = [
 ]
 
+# WTF Config
+WTF_CSRF_ENABLED = False
+
 # Hashing commands for each group
 # This will be used as command.format(archive=filename)
 # Eg: 'java': 'victims-java hash {archive!s}'

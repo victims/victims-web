@@ -27,7 +27,7 @@ from victims_web.cache import cache
 from victims_web.handlers.security import apiauth, api_request_user
 from victims_web.models import Hash, Removal, JsonifyMixin
 from victims_web.submissions import submit, upload
-from victims_web.util import allowed_groups, process_metadata
+from victims_web.util import groups
 
 
 v2 = Blueprint('service_v2', __name__)
@@ -232,7 +232,7 @@ def submit_hash(group):
     """
     user = '%s' % api_request_user()
     try:
-        if group not in allowed_groups():
+        if group not in groups():
             raise ValueError('Invalid group specified')
         json_data = request.get_json()
         if 'cves' not in json_data:
@@ -258,14 +258,20 @@ def submit_archive(group):
     """
     user = '%s' % api_request_user()
     try:
-        if group not in allowed_groups():
+        if group not in groups():
             raise ValueError('Invalid group specified')
 
         if 'cves' not in request.args:
             raise ValueError('CVE(s) required')
 
         cves = [cve.strip() for cve in request.args['cves'].split(',')]
-        meta = process_metadata(group, request.args, True)
+
+        meta = {}
+        for field in current_app.config['SUBMISSION_GROUPS'].get(group):
+            if field in request.args:
+                value = request.args.get(field)
+                if len(value) > 0:
+                    meta[field] = value
 
         files = upload(group, request.files.get('archive', None), meta)
 

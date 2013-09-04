@@ -1,43 +1,104 @@
+# This file is part of victims-web.
+#
+# Copyright (C) 2013 The Victims Project
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+Victims Forms Handler
+"""
 
-from wtforms import Form, fields, validators
+from flask import flash
+from flask_wtf import Form
+from wtforms import fields, validators, ValidationError
 
 from victims_web.config import SUBMISSION_GROUPS
 
 
-class RequiredIf(validators.Required):
+def is_field_value(form, fieldname, value, negate=False):
+    """
+    Helper function to check if the given field in the given form is of a
+    specified value.
 
+    :Parameters:
+        - `form`: The form the test on
+        - `fieldname`: The fieldname to test value against. If not found an
+        Exception is raised.
+        - `value`: Value to test for.
+        - `negate`: True/False to invert the result.
+    """
+    field = form._fields.get(fieldname)
+    if field is None:
+        raise Exception('Invalid field "%s"' % fieldname)
+    test = value == field.data
+    test = not test if negate else test
+    return test
+
+
+class RequiredIf(validators.Required):
+    """
+    Custom validator to enforce requires only if another field matches a
+    specified value. the `negate` allows for inverting the result.
+    """
     def __init__(self, other_fieldname, value, negate, *args, **kwargs):
         self.other_fieldname = other_fieldname
         self.negate = negate
         self.value = value
         super(RequiredIf, self).__init__(*args, **kwargs)
 
-    def test_other_field(self, form):
-        other_field = form._fields.get(self.other_fieldname)
-        if other_field is None:
-            raise Exception('Invalid field "%s"' % self.other_fieldname)
-        test = self.value == other_field.data
-        test = not test if self.negate else test
-        return test
-
     def __call__(self, form, field):
-        if self.test_other_field(form):
+        if is_field_value(form, self.other_fieldname, self.value, self.negate):
             super(RequiredIf, self).__call__(form, field)
 
 
 class ValidateOnlyIf(RequiredIf):
-
+    """
+    Custom validator that build around the RequiredIf validator. The given
+    validators are only run if a given value test fails.
+    """
     def __init__(self, validators, *args, **kwargs):
         self.validators = validators
         super(ValidateOnlyIf, self).__init__(*args, **kwargs)
 
     def __call__(self, form, field):
-        if self.test_other_field(form):
+        if is_field_value(form, self.other_fieldname, self.value, self.negate):
             for validator in self.validators:
                 validator.__call__(form, field)
 
 
+class RequiredIfNoneValid(validators.Required):
+    """
+    Custom validator to enforce required only if none of the validators
+    provided are valid.
+    """
+    def __init__(self, validators, *args, **kwargs):
+        self.validators = validators
+        super(RequiredIfNoneValid, self).__init__(*args, **kwargs)
+
+    def __call__(self, form, field):
+        for validator in self.validators:
+            try:
+                validator.__call__(form, field)
+                return
+            except ValidationError:
+                pass
+        super(RequiredIfNoneValid, self).__call__(form, field)
+
+
 class GroupSelectField(fields.SelectField):
+    """
+    Custom field to handle group selection
+    """
     DEFAULT_GROUP = '---'
     VALID_GROUPS = SUBMISSION_GROUPS.keys()
 
@@ -49,15 +110,63 @@ class GroupSelectField(fields.SelectField):
         self.validators = validators
 
 
+class GroupRequired(validators.Required):
+    """
+    Custom validator for the archive submission form.
+    """
+    def __init__(self, groupfield, *args, **kwargs):
+        self.groupfield = groupfield
+        super(GroupRequired, self).__init__(*args, **kwargs)
+
+    def __call__(self, form, field):
+        group = form._fields.get(self.groupfield).data
+        if field.label.field_id.split('_', 1)[0] == group:
+            super(GroupRequired, self).__call__(form, field)
+
+
+class HasFile():
+    """
+    Validator to check if the form has a file in a given field
+    """
+    def __init__(self, filefield):
+        self.filefield = filefield
+
+    def __call__(self, form, field):
+        filename = form._fields.get(self.filefield).data.filename.strip()
+        if len(filename) == 0:
+            raise ValidationError('No file provided')
+
+
 class ArchiveSubmit(Form):
+    """
+    Archive submission form
+    """
     cves = fields.StringField('CVE(s)', validators=[
-        RequiredIf('group', GroupSelectField.DEFAULT_GROUP, True)
+        validators.Regexp(
+            '^CVE-\d+-\d+(\s*,\s*CVE-\d+-\d+)*$',
+            message='Invalid CVE. Multiple CVEs can seperated with commas.'
+        ),
+        validators.Required(),
     ])
-    archive = fields.FileField('Archive', validators=[
-        #validators.FileAllowed(ALLOWED_EXTENSIONS),
-    ])
-    group = GroupSelectField()
+    archive = fields.FileField('Archive')
+    group = GroupSelectField([validators.AnyOf(GroupSelectField.VALID_GROUPS)])
     for (g, fs) in SUBMISSION_GROUPS.items():
         if len(fs) > 0:
             for f in fs:
-                exec('%s_%s' % (g, f) + ' = fields.HiddenField(f)')
+                validator = RequiredIfNoneValid([
+                    HasFile('archive'), GroupRequired('group')])
+                exec('%s_%s' % (g, f)
+                     + ' = fields.StringField(f, [validator])')
+
+
+def flash_errors(form):
+    """
+    Flashes form error messages
+    Source: http://stackoverflow.com/q/13585663/1874604
+    """
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash('%s - %s' % (
+                getattr(form, field).label.text,
+                error
+            ), 'error')

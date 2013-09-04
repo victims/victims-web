@@ -11,20 +11,7 @@ from victims_web import config
 from victims_web.models import Hash
 
 
-DEFAULT_GROUP = '---'
-
-
 def groups():
-    """
-    Retrieve a list of groups with the default '---' group added.
-    """
-    submission_groups = {DEFAULT_GROUP: []}
-    for group in config.SUBMISSION_GROUPS:
-        submission_groups[group] = config.SUBMISSION_GROUPS[group]
-    return submission_groups
-
-
-def allowed_groups():
     """
     Retrieve a list of groups that we know of. All configured group names are
     returned.

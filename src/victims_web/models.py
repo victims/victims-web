@@ -35,7 +35,7 @@ from mongoengine import (
     EmbeddedDocumentField, ListField, EmailField
 )
 
-from victims_web.config import BCRYPT_LOG_ROUNDS
+from victims_web.config import BCRYPT_LOG_ROUNDS, SUBMISSION_GROUPS
 
 
 def generate_client_secret(apikey):
@@ -291,6 +291,13 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
         ValidatedDocument.delete(self, *args, **kwargs)
 
 
+def submission_group_choices():
+    choices = []
+    for group in SUBMISSION_GROUPS.keys():
+        choices.append((group, group))
+    return choices
+
+
 class Submission(JsonifyMixin, ValidatedDocument):
     """
     A Submission Hash
@@ -304,7 +311,7 @@ class Submission(JsonifyMixin, ValidatedDocument):
     format = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
     metadata = DictField(default={})
     cves = ListField(StringField())
-    group = StringField()
+    group = StringField(choices=submission_group_choices())
     comment = StringField()
     approval = StringField(
         choices=(

@@ -2,48 +2,46 @@
 
 {% block content %}
 
-<form method="POST" enctype="multipart/form-data" action="{{ url_for('ui.submit_archive') }}">
+<form method="POST" enctype="multipart/form-data" action="{{ url_for('ui.submit_archive') }}" >
+    {{ form.hidden_tag() }}
     <table>
         <tr>
-            <th>CVEs</th>
-            <td><input name="cves" /></td>
+            <th>{{ form.cves.label }}</th>
+            <td>{{ form.cves }}<td>
         </tr>
         <tr>
-            <th>Archive File</th>
-            <td><input name="archive" type="file" /></td>
+            <th>{{ form.archive.label }}</th>
+            <td>{{ form.archive }}<td>
         </tr>
         <tr>
-            <th>Submission Type</th>
-            <td>
-                <select class="target" name="group">
-                    {% for group in groups %}
-                    <option value="{{ group }}">{{ group }}</option>
-                    {% endfor %}
-                </select>
-            </td>
+            <th>{{ form.group.label }}</th>
+            <td>{{ form.group }}<td>
         </tr>
-        {% for group in groups %}
-            {% for field in groups[group] %}
+        {% for field in form._fields %}
+            {% set group = field.split('_',1)[0] %}
+            {% if group in groups %}
+                {% set f = form._fields[field] %}
         <tr class="{{ group }}" style="display: none;">
-            <th>{{ field }}</th>
-            <td><input name="{{group}}-{{field}}"></td>
+            <th>{{ f.label }}</th>
+            <td>{{ f }}</td>
         </tr>
-            {% endfor %}
-        {% endfor %}
-
-        <script type=text/javascript>
-            $('select').change(function() { 
-                var group = "";
-                $('option').each(function() { 
-                    group = '.' + $(this).text();
-                    $(group).hide();
-                });
-                group = '.' + $('select option:selected').text();
-                $(group).show();
-            })
-        </script>
-        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            {% endif %}
+        {% endfor%}
     </table>
-    <input type="submit" name="submit" value="Submit" />
+    <input type="submit" value="submit">
 </form>
+
+<script type=text/javascript>
+    $('select').change(function() {
+            var group = "";
+            $('option').each(function() {
+                group = '.' + $(this).text();
+                $(group).hide();
+                });
+            group = '.' + $('select option:selected').text();
+            $(group).show();
+            })
+</script>
+
+
 {% endblock %}
