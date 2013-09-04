@@ -30,6 +30,7 @@ from flask.ext.admin.contrib.fileadmin import FileAdmin
 
 from victims_web.models import Account, Hash, Submission
 from victims_web.cache import cache
+from victims_web.handlers.forms import GroupSelectField, ValidateOnlyIf
 from victims_web.util import allowed_groups, set_hash
 
 from flask.ext import login
@@ -116,6 +117,7 @@ class AccountView(SafeModelView):
     def on_model_change(self, form, model, is_created):
         if len(form.plaintext_password.data) > 0:
             model.password.set_password(form.plaintext_password.data)
+        super(AccountView, self).on_model_change(form, model, is_created)
 
 
 class HashView(SafeModelView):
@@ -132,24 +134,23 @@ class SubmissionView(SafeModelView):
     def scaffold_form(self):
         form_class = super(SafeModelView, self).scaffold_form()
         form_class.request_hashing = fields.BooleanField('Request Auto-hash')
-        groups = [('---', 'unset')]
-        for group in allowed_groups():
-            groups.append((group, group))
-        form_class.setgroup = fields.SelectField(
-            'Group',
-            [validators.required(), validators.AnyOf(allowed_groups())],
-            choices=groups,
-            default='---'
-        )
+        form_class.setgroup = GroupSelectField([
+            ValidateOnlyIf([
+                validators.AnyOf(GroupSelectField.VALID_GROUPS),
+            ], 'request_hashing', True, False)
+        ])
         return form_class
 
     def on_model_change(self, form, model, is_created):
-        grp = form.setgroup.data.strip()
-        if len(grp) > 0:
-            model.group = grp
-        if form.request_hashing.data:
+        if form.setgroup.data in allowed_groups():
+            model.group = form.setgroup.data
+        super(SubmissionView, self).on_model_change(form, model, is_created)
+
+    def after_model_change(self, form, model, is_created):
+        if bool(form.request_hashing.data):
             model.entry = None
             set_hash(model)
+        super(SubmissionView, self).after_model_change(form, model, is_created)
 
 
 class FileView(SecureMixin, FileAdmin):
