@@ -365,7 +365,10 @@ class Submission(JsonifyMixin, ValidatedDocument):
         if self.format:
             new_hash.format = self.format
         if len(self.metadata) > 0:
-            new_hash.metadata.append({'properties': self.metadata})
+            new_hash.metadata.append({
+                'properties': self.metadata,
+                'filename': 'victims.submission',
+            })
         new_hash.append_cves(self.cves)
         new_hash.group = self.group
         new_hash.save()
