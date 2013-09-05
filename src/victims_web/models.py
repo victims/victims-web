@@ -252,13 +252,11 @@ class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
     createdon = DateTimeField(default=datetime.datetime.utcnow)
     hash = HashField()
     name = StringField()
-    version = StringField(
-        default='UNKNOWN', regex='^[a-zA-Z0-9_\-\.]*$')
+    version = StringField(default='UNKNOWN')
     group = StringField(choices=group_choices())
     format = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
     hashes = DictField(field=EmbeddedDocumentField('HashEntry'))
-    vendor = StringField(
-        default='UNKNOWN')
+    vendor = StringField(default='UNKNOWN')
     cves = ListField(EmbeddedDocumentField(CVE), default=[])
     status = StringField(
         choices=(('SUBMITTED', 'SUBMITTED'), ('RELEASED', 'RELEASED')),
