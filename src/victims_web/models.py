@@ -221,25 +221,6 @@ class CVE(JsonifyMixin, EmbeddedDocument):
     addedon = DateTimeField(default=datetime.datetime.utcnow, required=True)
 
 
-class HashField(StringField):
-    """
-    A hash field with a default regex specified.
-    """
-    def __init__(self, *args, **kwargs):
-        if 'regex' in kwargs:
-            kwargs.pop('regex', None)
-        super(HashField, self).__init__(
-            regex='^[a-fA-F0-9]*$', *args, **kwargs)
-
-
-class HashEntry(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
-    """
-    A hash entry
-    """
-    combined = HashField()
-    files = DictField()
-
-
 class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
     """
     A hash record.
@@ -250,12 +231,12 @@ class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
     _v1 = DictField(default={})
     date = DateTimeField(default=datetime.datetime.utcnow)
     createdon = DateTimeField(default=datetime.datetime.utcnow)
-    hash = HashField()
+    hash = StringField(regex='^[a-fA-F0-9]*$')
     name = StringField()
     version = StringField(default='UNKNOWN')
     group = StringField(choices=group_choices())
     format = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
-    hashes = DictField(field=EmbeddedDocumentField('HashEntry'))
+    hashes = DictField(default={})
     vendor = StringField(default='UNKNOWN')
     cves = ListField(EmbeddedDocumentField(CVE), default=[])
     status = StringField(
@@ -298,12 +279,6 @@ class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
         if 'cves' in obj:
             self.append_cves(obj['cves'])
             obj.pop('cves', None)
-
-        if 'hashes' in obj:
-            for (algorithm, hashentry) in obj['hashes'].items():
-                self.hashes[algorithm] = HashEntry.from_json(
-                    json.dumps(hashentry))
-            obj.pop('hashes', None)
 
         JsonifyMixin.mongify(self, obj)
 
