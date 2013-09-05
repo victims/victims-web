@@ -91,7 +91,7 @@ def user_edit():
                 account.set_password(form.password.data)
 
             if form.change_email.data:
-                email = form.email.strip()
+                email = form.email.data.strip()
                 account.email = email if len(email) > 0 else None
 
             if form.regenerate.data:

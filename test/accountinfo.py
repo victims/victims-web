@@ -18,8 +18,6 @@
 Tests for registration.
 """
 
-import re
-
 from test import UserTestCase
 from victims_web.user import get_account
 
@@ -60,9 +58,7 @@ class TestAccountInfo(UserTestCase):
         """
         Helper function to attempt account details update.
         """
-        resp = self.app.get('/account/edit')
-        csrf_token = re.search(
-            '_csrf_token" value="([^"]*)">', resp.data).group(1)
+        (_, csrf_token) = self.visit('/account/edit')
 
         form_data['_csrf_token'] = csrf_token
 
