@@ -162,7 +162,7 @@ class Password():
                     'char for more than 30% of the password'))
 
         if len(password) <= 8:
-            raise ValidationError('Password to simple.')
+            raise ValidationError('Password too simple.')
 
 
 class UserName():

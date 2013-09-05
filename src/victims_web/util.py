@@ -32,12 +32,15 @@ def set_hash(submission):
     submission.
     """
     if not submission.entry is None:
+        submission.add_comment('Entry alread exits. Skipping hashing.')
         return
 
     if not isfile(submission.source):
+        submission.add_comment('Source file not found.')
         return
 
     if submission.group not in config.HASHING_COMMANDS:
+        submission.add_comment('Hashing command for this group not found.')
         return
 
     command = config.HASHING_COMMANDS[submission.group].format(
@@ -72,9 +75,11 @@ def set_hash(submission):
             remove(submission.source)
         except:
             config.LOGGER.warn('Deletion failed for %s' % (submission.source))
-    except CalledProcessError:
+    except CalledProcessError as e:
+        submission.add_comment(e)
         config.LOGGER.debug('Command execution failed for "%s"' % (command))
     except Exception as e:
+        submission.add_comment(e)
         config.LOGGER.warn('Failed to hash: ' + e.message)
 
 

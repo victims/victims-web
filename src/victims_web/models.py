@@ -192,7 +192,7 @@ class Account(ValidatedDocument):
     def save(self, *args, **kwargs):
         if self.apikey is None or len(self.apikey) == 0:
             self.update_api_tokens()
-        super(Account, self).save(*args, **kwargs)
+        ValidatedDocument.save(self, *args, **kwargs)
 
 
 class Removal(JsonifyMixin, ValidatedDocument):
@@ -309,21 +309,25 @@ class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
 
         JsonifyMixin.mongify(self, obj)
 
+    def notify_change(self, reason='DELETE'):
+        if self.status == 'RELEASED':
+            removal = Removal(hash=self.hash, reason=reason)
+            removal.save()
+
     def save(self, *args, **kwargs):
         """
         Ensure that the date is updated
         """
         self.date = datetime.datetime.utcnow()
-        super(Hash, self).save(*args, **kwargs)
+        ValidatedDocument.save(self, *args, **kwargs)
+        self.notify_change('UPDATE')
 
     def delete(self, *args, **kwargs):
         """
         Update the removals collection when a document is deleted
         """
-        if self.status == 'RELEASED':
-            removal = Removal(hash=self.hash)
-            removal.save()
         ValidatedDocument.delete(self, *args, **kwargs)
+        self.notify_change()
 
 
 class Submission(JsonifyMixin, ValidatedDocument):
@@ -424,7 +428,7 @@ class Submission(JsonifyMixin, ValidatedDocument):
 
     def save(self, *args, **kwargs):
         self.pre_save_hook()
-        super(Submission, self).save(*args, **kwargs)
+        ValidatedDocument.save(self, *args, **kwargs)
 
 
 class Plugin(Document):

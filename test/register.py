@@ -101,7 +101,7 @@ class TestRegister(UserTestCase):
 
         resp = self.register_user('shouldNotwork', '1234567')
         assert resp.status_code == 200
-        assert 'Password to simple' in resp.data
+        assert 'Password too simple' in resp.data
 
     def test_all_data_is_required_registration(self):
         """
