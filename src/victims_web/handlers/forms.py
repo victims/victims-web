@@ -22,7 +22,8 @@ from flask import flash
 from flask_wtf import Form, RecaptchaField
 from wtforms import fields, validators, ValidationError
 
-from victims_web.config import SUBMISSION_GROUPS, DEBUG, TESTING
+from victims_web.config import (
+    SUBMISSION_GROUPS, DEBUG, HASHING_COMMANDS, TESTING)
 from victims_web.models import Account
 
 
@@ -123,6 +124,21 @@ class GroupRequired(validators.Required):
         group = form._fields.get(self.groupfield).data
         if field.label.field_id.split('_', 1)[0] == group:
             super(GroupRequired, self).__call__(form, field)
+
+
+class GroupHashable():
+    """
+    Custom validator to check if a group is hashable
+    """
+    def __init__(self, groupfield, *args, **kwargs):
+        self.groupfield = groupfield
+
+    def __call__(self, form, field):
+        group = form._fields.get(self.groupfield).data
+        if group not in HASHING_COMMANDS.keys():
+            msg = 'Group "%s" cannot be hashed' % (group)
+            flash(msg, 'error')
+            raise ValidationError(msg)
 
 
 class HasFile():

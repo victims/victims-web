@@ -28,9 +28,9 @@ from flask.ext.admin.base import (
 from flask.ext.admin.contrib.mongoengine import ModelView
 from flask.ext.admin.contrib.fileadmin import FileAdmin
 
-from victims_web.models import Account, Hash, Submission
 from victims_web.cache import cache
-from victims_web.handlers.forms import GroupSelectField, ValidateOnlyIf
+from victims_web.handlers.forms import GroupHashable, ValidateOnlyIf
+from victims_web.models import Account, Hash, Submission
 from victims_web.util import groups, set_hash
 
 from flask.ext import login
@@ -129,21 +129,21 @@ class HashView(SafeModelView):
 class SubmissionView(SafeModelView):
     column_filters = ('submitter', 'submittedon', 'approval', )
     column_exclude_list = ('entry', 'source')
-    form_excluded_columns = ('group', )
 
     def scaffold_form(self):
         form_class = super(SafeModelView, self).scaffold_form()
-        form_class.request_hashing = fields.BooleanField('Request Auto-hash')
-        form_class.setgroup = GroupSelectField([
-            ValidateOnlyIf([
-                validators.AnyOf(GroupSelectField.VALID_GROUPS),
-            ], 'request_hashing', True, False)
-        ])
+        form_class.request_hashing = fields.BooleanField(
+            'Request Auto-hash', validators=[
+                ValidateOnlyIf(
+                    [GroupHashable('group')], 'request_hashing', True, False
+                )
+            ]
+        )
         return form_class
 
     def on_model_change(self, form, model, is_created):
-        if form.setgroup.data in groups():
-            model.group = form.setgroup.data
+        if form.group.data in groups():
+            model.group = form.group.data
         super(SubmissionView, self).on_model_change(form, model, is_created)
 
     def after_model_change(self, form, model, is_created):
