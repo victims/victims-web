@@ -255,12 +255,14 @@ def update_login_details(app, user):
     """
     Updates user information upon login.
     """
-    user.user_obj.lastlogin = datetime.utcnow()
+    account = user.user_obj
+    account.lastlogin = datetime.utcnow()
     try:
-        user.user_obj.lastip = request.headers.getlist('X-Forwarded-For')[0]
+        account.lastip = request.headers.getlist('X-Forwarded-For')[0]
     except:
-        user.user_obj.lastip = request.remote_addr
-    user.user_obj.save()
+        account.lastip = request.remote_addr
+    account.save()
+    user.user_obj.reload()
 
 
 def on_login(app, user):

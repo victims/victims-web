@@ -53,6 +53,13 @@ def generate_api_tokens(username):
     return (apikey, secret)
 
 
+def group_choices():
+    choices = []
+    for group in SUBMISSION_GROUPS.keys():
+        choices.append((group, group))
+    return choices
+
+
 class ValidatedDocument(Document):
     """
     Extended MongoEngine document which can use custom validators.
@@ -116,8 +123,10 @@ class JsonifyMixin(object):
         field name not model field.
         """
         for field in self._db_field_map:
-            if self._db_field_map[field] in data:
-                setattr(self, self._db_field_map[field], data[field])
+            fieldname = self.fieldname(field)
+            if fieldname in data:
+                value = data[field]
+                setattr(self, fieldname, value)
 
     @classmethod
     def fieldname(cls, injson):
@@ -183,7 +192,7 @@ class Account(ValidatedDocument):
     def save(self, *args, **kwargs):
         if self.apikey is None or len(self.apikey) == 0:
             self.update_api_tokens()
-        ValidatedDocument.save(self, *args, **kwargs)
+        super(Account, self).save(*args, **kwargs)
 
 
 class Removal(JsonifyMixin, ValidatedDocument):
@@ -204,7 +213,7 @@ class Removal(JsonifyMixin, ValidatedDocument):
     )
 
 
-class CVE(EmbeddedDocument):
+class CVE(JsonifyMixin, EmbeddedDocument):
     """
     A CVE record for embedded use.
     """
@@ -212,7 +221,26 @@ class CVE(EmbeddedDocument):
     addedon = DateTimeField(default=datetime.datetime.utcnow, required=True)
 
 
-class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
+class HashField(StringField):
+    """
+    A hash field with a default regex specified.
+    """
+    def __init__(self, *args, **kwargs):
+        if 'regex' in kwargs:
+            kwargs.pop('regex', None)
+        super(HashField, self).__init__(
+            regex='^[a-fA-F0-9]*$', *args, **kwargs)
+
+
+class HashEntry(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
+    """
+    A hash entry
+    """
+    combined = HashField()
+    files = DictField()
+
+
+class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
     """
     A hash record.
     """
@@ -222,13 +250,13 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
     _v1 = DictField(default={})
     date = DateTimeField(default=datetime.datetime.utcnow)
     createdon = DateTimeField(default=datetime.datetime.utcnow)
-    hash = StringField(regex='^[a-fA-F0-9]*$')
+    hash = HashField()
     name = StringField()
     version = StringField(
         default='UNKNOWN', regex='^[a-zA-Z0-9_\-\.]*$')
-    group = StringField()
+    group = StringField(choices=group_choices())
     format = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
-    hashes = DictField(default={})
+    hashes = DictField(field=EmbeddedDocumentField('HashEntry'))
     vendor = StringField(
         default='UNKNOWN')
     cves = ListField(EmbeddedDocumentField(CVE), default=[])
@@ -272,6 +300,13 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
         if 'cves' in obj:
             self.append_cves(obj['cves'])
             obj.pop('cves', None)
+
+        if 'hashes' in obj:
+            for (algorithm, hashentry) in obj['hashes'].items():
+                self.hashes[algorithm] = HashEntry.from_json(
+                    json.dumps(hashentry))
+            obj.pop('hashes', None)
+
         JsonifyMixin.mongify(self, obj)
 
     def save(self, *args, **kwargs):
@@ -279,7 +314,7 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
         Ensure that the date is updated
         """
         self.date = datetime.datetime.utcnow()
-        ValidatedDocument.save(self, *args, **kwargs)
+        super(Hash, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         """
@@ -289,13 +324,6 @@ class Hash(JsonifyMixin, ValidatedDocument, EmbeddedDocument):
             removal = Removal(hash=self.hash)
             removal.save()
         ValidatedDocument.delete(self, *args, **kwargs)
-
-
-def submission_group_choices():
-    choices = []
-    for group in SUBMISSION_GROUPS.keys():
-        choices.append((group, group))
-    return choices
 
 
 class Submission(JsonifyMixin, ValidatedDocument):
@@ -311,7 +339,7 @@ class Submission(JsonifyMixin, ValidatedDocument):
     format = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
     metadata = DictField(default={})
     cves = ListField(StringField())
-    group = StringField(choices=submission_group_choices())
+    group = StringField(choices=group_choices())
     comment = StringField()
     approval = StringField(
         choices=(
@@ -393,7 +421,7 @@ class Submission(JsonifyMixin, ValidatedDocument):
 
     def save(self, *args, **kwargs):
         self.pre_save_hook()
-        ValidatedDocument.save(self, *args, **kwargs)
+        super(Submission, self).save(*args, **kwargs)
 
 
 class Plugin(Document):

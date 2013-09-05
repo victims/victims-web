@@ -91,6 +91,11 @@ class VictimsUserMixin(object):
             return self.user_obj.roles
         return []
 
+    def get_account(self):
+        if not self.is_anonymous():
+            get_account(self.username)
+        return None
+
     def has_role(self, role):
         return role in self.roles
 

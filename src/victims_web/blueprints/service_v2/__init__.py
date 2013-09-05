@@ -244,6 +244,8 @@ def submit_hash(group):
             user, 'json-api-hash', group, suffix='Hash', entry=entry,
             approval='PENDING_APPROVAL')
         return success()
+    except ValueError as ve:
+        return error(ve.message)
     except Exception as e:
         current_app.logger.info('Invalid submission by %s' % (user))
         current_app.logger.debug(e)

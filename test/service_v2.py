@@ -196,7 +196,7 @@ class TestServiceV2(UserTestCase):
         assert resp.content_type == 'application/json'
 
     def json_submit_hash(self, group, status_code, apikey=None, secret=None):
-        testhash = dict(combined="")
+        testhash = dict(combined="AAAA")
         testhashes = dict(sha512=testhash)
         testdata = dict(name="", hashes=testhashes, cves=['CVE-2013-0000'])
         testdata = json.dumps(testdata)

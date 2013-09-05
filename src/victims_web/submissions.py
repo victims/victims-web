@@ -30,7 +30,7 @@ from victims_web.util import set_hash
 
 
 def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
-           meta={}, entry=None, approval='REQUESTED'):
+           metadata={}, entry=None, approval='REQUESTED'):
     config.LOGGER.info('Submitting: %s' % (
         ', '.join(['%s:%s' % (k, v) for (k, v) in locals().items()])))
     submission = Submission()
@@ -44,7 +44,7 @@ def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
         for cve in entry.cves:
             if cve not in entry.cves:
                 submission.cves.append(cve)
-    submission.metadata = meta
+    submission.metadata = metadata
     submission.submitter = submitter
     if entry:
         submission.entry = entry

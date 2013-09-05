@@ -94,6 +94,11 @@ class UserTestCase(FlaskTestCase):
         if username not in self._created_users:
             self._created_users.append(username)
 
+        self.account = Account.objects(username=username).first()
+
+        if self.account:
+            return
+
         account = Account()
         account.username = username
         account.password = generate_password_hash(
