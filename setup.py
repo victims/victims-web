@@ -45,7 +45,7 @@ setup(
         'Flask-SeaSurf',
         'Flask-SSLify',
         'Flask-Views',
-        'Flask-WTF>=0.9.1'
+        'Flask-WTF>=0.9.1',
         'blinker',
         'PyYAML',
         'requests',
