@@ -384,6 +384,8 @@ class Submission(JsonifyMixin, ValidatedDocument):
             self.comment = ''
         now = datetime.datetime.utcnow().isoformat()
         self.comment += '[%s] %s' % (now, comment)
+        # make sure comments are saved instantaneously
+        ValidatedDocument.save(self)
 
     def valid_entry(self):
         if (not self.group

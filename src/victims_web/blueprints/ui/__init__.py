@@ -147,6 +147,7 @@ def submit_archive():
     form = ArchiveSubmit()
     if form.validate_on_submit():
         process_submission(form)
+        return redirect(url_for('ui.index'))
     elif request.method == 'POST':
         flash_errors(form)
     return render_template(
