@@ -32,22 +32,22 @@ setup(
 
     dependency_links=[
         'https://github.com/mrjoes/flask-admin/tarball/f164aeb/'
-        + '#egg=Flask-Admin-1.0.6-f164aeb',
+        + '#egg=Flask-Admin-1.0.7dev',
     ],
 
     install_requires=[
         'Flask>=0.10',
-        'Flask-Login>=0.1.1',
+        'Flask-Admin>1.0.6',
         'Flask-Bcrypt',
-        'Flask-SeaSurf',
         'Flask-Cache',
-        'Flask-Admin',
-        'Flask-Views',
+        'Flask-Login>=0.1.1',
         'Flask-MongoEngine',
+        'Flask-SeaSurf',
         'Flask-SSLify',
+        'Flask-Views',
+        'Flask-WTF>=0.9.1'
         'blinker',
         'PyYAML',
-        'recaptcha-client',
         'requests',
     ],
 )
