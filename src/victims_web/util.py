@@ -69,6 +69,7 @@ def set_hash(submission):
             s.approval = 'PENDING_APPROVAL'
             s.validate()
             s.save()
+            s.add_comment('Auto hash entry added')
             count += 1
         # we are done safely, now remove the source
         try:
