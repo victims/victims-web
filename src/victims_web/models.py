@@ -22,7 +22,8 @@ import datetime
 import json
 
 from copy import deepcopy
-from os import urandom
+from os import urandom, remove
+from os.path import isfile
 from hashlib import sha1
 from hmac import HMAC
 from uuid import uuid4
@@ -331,6 +332,20 @@ class Submission(JsonifyMixin, ValidatedDocument):
     )
     entry = EmbeddedDocumentField(Hash, default=None)
 
+    def remove_source_file(self, nosave=False, silent=False):
+        try:
+            if not isfile(self.source):
+                return
+            remove(self.source)
+            self.source = '<source deleted>'
+            if not silent:
+                self.add_comment('Source file deleted')
+            if not nosave:
+                ValidatedDocument.save(self)
+        except:
+            if not silent:
+                self.add_comment('Source file deletion failed')
+
     def push_to_db(self):
         new_hash = deepcopy(self.entry)
         new_hash.id = None
@@ -404,6 +419,10 @@ class Submission(JsonifyMixin, ValidatedDocument):
     def save(self, *args, **kwargs):
         self.pre_save_hook()
         ValidatedDocument.save(self, *args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        self.remove_source_file(True, True)
+        ValidatedDocument.delete(self, *args, **kwargs)
 
 
 class Plugin(Document):

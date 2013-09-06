@@ -1,6 +1,5 @@
 from copy import deepcopy
 from json import loads
-from os import remove
 from os.path import isfile
 from subprocess import check_output, CalledProcessError
 from urlparse import urlparse, urljoin
@@ -72,10 +71,7 @@ def set_hash(submission):
             s.add_comment('Auto hash entry added')
             count += 1
         # we are done safely, now remove the source
-        try:
-            remove(submission.source)
-        except:
-            config.LOGGER.warn('Deletion failed for %s' % (submission.source))
+        submission.remove_source_file()
     except CalledProcessError as e:
         submission.add_comment(e)
         config.LOGGER.debug('Command execution failed for "%s"' % (command))
