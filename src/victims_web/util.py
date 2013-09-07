@@ -7,7 +7,8 @@ from urlparse import urlparse, urljoin
 from flask import request, flash
 
 from victims_web import config
-from victims_web.models import Hash
+from victims_web.handlers.task import manager
+from victims_web.models import Hash, Submission
 
 
 def groups():
@@ -25,11 +26,12 @@ def group_keys(group):
     return groups().get(group, [])
 
 
-def set_hash(submission):
+def hash_submission(submission_id):
     """
     Helper method to process an archive at source where possible from a
     submission.
     """
+    submission = Submission.objects(id=submission_id).first()
     if not submission.entry is None:
         submission.add_comment('Entry alread exits. Skipping hashing.')
         return
@@ -78,6 +80,10 @@ def set_hash(submission):
     except Exception as e:
         submission.add_comment(e)
         config.LOGGER.warn('Failed to hash: ' + e.message)
+
+
+def set_hash(submission):
+    manager.add_task(hash_submission, str(submission.id))
 
 
 def safe_redirect_url():
