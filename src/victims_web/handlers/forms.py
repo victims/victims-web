@@ -208,8 +208,8 @@ class ArchiveSubmit(Form):
             for f in fs:
                 validator = RequiredIfNoneValid([
                     HasFile('archive'), GroupRequired('group')])
-                exec('%s_%s' % (g, f)
-                     + ' = fields.StringField(f, [validator])')
+                field = fields.StringField(f, [validator])
+                exec('%s_%s = field' % (g, f))
 
 
 class RegistrationForm(Form):
