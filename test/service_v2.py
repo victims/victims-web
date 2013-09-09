@@ -19,6 +19,7 @@ Service version 2 testing.
 """
 
 import json
+from base64 import b64encode
 from datetime import datetime
 from hashlib import md5
 from StringIO import StringIO
@@ -207,13 +208,67 @@ class TestServiceV2(UserTestCase):
             md5sums, status_code, apikey, secret
         )
 
-    def json_submit_file(self, group, status_code, argstr=None, apikey=None,
-                         secret=None):
+    def make_test_file(self):
         testfilename = 'testfile.jar'
         content = 'test content'
-        md5sums = [md5(content).hexdigest()]
+        md5sum = md5(content).hexdigest()
         data = {'archive': (StringIO(content), testfilename)}
+        return (testfilename, md5sum, data)
 
+    def is_uploaded(self, filename, cleanup=True):
+        uploaded = False
+        if isdir(UPLOAD_FOLDER):
+            files = [
+                f for f in listdir(UPLOAD_FOLDER) if f.endswith(filename)
+            ]
+            uploaded = len(files) > 0
+
+        if isdir(UPLOAD_FOLDER):
+            rmtree(UPLOAD_FOLDER)
+
+        return uploaded
+
+    def basicauth_submission(self, username, password, code=201):
+        (testfilename, _, data) = self.make_test_file()
+        path = '/service/v2/submit/archive/java?cves=CVE-000-000'
+
+        headers = {
+            'Authorization':
+            'Basic ' + b64encode('%s:%s' % (username, password))
+        }
+        resp = self.app.put(
+            path=path,
+            headers=headers,
+            data=data,
+            follow_redirects=True,
+        )
+
+        uploaded = self.is_uploaded(testfilename)
+
+        assert resp.status_code == code
+
+        if code == 201:
+            assert uploaded
+        else:
+            assert not uploaded
+
+    def test_valid_basicauth(self):
+        """
+        Verify that a valid basicauth submission works
+        """
+        self.create_user(self.username, self.password)
+        self.basicauth_submission(self.username, self.password)
+
+    def test_invalid_basicauth(self):
+        """
+        Verify that an invalid basiauth submission fails
+        """
+        self.basicauth_submission(self.username, 'WRONGPASS', 403)
+
+    def json_submit_file(self, group, status_code, argstr=None, apikey=None,
+                         secret=None):
+        (testfilename, filemd5, data) = self.make_test_file()
+        md5sums = [filemd5]
         path = '/service/v2/submit/archive/%s' % (group)
         if argstr:
             path = '%s?%s' % (path, argstr)
@@ -223,18 +278,12 @@ class TestServiceV2(UserTestCase):
             md5sums, status_code, apikey, secret
         )
 
-        files = []
-        if isdir(UPLOAD_FOLDER):
-            files = [
-                f for f in listdir(UPLOAD_FOLDER) if f.endswith(testfilename)
-            ]
+        uploaded = self.is_uploaded(testfilename)
 
         if status_code == 201:
-            assert isdir(UPLOAD_FOLDER)
-            assert len(files) > 0
-            rmtree(UPLOAD_FOLDER)
+            assert uploaded
         else:
-            assert len(files) == 0
+            assert not uploaded
 
     def test_lastapi(self):
         """

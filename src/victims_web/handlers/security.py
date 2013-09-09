@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from urlparse import urlparse, urljoin
 
-from flask import Response, current_app, request, flash
+from flask import Response, request, flash
 from flask.ext.bcrypt import check_password_hash
 from flask.ext.login import (
     LoginManager, current_user, login_user, logout_user, user_logged_in)
@@ -105,6 +105,9 @@ def api_request_user():
     """
     Get username associated with the API request
     """
+    if request.authorization:
+        return request.authorization.username
+
     (apikey, _) = api_request_tokens()
     return api_username(apikey)
 
@@ -113,8 +116,8 @@ def api_request_user_account():
     """
     Get the account associated with the current API requrst
     """
-    (apikey, _) = api_request_tokens()
-    return get_account(api_username(apikey))
+    username = api_request_user()
+    return get_account(username)
 
 
 def validate_signature():
@@ -167,11 +170,10 @@ def basicauth(view):
     def decorated(*args, **kwargs):
         if request.authorization:
             valid = authenticate(
-                current_app,
                 request.authorization.username,
                 request.authorization.password)
             if not valid:
-                return 'Forbidden', 403
+                return Response('Forbidden', status=403)
         return view(*args, **kwargs)
 
     return decorated
@@ -201,7 +203,6 @@ def apiauth(view):
         if not valid and request.authorization:
             # fallback to basic auth
             valid = authenticate(
-                current_app,
                 request.authorization.username,
                 request.authorization.password)
 
