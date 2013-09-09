@@ -88,7 +88,11 @@ def hash_submission(submission_id):
 
 
 def set_hash(submission):
-    taskman.add_task(hash_submission, str(submission.id))
+    if isinstance(submission, basestring):
+        sid = str(submission)
+    else:
+        sid = str(submission.id)
+    taskman.add_task(hash_submission, sid)
 
 
 def safe_redirect_url():

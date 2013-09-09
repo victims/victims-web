@@ -25,6 +25,8 @@ from wtforms import fields, validators
 from flask import flash, redirect, url_for
 from flask.ext.admin.base import (
     Admin, AdminIndexView, MenuLink, BaseView, expose)
+from flask.ext.admin.actions import action
+from flask.ext.admin.babel import lazy_gettext
 from flask.ext.admin.contrib.mongoengine import ModelView
 from flask.ext.admin.contrib.fileadmin import FileAdmin
 
@@ -151,6 +153,15 @@ class SubmissionView(SafeModelView):
             model.entry = None
             set_hash(model)
         super(SubmissionView, self).after_model_change(form, model, is_created)
+
+    @action('hash', lazy_gettext('Request Hash'))
+    def action_hash(self, ids):
+        try:
+            for i in ids:
+                set_hash(i)
+            flash('Hashing requested for %s objects.' % (len(ids)), 'info')
+        except Exception as ex:
+            flash('Failed to delete models. %s' % (str(ex)), 'error')
 
 
 class FileView(SecureMixin, FileAdmin):
