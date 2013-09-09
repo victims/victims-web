@@ -58,8 +58,14 @@ Submission endpoints like ```/service/submit/archive/java``` are secured by an i
 
 An example using curl is as follows:
 ```sh
-$ curl -v -X PUT -H "X-Victims-Api: $APIKEY:$SIGNATURE" -H "Date: Thu, 22 Aug 2013 15:20:37 GMT" -F archive=@$ARCHIVE http://$VICTIMS_SERVER/service/submit/archive/java?version=VID\&groupId=GID\&artifactId=AID\&cves=CVE-2013-0000,CVE-2013-0001
+$ curl -v -X PUT -H "X-Victims-Api: $APIKEY:$SIGNATURE" -H "Date: Thu, 22 Aug 2013 15:20:37 GMT" -F archive=@$ARCHIVE https://$VICTIMS_SERVER/service/submit/archive/java?version=VID\&groupId=GID\&artifactId=AID\&cves=CVE-2013-0000,CVE-2013-0001
 ```
+
+This can also be done using *BASIC-AUTH* as follows:
+```sh
+curl -v -u $USERNAME:$PASSWORD -X PUT -F archive=@$ARCHIVE_FILE https://$VICTIMS_SERVER/service/submit/archive/java?version=VID\&groupId=GID\&artifactId=AID\&cves=CVE-2013-0000,CVE-2013-0001
+```
+
 #### API Key and Client Secret Key
 Each account on victi.ms is allocated an API Key and Secret key by default. This can be retrieved by visiting ```https://victi.ms/account```. These can be regenerated using the form at ```https://victi.ms/account_edit```.
 
