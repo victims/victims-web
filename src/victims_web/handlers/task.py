@@ -15,13 +15,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-An asynchronous task manager. A simple implementation for background task
-handing.
+An asynchronous task manager.
+
+This is a simple implementation for background task handing. No guarentees are
+provided for task execution.
 """
 
 from multiprocessing import Process
 from threading import Thread
 from Queue import Queue
+
+
+class TaskException(Exception):
+    pass
 
 
 class Waiter(Thread):
@@ -30,6 +36,11 @@ class Waiter(Thread):
     """
     def __init__(self):
         self.__q = Queue()
+        self.__stopped = False
+
+    @property
+    def stopped(self):
+        return self.__stopped
 
     def run(self):
         while True:
@@ -43,6 +54,7 @@ class Waiter(Thread):
 
     def stop(self):
         self.__q.put(None)
+        self.__stopped = True
 
 
 class TaskManager():
@@ -50,6 +62,8 @@ class TaskManager():
     Task Manager implementation. This class allows for any function to be fired
     as their own process. Once fired the parent procsses can continue on doing
     their business.
+
+    We do not guarentee execution of success of process.
     """
     def __init__(self):
         self._waiter = Waiter()
@@ -58,9 +72,19 @@ class TaskManager():
         self._waiter.stop()
 
     def add_task(self, fn, *args):
+        """
+        If the kitchen is still accepting orders place task on waiter's docket.
+        Else, a TaskException is raised.
+
+        :Parameters:
+            `fn`: Target function to run as a seperate Process
+            `args`: The arguments to pass to the target function
+        """
+        if self._waiter.stopped:
+            raise TaskException('We are close for business. Go elsewhere!')
         process = Process(target=fn, args=args)
         process.start()
         self._waiter.waiton(process)
 
 
-manager = TaskManager()
+taskman = TaskManager()

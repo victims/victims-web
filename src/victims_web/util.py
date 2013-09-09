@@ -7,7 +7,7 @@ from urlparse import urlparse, urljoin
 from flask import request, flash
 
 from victims_web import config
-from victims_web.handlers.task import manager
+from victims_web.handlers.task import taskman
 from victims_web.models import Hash, Submission
 
 
@@ -88,7 +88,7 @@ def hash_submission(submission_id):
 
 
 def set_hash(submission):
-    manager.add_task(hash_submission, str(submission.id))
+    taskman.add_task(hash_submission, str(submission.id))
 
 
 def safe_redirect_url():
