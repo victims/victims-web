@@ -78,7 +78,7 @@ class JavaManager(Manager):
         try:
             groupId = info['groupId']
             artifactId = info['artifactId']
-            versionId = info['versionId']
+            versionId = info['version']
             return Artifact(groupId, artifactId, versionId)
         except:
             raise ValueError('Could not identify artifact using provided info')
