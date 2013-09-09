@@ -25,6 +25,7 @@ from flask import Blueprint, Response, request, current_app
 
 from victims_web.cache import cache
 from victims_web.handlers.security import apiauth, api_request_user
+from victims_web.handlers.sslify import ssl_exclude
 from victims_web.models import Hash, Removal, JsonifyMixin
 from victims_web.submissions import submit, upload
 from victims_web.util import groups
@@ -290,3 +291,6 @@ def submit_archive(group):
         return error()
 
 SUBMISSION_ROUTES = [submit_hash, submit_archive]
+
+for v in [update, remove, cves]:
+    ssl_exclude(update)

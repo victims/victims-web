@@ -24,7 +24,6 @@ import os
 from flask import Flask, render_template
 from flask.ext.mongoengine import MongoEngine, MongoEngineSessionInterface
 from flask.ext.seasurf import SeaSurf
-from flask.ext.sslify import SSLify
 
 from victims_web.admin import administration_setup
 from victims_web.blueprints.service_v1 import v1
@@ -34,12 +33,13 @@ from victims_web.blueprints.auth import auth
 
 from victims_web.cache import cache
 from victims_web.handlers.security import setup_security
+from victims_web.handlers.sslify import VSSLify
 
 # Set up the application
 app = Flask('victims_web')
 
 # SSLify
-sslify = SSLify(app)
+sslify = VSSLify(app)
 
 # CSRF protection
 csrf = SeaSurf(app)
