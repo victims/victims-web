@@ -58,5 +58,8 @@ class PluginConfig(object):
     def pop(self):
         self._config.pop()
 
+    def reload(self):
+        self._config.reload()
+
     def __repr__(self):
         return str(self._config.config)
