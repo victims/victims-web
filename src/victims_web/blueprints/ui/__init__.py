@@ -26,11 +26,12 @@ from flask import (
 
 from flask.ext import login
 
+from victims_web.cache import cache
 from victims_web.config import SUBMISSION_GROUPS
 from victims_web.errors import ValidationError
 from victims_web.handlers.forms import ArchiveSubmit, flash_errors
-from victims_web.models import Hash, Submission
-from victims_web.cache import cache
+from victims_web.models import Hash
+from victims_web.plugin.crosstalk import indexmon
 from victims_web.submissions import submit, upload
 
 
@@ -56,34 +57,12 @@ def index():
 
     @cache.cached(key_prefix=_cache_key)
     def get_data():
-        """
-        Caching results via inner function.
-        """
-        stats = {}
-        stats['hashes'] = Hash.objects(status='RELEASED')
-        stats['submitted'] = Submission.objects(approval='REQUESTED')
-        stats['pending'] = Submission.objects(approval='PENDING_APPROVAL')
+        indexmon.refresh(True)
+        return indexmon.get_data()
 
-        # Generate counts for objects and for each format
-        # data will contain hashes, hashes_jars, hashes_eggs etc.
-        groups = SUBMISSION_GROUPS.keys()
-        groups.sort()
-        groups = ['all'] + groups
-        data = {'groups': groups, 'stats': {}}
-        for group in groups:
-            stat = {}
-            for key in stats:
-                if group == 'all':
-                    stat[key] = len(stats[key])
-                else:
-                    stat[key] = len(stats[key].filter(group=group))
-            data['stats'][group] = stat
-        return data
-
-    if current_app.config.get('INDEX_REFRESH_FLAG', False):
+    if indexmon.refreshed_flag:
         cache.delete(_cache_key)
-        current_app.config['INDEX_REFRESH_FLAG'] = False
-
+        indexmon.refreshed_flag = False
     return render_template('index.html', **get_data())
 
 
