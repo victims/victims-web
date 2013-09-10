@@ -53,7 +53,6 @@ def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
     submission.validate()
     submission.save()
 
-    # TODO: Make this async
     set_hash(submission)
 
     # ensure index stats are refreshed
