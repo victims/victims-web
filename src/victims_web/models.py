@@ -204,6 +204,7 @@ class Removal(JsonifyMixin, ValidatedDocument):
 
     date = DateTimeField(default=datetime.datetime.utcnow)
     hash = StringField(regex='^[a-fA-F0-9]*$')
+    group = StringField(choices=group_choices())
     reason = StringField(
         choices=(
             ('DELETE', 'DELETE'),
@@ -285,7 +286,7 @@ class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
 
     def notify_change(self, reason='DELETE'):
         if self.status == 'RELEASED':
-            removal = Removal(hash=self.hash, reason=reason)
+            removal = Removal(hash=self.hash, group=self.group, reason=reason)
             removal.save()
 
     def save(self, *args, **kwargs):

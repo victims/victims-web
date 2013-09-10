@@ -29,7 +29,7 @@ from os.path import isdir
 
 from test import UserTestCase
 
-from victims_web.config import UPLOAD_FOLDER, VICTIMS_API_HEADER
+from victims_web.config import DEFAULT_GROUP, UPLOAD_FOLDER, VICTIMS_API_HEADER
 from victims_web.models import Removal, Submission
 from victims_web.handlers.security import generate_signature
 
@@ -172,6 +172,7 @@ class TestServiceV2(UserTestCase):
         test_hash = 'ABC123'
         removal = Removal()
         removal.hash = test_hash
+        removal.group = DEFAULT_GROUP
         removal.validate()
         removal.save()
         resp = self.app.get(
