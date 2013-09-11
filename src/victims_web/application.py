@@ -29,11 +29,11 @@ from flask.ext.seasurf import SeaSurf
 # Set up the application
 app = Flask('victims_web')
 
-# configuration
-app.config.from_object('victims_web.config')
-
 # CSRF protection
 csrf = SeaSurf(app)
+
+# configuration
+app.config.from_object('victims_web.config')
 
 # logging
 logging.basicConfig(
