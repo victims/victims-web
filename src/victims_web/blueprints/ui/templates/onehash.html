@@ -40,7 +40,7 @@
 {% if hash.cves %}
 <div class="info">
   <ul>
-    <lh><label class="bold">CVE's</label></lh>
+    <lh><label class="bold">CVEs</label></lh>
   {% for cve in hash.cves %}
     <li><a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name={{ cve['id'] }}" target="_blank">{{ cve['id'] }}</a></li>
   {% endfor %}
