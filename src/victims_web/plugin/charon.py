@@ -32,12 +32,12 @@ DOWNLOADS_DIR = config.DOWNLOAD_FOLDER
 LOGGER = config.LOGGER
 
 # Set up repositories
-REPOSITORIES = [
-    ('public', 'http://repo1.maven.org/maven2/'),
-]
+REPOSITORIES = {
+    'java': [('public', 'http://repo1.maven.org/maven2/')],
+}
 for (name, uri) in config.MAVEN_REPOSITORIES:
     if (name, uri) not in REPOSITORIES:
-        REPOSITORIES.append(name, uri)
+        REPOSITORIES['java'].append(name, uri)
 
 MANAGERS = {}
 
@@ -65,7 +65,7 @@ class JavaManager(Manager):
         self._repos = []
 
     def update_repos(self):
-        for (name, uri) in REPOSITORIES:
+        for (name, uri) in REPOSITORIES['java']:
             if (name, uri) not in self._repos:
                 self._repos.append(MavenHttpRemoteRepos(name, uri))
 
