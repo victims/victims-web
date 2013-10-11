@@ -25,93 +25,17 @@
 from hashlib import md5, sha1
 from logging import getLogger
 from os.path import join
-from Queue import Queue
 from string import Template
-from StringIO import StringIO
-from threading import Thread
-from time import time, strptime, mktime
-from urllib2 import Request, urlopen, HTTPError, URLError
+from time import strptime, mktime
+from urllib2 import urlopen, HTTPError, URLError
 from xml.etree import ElementTree
+
+from victims_web.plugin.downloader import download, download_string
 
 USER_AGENT = 'victims-web-plugin/maven'
 BUF_SIZE = 4096
 
 logger = getLogger('plugin.maven')
-
-
-class DownloadException(Exception):
-    pass
-
-
-def download(url, target, async=False, close_target=False, quiet=True):
-    ### download file to target (target is a file-like object)
-    if async:
-        _pool.submit(url, target)
-    else:
-        request = Request(url=url)
-        request.add_header('User-Agent', USER_AGENT)
-        try:
-            t0 = time()
-            source = urlopen(request)
-            size = source.headers.getheader('Content-Length')
-            if not quiet:
-                logger.info(
-                    '[Downloading] %s %s bytes to download' % (url, size)
-                )
-            buf = source.read(BUF_SIZE)
-            while len(buf) > 0:
-                target.write(buf)
-                buf = source.read(BUF_SIZE)
-            source.close()
-            if close_target:
-                target.close()
-            t1 = time()
-            if not quiet:
-                logger.info(
-                    '[Downloading] Download %s completed in %f secs' %
-                    (url, (t1 - t0))
-                )
-        except HTTPError, e:
-            raise DownloadException(url, e)
-        except URLError, e:
-            raise DownloadException(url, e)
-
-
-def download_string(url):
-    buf = StringIO()
-    download(url, buf)
-    data = buf.getvalue()
-    buf.close()
-    return data
-
-
-class DownloadThreadPool(object):
-    def __init__(self, size=3):
-        self.queue = Queue()
-        self.workers = [Thread(target=self._do_work) for _ in range(size)]
-        self.initialized = False
-
-    def init_threads(self):
-        for worker in self.workers:
-            worker.setDaemon(True)
-            worker.start()
-        self.initialized = True
-
-    def _do_work(self):
-        while True:
-            url, target = self.queue.get()
-            download(url, target, close_target=True, quiet=False)
-            self.queue.task_done()
-
-    def join(self):
-        self.queue.join()
-
-    def submit(self, url, target):
-        if not self.initialized:
-            self.init_threads()
-        self.queue.put((url, target))
-
-_pool = DownloadThreadPool(3)
 
 
 class Artifact(object):

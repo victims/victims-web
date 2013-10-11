@@ -23,9 +23,8 @@ from abc import ABCMeta, abstractmethod
 from uuid import uuid4
 
 from victims_web import config
-from victims_web.plugin.maven import (
-    Artifact, MavenHttpRemoteRepos, DownloadException
-)
+from victims_web.plugin.downloader import DownloadException
+from victims_web.plugin.maven import Artifact, MavenHttpRemoteRepos
 
 
 DOWNLOADS_DIR = config.DOWNLOAD_FOLDER
