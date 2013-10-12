@@ -30,6 +30,7 @@
                 <a href="{{ url_for('ui.static_page', page='client') }}">Client</a>
                 <a href="{{ url_for('ui.static_page', page='about') }}">About</a>
                 <a href="{{ url_for('ui.static_page', page='bugs') }}">Bugs</a>
+		<a href="{{ url_for('dbSearch.search')}}">Search</a>
                 {% if current_user and current_user.is_authenticated() %}
                 <a href="{{ url_for('ui.submit_archive') }}">Submit an archive</a>
                     {% if current_user.has_role('moderator') or current_user.has_role('admin') %}
