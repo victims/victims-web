@@ -10,54 +10,53 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script>window.jQuery || document.write('<script src="{{url_for('ui.static', filename='jquery.js') }}">\x3C/script>')</script>
 <body>
-
-<div id="wrap">
-    <div id="header">
-        <h1><a href="{{ url_for('ui.index') }}">victims</a></h1>
-        <h2>don't be one</h2>
-        <div id="sessioninfo" align="right">
-            {% if current_user and current_user.is_authenticated() %}
-            <b><a href="{{ url_for('auth.user_account') }}">{{ current_user.username }}</a> | </b>
-            <b><a href="{{ url_for('auth.logout_user') }}">logout</a></b>
-            {% else %}
-            <b><a href="{{ url_for('auth.register_user') }}">register</a> | </b>
-            <b><a href="{{ url_for('auth.login_user') }}">login</a></b>
-            {% endif %}
+    <div id="wrap">
+      <div id="wrapheader">
+            <div id="header">
+                <h1><a href="{{ url_for('ui.index') }}">victims</a></h1>
+                <h2>don't be one</h2>
+                <div id="sessioninfo" align="right">
+                    {% if current_user and current_user.is_authenticated() %}
+                    <b><a href="{{ url_for('auth.user_account') }}">{{ current_user.username }}</a> | </b>
+                    <b><a href="{{ url_for('auth.logout_user') }}">logout</a></b>
+                    {% else %}
+                    <b><a href="{{ url_for('auth.register_user') }}">register</a> | </b>
+                    <b><a href="{{ url_for('auth.login_user') }}">login</a></b>
+                    {% endif %}
+                 </div>
+            </div>
+            <div id="menu">
+                <a href="{{ url_for('ui.index') }}">Main</a>
+                <a href="{{ url_for('ui.static_page', page='client') }}">Client</a>
+                <a href="{{ url_for('ui.static_page', page='about') }}">About</a>
+                <a href="{{ url_for('ui.static_page', page='bugs') }}">Bugs</a>
+                {% if current_user and current_user.is_authenticated() %}
+                <a href="{{ url_for('ui.submit_archive') }}">Submit an archive</a>
+                    {% if current_user.has_role('moderator') or current_user.has_role('admin') %}
+                    <a href="{{ url_for('admin.index') }}">Admin</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        <div id="content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                  <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+              {% endif %}
+            {% endwith %}
+                {% block content %}{% endblock %}
+        </div>
+        <div id="footer">
+            <p>&copy; 2009-2013 Steve 'Ashcrow' Milner and the Victi.ms team. Server licensed under the <a href="http://www.gnu.org/licenses/agpl-3.0.html">AGPL 3.0 License</a> (<a href="https://github.com/victims/victims-web/">Source</a>)</p>
+            <p><img src="{{ url_for('ui.static', filename='images/victims-button.png') }}" /></p>
         </div>
     </div>
-    <div id="menu">
-        <a href="{{ url_for('ui.index') }}">Main</a>
-        <a href="{{ url_for('ui.static_page', page='client') }}">Client</a>
-        <a href="{{ url_for('ui.static_page', page='about') }}">About</a>
-        <a href="{{ url_for('ui.static_page', page='bugs') }}">Bugs</a>
-        {% if current_user and current_user.is_authenticated() %}
-        <a href="{{ url_for('ui.submit_archive') }}">Submit an archive</a>
-            {% if current_user.has_role('moderator') or current_user.has_role('admin') %}
-            <a href="{{ url_for('admin.index') }}">Admin</a>
-            {% endif %}
-        {% endif %}
-    </div>
-
-    <div id="content">
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <ul class="flashes">
-    {% for category, message in messages %}
-      <li class="{{ category }}">{{ message }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
-    {% block content %}{% endblock %}
-    </div>
-
-    <div id="footer">
-        <p>&copy; 2009-2013 Steve 'Ashcrow' Milner and the Victi.ms team. Server licensed under the <a href="http://www.gnu.org/licenses/agpl-3.0.html">AGPL 3.0 License</a> (<a href="https://github.com/victims/victims-web/">Source</a>)</p>
-        <p><img src="{{ url_for('ui.static', filename='images/victims-button.png') }}" /></p>
-    </div>
-</div>
-{% block tail %}
-    {{ util.fix_csrf() }}
-{% endblock %}
+    {% block tail %}
+        {{ util.fix_csrf() }}
+    {% endblock %}
 </body>
 </html>

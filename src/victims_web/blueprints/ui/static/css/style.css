@@ -3,9 +3,13 @@
   margin: 0;
 } 
 
+html,
 body { 
   font: .8em "Trebuchet MS", Verdana, Arial, Sans-Serif;  
-  background-color: #000;
+  background-color: #fff;
+  margin:0;
+  padding:0;
+  height:100%;
 }
 
 
@@ -17,64 +21,95 @@ a:hover { color: #000; }
 
 #wrap 
 {
-  margin: 20px auto;
-  width: 700px;
-  padding: 10px;
+  min-height:100%;
+  position:relative;
   background-color: #fff;
+  width: 80%;
+  margin-left: 10%;
 }
 
+#wrapheader
+{
+  position:fixed;
+  left:0;
+  display:table;
+  white-space: nowrap;
+  width:100%;
+  top:0;
+  background-color:#fff;
+}
 
 #header 
 {
-  height : 90px;
-  background-color : #000;
+  /*height: 160px;*/
+  top:0;
+  bottom: 0;
+  /*margin-top:20px;*/
+  margin-left:15%;
+  text-align:right;
+  float: left;
 }
-#header h1 { padding-left: 10px; padding-top: 12px; font-size: 25px; color: #FFF; }
-#header h1 a { font-size: 25px; color: #FFF; text-decoration: none;}
-#header h2 { padding-left: 10px; padding-top: 0px; font-size: 19px; color: #FFE51E; }
+
+#header h1 {text-align: center; padding-right: 20px; padding-top: 12px; font-size: 25px; color: #001; }
+#header h1 a {font-size: 75px; color: #001; text-decoration: none; color:#d00;}
+#header h2 { padding-right: 20px; padding-top: 0px; font-size: 19px; color: #001; }
 
 #sessioninfo {
-    padding-right: 10px;
-    color: #C0C0C0;
-    font-size: 16px;
-    font-weight: 600;
-    text-align: right;
+  padding-right: 20px;
+  color: #3B85CA;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: right;
 }
 
 #sessioninfo a {
-    color: #C0C0C0;
+    color: #3B85CA;
+    display:inline-block;
 }
 
 #sessioninfo a:hover {
     color: #FFF;
+    background-color:#3B85CA;
 }
 
 #menu {
   text-align: center;
+  height: 160px;
   margin-top: 10px;
-  font-size : 18px;
+  font-size : 35px;
   font-weight: 600;
-  border: 1px solid #ccc; 
-  background: #eee;
+  border-top: 1px solid #001;
+  border-bottom : 3px solid #001;
+  /*background: #eee;*/
 }
 
 #menu a {
   color : #3B85CA;
   text-decoration : none;
   padding: 10px;
+  margin-top:60px;
+  display:inline-block;
 }
 #menu a:hover {
-  color : #000;
+  color : #fff;
+  background-color:#3B85CA;
 }
 
 
 #content { 
-  text-align: left;
-  margin-top: 5px;
-  padding: 10px;
-  font-size: 14px;
+    padding:10px;
+    padding-bottom:90px;   /* Height of the footer element  -> a touch bigger to include white space*/
+    text-align: left;
+    margin-top: 5px;
+    font-size: 14px;
+    width:80%;
+    margin-left: 10%;
+    padding-top:220px;    /*To place it under the floating header*/
 }
-#content h2 { font-size: 15px; color : #444; }
+
+#content h2 { font-size: 15px; color : #d00 /*#444*/; }
+#content h3 { font-size: 15px; color : #d00 /*#444*/; }
+#content h1 {font-size: 45px; color: #3B85CA}
 
 #content .huge {
   font-size: 40px;
@@ -96,10 +131,16 @@ li.info {
 
 
 #footer { 
-  margin-top: 25px; 
+  height:80px;
+  width: 100%;
+  position:absolute;
+  bottom:0;
+  left:0;
+  border-top: 2px solid #A8A8A8;
+  background:#fff;
   clear: both;
   text-align: center; 
-  color: #777; 
+  color: #777;
 }
 
 #content .massive {
@@ -122,7 +163,8 @@ li.info {
 }
 
 #content div.main {
-  float: left;
+  /*float: left;*/
+  background-color: #fff;
 }
 
 #content div.info {
@@ -132,33 +174,61 @@ li.info {
 
 #statustable
 {
-	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
-	font-size: 12px;
-	//margin: 45px;
-	//width: 480px;
-	text-align: left;
-	border-collapse: collapse;
-	border: 1px solid #FFF;
+  font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+  font-size: 12px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+  border-collapse: collapse;
+  border: 1px solid #FFF;
 }
 
 #statustable th
 {
-	padding: 12px 17px 12px 17px;
-	font-weight: bold;
-    font-size: 30px;
-    color: #000;
-	border-bottom: 1px dashed #000;
+  padding: 12px 17px 12px 17px;
+  font-weight: bold;
+  font-size: 30px;
+  color: #000;
+  border-bottom: 1px dashed #000;
 }
 
 #statustable td
 {
-    font-size: 30px;
-	padding: 7px 17px 7px 17px;
-	color: #000;
+  font-size: 30px;
+  padding: 7px 17px 7px 17px;
+  color: #000;
 }
 
 #statustable tbody tr:hover td
 {
-	color: #339;
-	background: #d0dafd;
+  color: #339;
+  background: #d0dafd;
+}
+
+#searchtable
+{
+  font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+  font-size: 12px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+  border-collapse: collapse;
+  border: 1px solid #FFF;
+}
+
+#searchtable td
+{
+  font-size: 12px;
+  padding: 7px 17px 7px 17px;
+  color: #000;
+}
+
+#searchfrom input
+{
+  font-size: 12px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  border: solid 1px;
+  border-color: #3B85CA;
 }
