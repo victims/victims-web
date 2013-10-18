@@ -223,12 +223,48 @@ li.info {
   color: #000;
 }
 
-#searchfrom input
+#searchForm input
 {
   font-size: 12px;
   margin-left: auto;
   margin-right: auto;
   text-align: center;
   border: solid 1px;
+  border-radius: 25px;
+  border-color: #3B85CA;
+}
+
+#sf input
+{
+  font-size: 12px;
+  padding: 5px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  border: solid 1px;
+  border-radius: 25px;
+  border-color: #3B85CA;
+}
+
+#searchForm select
+{
+  font-size: 12px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  border: solid 1px;
+  border-radius: 25px;
+  border-color: #3B85CA;
+}
+
+#sf select
+{
+  font-size: 12px;
+  padding: 5px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  border: solid 1px;
+  border-radius: 25px;
   border-color: #3B85CA;
 }

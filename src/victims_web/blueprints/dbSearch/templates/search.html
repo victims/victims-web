@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Search{% endblock %}
+{% block head %} 
+	<script type="text/javascript">
+	
+    
+    function showBiggerForm(){
+        var ele = document.getElementById("searchForm");
+        var select = document.getElementById("primarySelect");
+        var search = document.getElementById("primaryBox");
+        var checked = document.getElementById("advSearch");
+        if (ele.style.display=="none"){
+            ele.style.display ="block";
+            search.disabled=true;
+            primarySelect.disabled=true;
+    
+        } else {
+            ele.style.display ="none";
+            search.disabled=false;
+            primarySelect.disabled=false;
+    
+        }
+        console.log(ele.style.display);
+    }
+    
+    
+    </script>
+    
+{% endblock %}
+
+{% block content %}
+    
+    <!-- Basic search section -->
+     <table id='searchtable'>
+     <tr><td>
+    <form method="POST" id="sf">
+    <p>
+        <select id="primarySelect" name='field'>
+        {% for field in orderedStringFields %}
+        <option value="{{ field }}">{{ field|title }}</option>
+            
+        {% endfor %}
+        </select>
+        <input type="search" size="50" id="primaryBox" name="searchString" value="{{ basicString }}"/>
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <input type="submit" value="Search!"/>       
+        Advanced Search<input type="checkbox" name="advSearch" {% if advanced=="block" %} checked='checked'{% endif %} onclick="showBiggerForm()"/> 
+    </p>
+    </td></tr>
+    </table>
+    
+    
+    
+    <!-- Advanced Search Section -->
+    <div id='searchForm' style='display: {{ advanced }}'>
+        
+        <!-- String Fields -->
+       <table id="searchtable">
+        {% for field in orderedStringFields %}        
+        <tr>
+        <td>{{ field|title }}:  </td>
+        <td><input type="search" size="50" {% if field in hashFields %} value="{{hashFields[field]}}" {% else %} value="{{stringFields[field]}}"{% endif %} name="{{ field }}_searchString"/> </td>
+        <td>
+        <select name="{{field}}_searchOption">
+           <option value="contains" title="search {{field}}'s containing the entire string"> contains </option>
+           <option value="exact" title="search {{field}}'s exactly matching the entire string (case insensitive)"> exact match </option>
+           <option value="any" title="search {{field}}'s containing any of the following, delimited by ' '.(space)"> any </option>
+        </select>                  
+        </td>
+        </tr>
+        {% endfor %}   
+       
+       <!-- Checkerbox Fields -->
+       {% for field,dict in checkFields.items() %}
+       <tr>
+       <td> {{ field|title }}: </td>
+       <td> 
+       {% for item,check in dict.items() %}
+       <input type="checkbox" name="{{field}}" value="{{item}}" {% if check %} checked="checked" {% endif %}> {{item|title}}   
+       {% endfor %}
+        </td>
+        </tr>
+       {% endfor %}
+        <!-- Date Field -->
+        <tr>
+        <td>Submitted: 
+        </td>
+        <td>
+        <select name="date_option">
+            <option value="on"> on </option>
+            <option value="before"> before </option>
+            <option value="after"> after </option>
+        </select>        
+        <input name="date_day" size="2" value="{{ dateSearchValues['date_day_val'] }}" pattern="[0-3][0-9]" placeholder="DD"/>-
+        <input name="date_month" size="2" value="{{ dateSearchValues['date_month_val'] }}" pattern="[0,1][0-9]" placeholder="MM"/>-
+        <input name="date_year" size="4" value="{{ dateSearchValues['date_year_val'] }}" pattern="[0-9]{4}" placeholder="YYYY"/>        
+        </td>
+        
+        </tr>
+       </table>
+
+    </div>
+    
+    
+    <!-- Results/Output Section -->
+     <table id="statustable">
+
+        {% if success %}
+        <tr><td>
+        <font color='blue'> {{message}} </font>
+        </td></tr>
+        <tr>
+            <th>Name-Version</th>
+            <th>SHA512 Hash</th>
+          </tr>
+          {% for hash in hashes %}
+          <tr>
+                <td>{{ hash.name }}-{{ hash.version }}</td>
+                <td><a href="{{ url_for('ui.hash', hash=hash.hashes.sha512.combined) }}">            
+                {{hash.hashes.sha512.combined[:10]}}...</a> </td>       
+          </tr>
+          {% endfor %}
+      {% else %}
+        <tr><td>
+        <font color='red'>{{message}}</font>
+        </tr></td>
+      {% endif %}
+      
+    </table>   
+    
+{% endblock %}
