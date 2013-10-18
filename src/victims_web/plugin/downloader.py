@@ -22,6 +22,7 @@
 # SOFTWARE.
 #
 
+from hashlib import md5, sha1
 from logging import getLogger
 from Queue import Queue
 from StringIO import StringIO
@@ -108,3 +109,20 @@ class DownloadThreadPool(object):
         self.queue.put((url, target))
 
 _pool = DownloadThreadPool(3)
+
+
+def checksum(filepath, checksum_type):
+    if checksum_type == 'md5':
+        hasher = md5()
+    elif checksum_type == 'sha1':
+        hasher = sha1()
+
+    buf_size = 1024 * 8
+    file_to_check = file(filepath, 'r')
+    buf = file_to_check.read(buf_size)
+    while len(buf) > 0:
+        hasher.update(buf)
+        buf = file_to_check.read(buf_size)
+
+    file_to_check.close()
+    return hasher.hexdigest()
