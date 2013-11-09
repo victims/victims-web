@@ -40,6 +40,7 @@ setup(
         'Flask-Admin>=1.0.6',
         'Flask-Bcrypt',
         'Flask-Cache',
+        'Flask-Compress',
         'Flask-Login>=0.1.1',
         'Flask-MongoEngine',
         'Flask-SeaSurf',

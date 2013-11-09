@@ -30,6 +30,12 @@ CACHE_NO_NULL_WARNING = True
 CACHE_DEFAULT_TIMEOUT = 60 * 60
 CACHE_THRESHOLD = 20
 
+# Compression Configuration
+COMPRESS_MIMETYPES = ['application/json']
+COMPRESS_LEVEL = 6
+COMPRESS_MIN_SIZE = 500
+COMPRESS_DEBUG = False
+
 # MongoDB Configuration
 MONGODB_SETTINGS = {
     'DB': 'victims',
