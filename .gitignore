@@ -32,8 +32,7 @@ nosetests.xml
 # Translations
 *.mo
 
-# Mr Developer
-.mr.developer.cfg
+# developer files
 .project
 .pydevproject
 testdb/*
