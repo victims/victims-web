@@ -56,12 +56,12 @@ class TestAdmin(UserTestCase):
         Ensure access is managed correctly
         """
 
-        self.visit_all(404)
+        self.visit_all(403)
 
         self._login(self.username, self.password)
         self.visit_all(200)
         self._logout()
 
         self._login(self.nonadmin, self.password)
-        self.visit_all(404)
+        self.visit_all(403)
         self._logout()
