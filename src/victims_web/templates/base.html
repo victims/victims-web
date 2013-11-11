@@ -1,63 +1,164 @@
 {% import 'util.html' as util with context %}
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <title>{% block title %}victims: don't be one{% endblock %}</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-    <link rel="stylesheet" type="text/css" href="{{ url_for('ui.static', filename='css/style.css') }}" media="screen" />
-    {% block head %}{% endblock %}
-</head>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script>window.jQuery || document.write('<script src="{{url_for('ui.static', filename='jquery.js') }}">\x3C/script>')</script>
-<body>
 
-<div id="wrap">
-    <div id="header">
-        <h1><a href="{{ url_for('ui.index') }}">victims</a></h1>
-        <h2>don't be one</h2>
-        <div id="sessioninfo" align="right">
-            {% if current_user and current_user.is_authenticated() %}
-            <b><a href="{{ url_for('auth.user_account') }}">{{ current_user.username }}</a> | </b>
-            <b><a href="{{ url_for('auth.logout_user') }}">logout</a></b>
-            {% else %}
-            <b><a href="{{ url_for('auth.register_user') }}">register</a> | </b>
-            <b><a href="{{ url_for('auth.login_user') }}">login</a></b>
-            {% endif %}
+{% block doc -%}
+<!DOCTYPE html>
+<html{% block html_attribs %}{% endblock html_attribs %}>
+{%- block html %}
+    <head>
+    {%- block head %}
+        <title>{% block title %}{% endblock title %}</title>
+
+        {%- block metas %}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {%- endblock metas %}
+
+        {%- block styles %}
+        <!-- Bootstrap -->
+        <link
+            href="{{bootstrap_find_resource('css/bootstrap.css', cdn='bootstrap')}}"
+            rel="stylesheet"
+            media="screen" />
+
+        <!-- Victims Custom Syles -->
+        <!-- Backwards compat -->
+        <link
+            rel="stylesheet"
+        type="text/css"
+        href="{{ url_for('ui.static', filename='css/style.css') }}"
+        media="screen" />
+        <!-- Bootstrap Based -->
+        <link
+            rel="stylesheet"
+        type="text/css"
+        href="{{ url_for('static', filename='css/victims.css') }}"
+        media="screen" />
+        {%- endblock styles %}
+
+        {%- endblock head %}
+    </head>
+
+    <body{% block body_attribs %}{% endblock body_attribs %}><div id="wrap">
+        {% block body -%}
+        {% block navbar %}
+
+        <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a href="{{ url_for('ui.index') }}" class="navbar-brand">
+                        Victims Project
+                    </a>
+                </div>
+
+                <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+                    <!-- Left Side of Navigation -->
+                    <ul class="nav navbar-nav">
+                        <li>
+                            <a href="{{ url_for('ui.static_page', page='client') }}">Client</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('ui.static_page', page='about') }}">About</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('ui.static_page', page='bugs') }}">Bugs</a>
+                        </li>
+
+                        <!-- Options requiring authenticated session -->
+                        {% if current_user and current_user.is_authenticated() %}
+                        <li>
+                            <a href="{{ url_for('ui.submit_archive') }}">Submit an archive</a>
+                        </li>
+                            <!-- Administrative Options -->
+                            {% if current_user.has_role('moderator')
+                            or current_user.has_role('admin') %}
+                        <li>
+                            <a href="{{ url_for('admin.index') }}">Admin</a>
+                        </li>
+                            {% endif %}
+                        {% endif %}
+                    </ul>
+
+                    <!-- Right Side of Navigation -->
+                    <ul class="nav navbar-nav navbar-right">
+                    {% if current_user and current_user.is_authenticated() %}
+                        <!-- Authenticated Session -->
+                        <li>
+                            <a href="{{ url_for('auth.user_account') }}">{{ current_user.username }}</a>
+                        </li>
+                        <li>
+                            <!-- Log Out button -->
+                            <form class="navbar-form" action="{{ url_for('auth.logout_user') }}" method="GET">
+                                <button type="submit" class="btn btn-danger">Log Out</button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <!-- Unauthenticated Session -->
+                        <li>
+                            <!-- Log In Form -->
+                            <form class="navbar-form" action="{{ url_for('auth.login_user') }}" method="POST">
+                                <div class="form-group">
+                                    <input type="text" placeholder="Username" class="form-control" name="username">
+                                </div>
+                                <div class="form-group">
+                                    <input type="password" placeholder="Password" class="form-control" name="password">
+                                </div>
+                                    <button type="submit" class="btn btn-success">Sign in</button>
+                            </form>
+                        </li>
+                        <!-- Register Button -->
+                        <li>
+                            <form class="navbar-form" action="{{ url_for('auth.register_user') }}" method="GET">
+                                <button type="submit" class="btn btn-primary">Register</button>
+                            </form>
+                        </li>
+                    {% endif %}
+                    </ul>
+                </nav>
+            </div>
         </div>
-    </div>
-    <div id="menu">
-        <a href="{{ url_for('ui.index') }}">Main</a>
-        <a href="{{ url_for('ui.static_page', page='client') }}">Client</a>
-        <a href="{{ url_for('ui.static_page', page='about') }}">About</a>
-        <a href="{{ url_for('ui.static_page', page='bugs') }}">Bugs</a>
-        {% if current_user and current_user.is_authenticated() %}
-        <a href="{{ url_for('ui.submit_archive') }}">Submit an archive</a>
-            {% if current_user.has_role('moderator') or current_user.has_role('admin') %}
-            <a href="{{ url_for('admin.index') }}">Admin</a>
-            {% endif %}
-        {% endif %}
-    </div>
+        {%- endblock navbar %}
 
-    <div id="content">
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <ul class="flashes">
-    {% for category, message in messages %}
-      <li class="{{ category }}">{{ message }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
-    {% block content %}{% endblock %}
-    </div>
+        <div class="container">
+            <!-- Display flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                <div class="alert {{ 'alert-danger' if category == 'error' else 'alert-success'}}">
+                    <strong>[{{ category.title() }}]</strong> {{ message }}
+                </div>
+                    {% endfor %}
+            </ul>
+                {% endif %}
+            {% endwith %}
 
-    <div id="footer">
-        <p>&copy; 2009-2013 Steve 'Ashcrow' Milner and the Victi.ms team. Server licensed under the <a href="http://www.gnu.org/licenses/agpl-3.0.html">AGPL 3.0 License</a> (<a href="https://github.com/victims/victims-web/">Source</a>)</p>
-        <p><img src="{{ url_for('ui.static', filename='images/victims-button.png') }}" /></p>
-    </div>
-</div>
-{% block tail %}
-    {{ util.fix_csrf() }}
-{% endblock %}
-</body>
+            {% block content -%}
+            {%- endblock content %}
+        </div>
+        <!-- End Wrap -->
+        </div>
+
+        <div id="footer">
+            <div class="container">
+                <p class="text-muted credit">
+                &copy; 2009-2013 Steve 'Ashcrow' Milner and the Victi.ms team. Server licensed under the <a href="http://www.gnu.org/licenses/agpl-3.0.html">AGPL 3.0 License</a> (<a href="https://github.com/victims/victims-web/">Source</a>) <img src="{{ url_for('ui.static', filename='images/victims-button.png') }}" />
+                </p>
+            </div>
+        </div>
+
+        {% block scripts %}
+        <script src="{{bootstrap_find_resource('jquery.js', cdn='jquery')}}"></script>
+        <script src="{{bootstrap_find_resource('js/bootstrap.js', cdn='bootstrap')}}"></script>
+        {%- endblock scripts %}
+
+        {% block tail %}{{ util.fix_csrf() }}{% endblock %}
+    {%- endblock body %}
+    </body>
+
+{%- endblock html %}
 </html>
+{% endblock doc -%}

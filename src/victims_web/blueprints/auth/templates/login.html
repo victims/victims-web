@@ -1,17 +1,11 @@
 {% extends "base.html" %}
-
 {% block content %}
-<form method="POST">
-    <table>
-        <tr>
-            <th>Username: </th>
-            <td><input name="username" required></td>
-        </tr>
-        <tr>
-            <th>Password: </th>
-            <td><input name="password" type="password" required></td>
-        </tr>
-    </table>
-    <p><input type="submit" value="Submit"/></p>
-</form>
+<div class="container">
+    <form class="form-user" method="POST">
+        <h2 class="form-user-heading">Please sign in</h2>
+        <input type="text" class="form-control" placeholder="Username" required="" autofocus="" name="username">
+        <input type="password" class="form-control" placeholder="Password" required="" name="password">
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    </form>
+</div>
 {% endblock %}

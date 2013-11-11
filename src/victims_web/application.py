@@ -24,13 +24,16 @@ import os
 from flask import Flask, render_template
 from flask.ext.mongoengine import MongoEngine, MongoEngineSessionInterface
 from flask.ext.seasurf import SeaSurf
-
+from flask.ext.bootstrap import Bootstrap
 
 # Set up the application
 app = Flask('victims_web')
 
 # CSRF protection
 csrf = SeaSurf(app)
+
+# Twitter Bootstrap
+bootstrap = Bootstrap(app)
 
 # configuration
 app.config.from_object('victims_web.config')

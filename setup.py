@@ -39,6 +39,7 @@ setup(
         'Flask>=0.10',
         'Flask-Admin>=1.0.6',
         'Flask-Bcrypt',
+        'Flask-Bootstrap',
         'Flask-Cache',
         'Flask-Login>=0.1.1',
         'Flask-MongoEngine',

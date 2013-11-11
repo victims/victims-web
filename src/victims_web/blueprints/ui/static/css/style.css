@@ -1,28 +1,8 @@
-* {
-  padding: 0;
-  margin: 0;
-} 
-
-body { 
-  font: .8em "Trebuchet MS", Verdana, Arial, Sans-Serif;  
-  background-color: #000;
-}
-
-
 a {
   text-decoration: none;
   color: #3B85CA;
 }
 a:hover { color: #000; }
-
-#wrap 
-{
-  margin: 20px auto;
-  width: 700px;
-  padding: 10px;
-  background-color: #fff;
-}
-
 
 #header 
 {
@@ -39,14 +19,6 @@ a:hover { color: #000; }
     font-size: 16px;
     font-weight: 600;
     text-align: right;
-}
-
-#sessioninfo a {
-    color: #C0C0C0;
-}
-
-#sessioninfo a:hover {
-    color: #FFF;
 }
 
 #menu {
@@ -94,14 +66,6 @@ li.info {
   color: black;
 }
 
-
-#footer { 
-  margin-top: 25px; 
-  clear: both;
-  text-align: center; 
-  color: #777; 
-}
-
 #content .massive {
   font-weight: bold;
   font-size: 52px;
@@ -132,10 +96,7 @@ li.info {
 
 #statustable
 {
-	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
 	font-size: 12px;
-	//margin: 45px;
-	//width: 480px;
 	text-align: left;
 	border-collapse: collapse;
 	border: 1px solid #FFF;
@@ -157,8 +118,3 @@ li.info {
 	color: #000;
 }
 
-#statustable tbody tr:hover td
-{
-	color: #339;
-	background: #d0dafd;
-}
