@@ -84,40 +84,23 @@
                     </ul>
 
                     <!-- Right Side of Navigation -->
-                    <ul class="nav navbar-nav navbar-right">
-                    {% if current_user and current_user.is_authenticated() %}
-                        <!-- Authenticated Session -->
-                        <li>
-                            <a href="{{ url_for('auth.user_account') }}">{{ current_user.username }}</a>
-                        </li>
-                        <li>
-                            <!-- Log Out button -->
-                            <form class="navbar-form" action="{{ url_for('auth.logout_user') }}" method="GET">
-                                <button type="submit" class="btn btn-danger">Log Out</button>
-                            </form>
-                        </li>
-                    {% else %}
-                        <!-- Unauthenticated Session -->
-                        <li>
-                            <!-- Log In Form -->
-                            <form class="navbar-form" action="{{ url_for('auth.login_user') }}" method="POST">
-                                <div class="form-group">
-                                    <input type="text" placeholder="Username" class="form-control" name="username">
-                                </div>
-                                <div class="form-group">
-                                    <input type="password" placeholder="Password" class="form-control" name="password">
-                                </div>
-                                    <button type="submit" class="btn btn-success">Sign in</button>
-                            </form>
-                        </li>
+                    <ul class="nav navbar-nav navbar-right"><div class="btn-group">
+                        {% if current_user and current_user.is_authenticated() %} <!-- Authenticated Session -->
+                        <button type="button" class="btn btn-primary navbar-btn dropdown-toggle" data-toggle="dropdown">
+                            <span class="glyphicon glyphicon-user"/></span> {{ current_user.username }} <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="{{ url_for('auth.user_account') }}">Account Details</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{{ url_for('auth.logout_user') }}">Log Out</a></li>
+                        </ul>
+                        {% else %} <!-- Unauthenticated Session -->
+                        <!-- Log In Button -->
+                        <a type="button" href="{{ url_for('auth.login_user') }}" class="btn btn-success navbar-btn">Log In</a>
                         <!-- Register Button -->
-                        <li>
-                            <form class="navbar-form" action="{{ url_for('auth.register_user') }}" method="GET">
-                                <button type="submit" class="btn btn-primary">Register</button>
-                            </form>
-                        </li>
-                    {% endif %}
-                    </ul>
+                        <a type="button" href="{{ url_for('auth.register_user') }}" class="btn btn-info navbar-btn">Register</a>
+                        {% endif %}
+                    </div></ul>
                 </nav>
             </div>
         </div>
@@ -126,21 +109,21 @@
         <div class="container">
             <!-- Display flash messages -->
             {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                <div class="alert {{ 'alert-danger' if category == 'error' else 'alert-success'}}">
-                    <strong>[{{ category.title() }}]</strong> {{ message }}
-                </div>
-                    {% endfor %}
-            </ul>
-                {% endif %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-dismissable {{ 'alert-danger' if category == 'error' else 'alert-success'}}">
+<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                <strong>[{{ category.title() }}]</strong> {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
             {% endwith %}
 
             {% block content -%}
             {%- endblock content %}
         </div>
-        <!-- End Wrap -->
-        </div>
+
+        </div><!-- End Wrap -->
 
         <div id="footer">
             <div class="container">
