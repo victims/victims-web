@@ -1,21 +1,20 @@
 {% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 
 {% block title %}register{% endblock %}
 
 {% block content %}
-<form method="POST" action="{{ url_for('.register_user') }}">
-    <table>
-            {% for fieldname in ['username', 'password', 'verify_password', 'email'] %}
-            <tr>
-                {% set field = form._fields[fieldname]%}
-                <th>{{ field.label }}</th>
-                <td>{{ field }}</td>
-            </tr>
-            {% endfor %}
-    </table>
+<form class="form form-vertical" method="post" role="form" action="{{ url_for('.register_user') }}">
+    {% for fieldname in ['username', 'password', 'verify_password', 'email'] %}
+        {% set field = form._fields[fieldname]%}
+        {{ wtf.form_field(field) }}
+    {% endfor %}
+    {{ wtf.form_field(form.recaptcha) }}
     <br>
-    <p>{{ form.recaptcha }}</p>
-    <br>
-    <input type="submit" value="Register" />
+    <div class="container" align="right">
+        <a type="button" action="{{ url_for('ui.index') }}" class="btn btn-danger">Cancel</a>
+        <button type="submit" class="btn btn-info">Register</button>
+
+    </div>
 </form>
 {% endblock %}
