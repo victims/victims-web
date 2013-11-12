@@ -26,7 +26,7 @@ from flask.ext.login import fresh_login_required, login_required, current_user
 from mongoengine import ValidationError
 
 from victims_web.handlers.forms import (
-    AccountEditForm, RegistrationForm, flash_errors)
+    RegistrationForm, flash_errors, validate_password_strength)
 from victims_web.handlers.security import login, logout, safe_redirect_url
 from victims_web.user import create_user, get_account
 
@@ -62,6 +62,13 @@ def logout_user():
     return redirect(url_for('ui.index'))
 
 
+FIELD_KEYS = {
+    'PASSWORD': 'password',
+    'EMAIL': 'email',
+    'SECRET': 'secret',
+}
+
+
 @auth.route('/account', methods=['GET'])
 @login_required
 def user_account():
@@ -71,48 +78,63 @@ def user_account():
         'email': account.email,
         'apikey': str(account.apikey),
         'secret': str(account.secret),
+        'fields': FIELD_KEYS,
     }
     return render_template('account.html', **content)
 
 
-@auth.route('/account/edit', methods=['GET', 'POST'])
+def user_edit_password(account):
+
+    password = request.form.get('password', None)
+    verfiy_password = request.form.get('verify_password', None)
+
+    if password is None:
+        raise ValueError('Invalid Password.')
+
+    if password != verfiy_password:
+        raise ValueError('Passwords do not match.')
+
+    if password == current_user.username:
+        raise ValueError('Password can not be the same as the username.')
+
+    validate_password_strength(password)
+    account.set_password(password)
+
+
+@auth.route('/account/edit', methods=['POST'])
 @login_required
 @fresh_login_required
 def user_edit():
-    form = AccountEditForm()
+    try:
+        account = get_account(current_user.username)
 
-    if form.validate_on_submit():
-        try:
-            account = get_account(current_user.username)
-            if form.change_password.data:
-                if form.password.data == current_user.username:
-                    raise ValidationError(
-                        'Password can not be the same as the username.')
-                account.set_password(form.password.data)
+        field = request.form.get('field', None)
 
-            if form.change_email.data:
-                email = form.email.data.strip()
-                account.email = email if len(email) > 0 else None
+        if field is None:
+            raise ValidationError('Update was requested for an unknown field.')
 
-            if form.regenerate.data:
-                account.update_api_tokens()
+        if field == FIELD_KEYS['PASSWORD']:
+            user_edit_password(account)
+        elif field == FIELD_KEYS['EMAIL']:
+            email = request.form.get('email', '').strip()
+            account.email = email if len(email) > 0 else None
+        elif field == FIELD_KEYS['SECRET']:
+            account.update_api_tokens()
 
-            account.validate()
-            account.save()
-            flash('Account information was successfully updated!',
-                  category='info')
-            return redirect(url_for('auth.user_account'))
-        except ValueError as ve:
-            flash(ve.message, category='error')
-        except ValidationError as ve:
-            invalids = ','.join([f.title() for f in ve.errors.keys()])
-            msg = 'Invalid: %s' % (invalids)
-            flash(escape(msg), category='error')
-        except Exception as ex:
-            current_app.logger.info(ex)
-            flash('An unknown error has occured.', category='error')
+        account.validate()
+        account.save()
+        flash('Account information was successfully updated!', category='info')
+    except ValueError as ve:
+        flash(ve.message, category='error')
+    except ValidationError as ve:
+        invalids = ','.join([f.title() for f in ve.errors.keys()])
+        msg = 'Invalid: %s' % (invalids)
+        flash(escape(msg), category='error')
+    except Exception as ex:
+        current_app.logger.info(ex)
+        flash('An unknown error has occured.', category='error')
 
-    return render_template('account_edit.html', form=form)
+    return redirect(url_for('auth.user_account'))
 
 
 @auth.route('/register', methods=['GET', 'POST'])

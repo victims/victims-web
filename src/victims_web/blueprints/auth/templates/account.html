@@ -1,24 +1,115 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <table>
-        <tr>
-            <th>Username: </th>
-            <td>{{ username }}</td>
-        </tr>
-        <tr>
-            <th>Email: </th>
-            <td>{{ email }}</td>
-        </tr>
-        <tr>
-            <th>API Key: </th>
-            <td>{{ apikey }}</td>
-        </tr>
-        <tr>
-            <th>Client Secret Key: </th>
-            <td>{{ secret }}</td>
-        </tr>
-    </table>
-    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-    <a href="{{ url_for('auth.user_edit') }}"><input type="button" name="edit" value="Edit" /></a>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <strong class="panel-title">User</strong>
+        <p class="navbar-right"><a class="btn btn-xs btn-danger" href="#editPassword" data-toggle="modal">
+            <i class="glyphicon glyphicon-edit"></i> edit passowrd</a>
+        </p>
+    </div>
+    <div class="panel-body">
+        {{ username }}
+    </div>
+
+    <div class="panel-heading">
+        <strong class="panel-title">Email</strong>
+        <p class="navbar-right"><a class="btn btn-xs btn-danger" href="#editEmail" data-toggle="modal">
+            <i class="glyphicon glyphicon-edit"></i> update email</a>
+        </p>
+    </div>
+    <div class="panel-body">
+        {{ email }}
+    </div>
+
+    <div class="panel-heading">
+        <strong class="panel-title">API Key</strong>
+    </div>
+    <div class="panel-body">
+        {{ apikey }}
+    </div>
+
+    <div class="panel-heading">
+        <strong class="panel-title">Client Secret Key</strong>
+        <p class="navbar-right"><a class="btn btn-xs btn-danger" href="#regenerateSecret" data-toggle="modal">
+            <i class="glyphicon glyphicon-refresh"></i> regenerate key</a>
+        </p>
+    </div>
+    <div class="panel-body">
+        {{ secret }}
+    </div>
+</div>
+
+<!-- .#editEmail -->
+<div class="modal fade" id="editEmail" tabindex="-1" role="form" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Update Email Address</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-user" method="POST" id="modal-form-email" action="{{ url_for('auth.user_edit')}}">
+                    <input type="email" class="form-control" placeholder="New Email" required="" autofocus="" name="email">
+                    <input type="hidden" value="{{ fields['EMAIL'] }}" name="field">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /.#editEmail -->
+
+<!-- .#editPassword -->
+<div class="modal fade" id="editPassword" tabindex="-1" role="form" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Update Password</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-user" method="POST" id="modal-form-password" action="{{ url_for('auth.user_edit')}}">
+                    <input type="password" class="form-control" placeholder="Password" required="" name="password">
+                    <input type="password" class="form-control" placeholder="Verify Password" required="" name="verify_password">
+                    <input type="hidden" value="{{ fields['PASSWORD'] }}" name="field">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /.#editPassword -->
+
+<!-- .#regenerateSecret -->
+<div class="modal fade" id="regenerateSecret" tabindex="-1" role="dialog" aria-labelledby="regenerateSecretLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="regenerateSecretLabel">Regenerate Secret</h4>
+            </div>
+            <div class="modal-body">
+                Do you want to regenerate client secret?
+                <form class="form-user" method="POST" id="modal-form-password" action="{{ url_for('auth.user_edit')}}">
+                    <input type="hidden" value="{{ fields['SECRET'] }}" name="field">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+                        <button type="submit" class="btn btn-primary">Yes</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /.#regenerateSecret -->
 {% endblock %}

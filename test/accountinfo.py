@@ -58,7 +58,7 @@ class TestAccountInfo(UserTestCase):
         """
         Helper function to attempt account details update.
         """
-        (_, csrf_token) = self.visit('/account/edit')
+        (_, csrf_token) = self.visit('/account')
 
         form_data['_csrf_token'] = csrf_token
 
@@ -75,16 +75,14 @@ class TestAccountInfo(UserTestCase):
         new_pass = self.password[::-1]
         new_email = 'updated@testcase.com'
         form_data = {
-            'current_password': self.password,
-            'change_password': 'on',
             'password': new_pass,
             'verify_password': new_pass,
-            'change_email': 'on',
             'email': new_email,
-            'regenerate': 'on',
         }
 
-        self.update_account(form_data)
+        for field in ['password', 'email', 'secret']:
+            form_data['field'] = field
+            self.update_account(form_data)
 
         updated_account = get_account(self.username)
         assert updated_account.email == new_email
