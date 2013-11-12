@@ -1,36 +1,31 @@
 {% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 
 {% block content %}
 
-<form method="POST" enctype="multipart/form-data" action="{{ url_for('ui.submit_archive') }}" >
+<form class="form form-vertical" method="POST" enctype="multipart/form-data" action="{{ url_for('ui.submit_archive') }}" >
     {{ form.hidden_tag() }}
-    <table>
-        <tr>
-            <th>{{ form.cves.label }}</th>
-            <td>{{ form.cves }}<td>
-        </tr>
-        <tr>
-            <th>{{ form.archive.label }}</th>
-            <td>{{ form.archive }}<td>
-        </tr>
-        <tr>
-            <th>{{ form.group.label }}</th>
-            <td>{{ form.group }}<td>
-        </tr>
-        {% for field in form._fields %}
-            {% set group = field.split('_',1)[0] %}
-            {% if group in groups %}
-                {% set f = form._fields[field] %}
-        <tr class="{{ group }}" style="display: none;">
-            <th>{{ f.label }}</th>
-            <td>{{ f }}</td>
-        </tr>
-            {% endif %}
-        {% endfor%}
-    </table>
-    <input type="submit" value="submit">
-</form>
+    {{ wtf.form_field(form.cves) }}
+    {{ wtf.form_field(form.archive) }}
+    {{ wtf.form_field(form.group) }}
 
+    {% for field in form._fields %}
+    {% set group = field.split('_',1)[0] %}
+    {% if group in groups %}
+    {% set f = form._fields[field] %}
+    <div class="{{ group }}" style="display: none;">
+        {{ wtf.form_field(f) }}
+    </div>
+    {% endif %}
+    {% endfor%}
+    <div class="container" align="right">
+        <button type="submit" class="btn btn-success">Submit</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block tail %}
+{{ super() }}
 <script type=text/javascript>
     $('select').change(function() {
             var group = "";
@@ -42,6 +37,4 @@
             $(group).show();
             })
 </script>
-
-
-{% endblock %}
+{% endblock tail %}
