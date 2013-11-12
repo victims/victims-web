@@ -154,6 +154,18 @@ class HasFile():
             raise ValidationError('No file provided')
 
 
+def validate_password_strength(password):
+    for char in password:
+        cnt = password.count(char)
+        if cnt / float(len(password)) > 0.3:
+            raise ValueError(
+                'You can not use the same '
+                'char for more than 30% of the password')
+
+    if len(password) <= 8:
+        raise ValueError('Password too simple.')
+
+
 class Password():
     """
     Password Validator
@@ -170,15 +182,10 @@ class Password():
                 raise ValidationError(
                     'Password can not be the same as the username.')
 
-        for char in password:
-            cnt = password.count(char)
-            if cnt / float(len(password)) > 0.3:
-                raise ValidationError((
-                    'You can not use the same '
-                    'char for more than 30% of the password'))
-
-        if len(password) <= 8:
-            raise ValidationError('Password too simple.')
+        try:
+            validate_password_strength(password)
+        except ValueError as ve:
+            raise ValidationError(ve.message)
 
 
 class UserName():
