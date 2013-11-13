@@ -71,7 +71,7 @@
                         <!-- Options requiring authenticated session -->
                         {% if current_user and current_user.is_authenticated() %}
                         <li>
-                            <a href="{{ url_for('ui.submit_archive') }}">Submit an archive</a>
+                            <a href="{{ url_for('ui.submit_archive') }}">Submit Archive</a>
                         </li>
                             <!-- Administrative Options -->
                             {% if current_user.has_role('moderator')
@@ -90,9 +90,9 @@
                             <span class="glyphicon glyphicon-user"/></span> {{ current_user.username }} <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu" role="menu">
-                            <li><a href="{{ url_for('auth.user_account') }}">Account Details</a></li>
+                            <li><a href="{{ url_for('auth.user_account') }}"><span class="glyphicon glyphicon-wrench"/></span> Account Details</a></li>
                             <li class="divider"></li>
-                            <li><a href="{{ url_for('auth.logout_user') }}">Log Out</a></li>
+                            <li><a href="{{ url_for('auth.logout_user') }}"><span class="glyphicon glyphicon-off"/></span> Log Out</a></li>
                         </ul>
                         {% else %} <!-- Unauthenticated Session -->
                         <!-- Log In Button -->
@@ -105,7 +105,6 @@
             </div>
         </div>
         {%- endblock navbar %}
-
         <div class="container">
             <!-- Display flash messages -->
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -121,8 +120,8 @@
 
             {% block content -%}
             {%- endblock content %}
-        </div>
 
+        </div>
         </div><!-- End Wrap -->
 
         <div id="footer">
