@@ -5,9 +5,34 @@
 {% block content %}
 <h1>Victims Clients</h1>
 <p>
-The following clients are available to consume the victims database.
+The following stable clients are available to consume the victims database.
 </p>
-<table class="table table-hover" id="clienttable">
+<table class="table table-hover" id="clienttable-stable">
+    <thead>
+        <tr>
+            <th>&nbsp;</th>
+            <th>Site</th>
+            <th>Documentation</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tr>
+        <td>Maven Enforcer Plugin</td>
+        <td><a href="https://github.com/victims/victims-enforcer" target="_blank">github</a></td>
+        <td><a href="https://github.com/victims/victims-enforcer/tree/master/sample" target="_blank">sample app</a></td>
+        <td>stable</td>
+    </tr>
+    <tr>
+        <td>Ant Plugin</td>
+        <td><a href="https://github.com/victims/victims-plugin-ant" target="_blank">github</a></td>
+        <td><a href="https://github.com/victims/victims-doc/blob/master/victims-plugin-ant/Ant_Task_User_Guide/Victi.ms--Ant_Task_User_Guide-en-US.pdf" target="_blank">draft user guide</a></td>
+        <td>stable</td>
+    </tr>
+</table>
+<p>
+The following clients are a work in progress, that generally function, but are not intended for production use yet.
+</p>
+<table class="table table-hover" id="clienttable-wip">
     <thead>
         <tr>
             <th>&nbsp;</th>
@@ -21,18 +46,6 @@ The following clients are available to consume the victims database.
         <td><a href="https://github.com/victims/victims-client-java" target="_blank">github</a></td>
         <td>none</td>
         <td>work in progress</td>
-    </tr>
-    <tr>
-        <td>Maven Plugin</td>
-        <td><a href="https://github.com/victims/victims-enforcer" target="_blank">github</a></td>
-        <td><a href="https://github.com/victims/victims-enforcer/tree/master/sample" target="_blank">sample app</a></td>
-        <td>stable</td>
-    </tr>
-    <tr>
-        <td>Ant Plugin</td>
-        <td><a href="https://github.com/victims/victims-plugin-ant" target="_blank">github</a></td>
-        <td><a href="https://github.com/victims/victims-doc/blob/master/victims-plugin-ant/Ant_Task_User_Guide/Victi.ms--Ant_Task_User_Guide-en-US.pdf" target="_blank">draft user guide</a></td>
-        <td>stable</td>
     </tr>
     <tr>
         <td>Jenkins Plugin</td>
