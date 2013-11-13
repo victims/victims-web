@@ -41,7 +41,6 @@ def update_front_page_stats():
     # data will contain hashes, hashes_jars, hashes_eggs etc.
     groups = SUBMISSION_GROUPS.keys()
     groups.sort()
-    groups = ['all'] + groups
     data = {'groups': groups, 'stats': {}}
     for group in groups:
         stat = {}
