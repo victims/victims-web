@@ -3,11 +3,6 @@ body {
     height: 100%;
 }
 
-.statustable {
-    padding: 40px 15px;
-    text-align: center;
-}
-
 #wrap {
     min-height: 100%;
     height: auto;
