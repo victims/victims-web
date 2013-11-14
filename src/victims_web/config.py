@@ -1,5 +1,5 @@
 from os import environ, makedirs
-from os.path import isfile, isdir
+from os.path import isfile, isdir, join
 from datetime import timedelta
 from imp import load_source
 from logging import getLogger, DEBUG
@@ -7,8 +7,11 @@ from logging import getLogger, DEBUG
 _ENFORCE = True
 _ENFORCE_KEYS = ['SECRET_KEY', 'DEBUG', 'TESTING']
 
+# Base Dir
+VICTIMS_BASE_DIR = environ.get('VICTIMS_BASE_DIR', './victims-web-runtime')
+
 LOGGER = getLogger()
-LOG_FOLDER = environ.get('VICTIMS_LOG_DIR', './logs')
+LOG_FOLDER = environ.get('VICTIMS_LOG_DIR', join(VICTIMS_BASE_DIR, 'logs'))
 LOG_LEVEL = DEBUG
 
 DEBUG = True
@@ -17,15 +20,15 @@ SECRET_KEY = b'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 PERMANENT_SESSION_LIFETIME = timedelta(1)
 
 # File upload
-UPLOAD_FOLDER = "./uploads"
+UPLOAD_FOLDER = join(VICTIMS_BASE_DIR, "uploads")
 ALLOWED_EXTENSIONS = set(['egg', 'jar', 'gem'])
 
 # File download
-DOWNLOAD_FOLDER = "./downloads"
+DOWNLOAD_FOLDER = join(VICTIMS_BASE_DIR, "downloads")
 
 # Cache Configuration
 CACHE_TYPE = 'null'
-CACHE_DIR = environ.get('VICTIMS_CACHE_DIR', './cache')
+CACHE_DIR = environ.get('VICTIMS_CACHE_DIR', join(VICTIMS_BASE_DIR, 'cache'))
 CACHE_NO_NULL_WARNING = True
 CACHE_DEFAULT_TIMEOUT = 60 * 60
 CACHE_THRESHOLD = 20
