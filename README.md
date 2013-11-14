@@ -23,11 +23,11 @@ Make sure the following are in your system-path:
 Once you have cloned your repository, and changed into it you can just source the _start-dev-env.sh_ script. The first time you do this, it will take a bit as virtual environment setup will download all required dependices into a new env.
 #### Activate the environment
 ```sh
-source ./contrib/scripts/start-dev-env.sh
+source ./contrib/activate-dev-env
 ```
 Once active, you should see _victims.dev_ prefixed to your terminal prompt. For example:
 ```sh
-[abn@whippersnapper victims-web (master)]$ source ./contrib/scripts/start-dev-env.sh 
+[abn@whippersnapper victims-web (master)]$ source ./contrib/activate-dev-env
 victims.dev[abn@whippersnapper victims-web (master)]$ 
 ```
 #### Run the test suite to see if everything is in order
