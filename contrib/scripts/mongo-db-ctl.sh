@@ -17,7 +17,7 @@ if ! type -p mongod > /dev/null; then
 fi
 
 BASE=$(pwd)
-TEST_DBPATH=$BASE/testdb
+TEST_DBPATH=$BASE/dev-env-database
 LOGFILE=$TEST_DBPATH/victims.mongo.log
 LOCKFILE="${TEST_DBPATH}/mongod.lock"
 
