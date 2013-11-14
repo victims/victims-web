@@ -35,11 +35,9 @@ nosetests.xml
 # developer files
 .project
 .pydevproject
-testdb/*
-victims.dev/*
 
-# application default directories
-cache/*
-logs/*
-uploads/*
-downloads/*
+# developer environment
+dev-env*
+
+# runtime files
+victims-web-runtime/*
