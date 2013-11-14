@@ -1,0 +1,17 @@
+# flask and flask plugins
+Flask>=0.10
+Flask-Admin>=1.0.7
+Flask-Bcrypt
+Flask-Bootstrap
+Flask-Cache
+Flask-Login>=0.1.1
+Flask-MongoEngine
+Flask-SeaSurf
+Flask-SSLify
+Flask-Views
+Flask-WTF>=0.9.1
+
+# other requirements
+blinker
+PyYAML
+requests

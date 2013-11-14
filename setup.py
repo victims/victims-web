@@ -20,35 +20,25 @@
 Source build and installation script.
 """
 
+from pip.req import parse_requirements
 from setuptools import setup
+
+
+def extract_requirements(filename):
+    return [str(r.req) for r in parse_requirements(filename)]
+
+
+install_requires = extract_requirements('requirements.txt')
+test_require = extract_requirements('test-requirements.txt')
 
 
 setup(
     name='victims_web',
     version='2.0.1',
-    description='The victi.ms language package to CVE service.',
+    description='Victims Web Service',
     author='Steve Milner',
-    url='http://www.victi.ms',
+    url='http://victi.ms',
 
-    dependency_links=[
-        'https://github.com/mrjoes/flask-admin/tarball/f164aeb/'
-        + '#egg=Flask-Admin-1.0.7dev',
-    ],
-
-    install_requires=[
-        'Flask>=0.10',
-        'Flask-Admin>=1.0.6',
-        'Flask-Bcrypt',
-        'Flask-Bootstrap',
-        'Flask-Cache',
-        'Flask-Login>=0.1.1',
-        'Flask-MongoEngine',
-        'Flask-SeaSurf',
-        'Flask-SSLify',
-        'Flask-Views',
-        'Flask-WTF>=0.9.1',
-        'blinker',
-        'PyYAML',
-        'requests',
-    ],
+    install_requires=install_requires,
+    tests_require=test_require,
 )
