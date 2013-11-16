@@ -72,6 +72,7 @@ from victims_web.blueprints.auth import auth
 from victims_web.cache import cache
 from victims_web.handlers.security import setup_security
 from victims_web.handlers.sslify import VSSLify
+from victims_web.handlers.task import taskman
 from victims_web.plugin.crosstalk import session_reaper
 
 # Custom SSLify
@@ -95,7 +96,7 @@ setup_security(app)
 @app.after_request
 def reap_sessions(response):
     if session.modified:
-        session_reaper.reap()
+        taskman.add_task(session_reaper.reap)
     return response
 
 
