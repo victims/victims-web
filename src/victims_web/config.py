@@ -48,6 +48,9 @@ SESSION_PROTECTION = 'strong'
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_NAME = 'victims'
 
+# MongoEngine Session reaps are performed every SESSION_REAP_PERIOD
+SESSION_REAP_PERIOD = timedelta(days=1)
+
 # Cookie
 REMEMBER_COOKIE_NAME = 'remember_token'
 REMEMBER_COOKIE_DURATION = timedelta(1)

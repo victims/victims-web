@@ -76,6 +76,7 @@ class IndexPageMonitor():
 
 
 class SessionReaper():
+    DEFAULT_SESSION_REAP_PERIOD = timedelta(days=1)
 
     def __init__(self):
         self.last_reap = _CONFIG.sessions_last_reap
@@ -93,7 +94,9 @@ class SessionReaper():
         _CONFIG.sessions_last_reap = value
 
     def reap(self):
-        if datetime.utcnow() - self.last_reap > timedelta(days=1):
+        window = current_app.config.get(
+            'SESSION_REAP_PERIOD', self.DEFAULT_SESSION_REAP_PERIOD)
+        if datetime.utcnow() - self.last_reap > window:
             current_app.session_interface.cls.objects(
                 expiration__lt=datetime.utcnow()
             ).delete()
