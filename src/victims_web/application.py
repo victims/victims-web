@@ -21,7 +21,7 @@ Module which results with a ready to use wsgi application.
 import logging.config
 import os
 
-from flask import Flask, render_template
+from flask import Flask, render_template, session
 from flask.ext.mongoengine import MongoEngine, MongoEngineSessionInterface
 from flask.ext.seasurf import SeaSurf
 from flask.ext.bootstrap import Bootstrap
@@ -72,6 +72,7 @@ from victims_web.blueprints.auth import auth
 from victims_web.cache import cache
 from victims_web.handlers.security import setup_security
 from victims_web.handlers.sslify import VSSLify
+from victims_web.plugin.crosstalk import session_reaper
 
 # Custom SSLify
 sslify = VSSLify(app)
@@ -89,6 +90,13 @@ for submit in SUBMISSION_ROUTES:
 
 # SetUp identity management
 setup_security(app)
+
+
+@app.after_request
+def reap_sessions(response):
+    if session.modified:
+        session_reaper.reap()
+    return response
 
 
 @app.errorhandler(403)
