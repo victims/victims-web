@@ -85,8 +85,6 @@ class SessionReaper():
 
     @property
     def last_reap(self):
-        if not _CONFIG.sessions_last_reap:
-            self.last_reap = datetime.utcnow()
         return _CONFIG.sessions_last_reap
 
     @last_reap.setter
@@ -96,7 +94,8 @@ class SessionReaper():
     def reap(self):
         window = current_app.config.get(
             'SESSION_REAP_PERIOD', self.DEFAULT_SESSION_REAP_PERIOD)
-        if datetime.utcnow() - self.last_reap > window:
+        if self.last_reap is None \
+                or datetime.utcnow() - self.last_reap > window:
             current_app.session_interface.cls.objects(
                 expiration__lt=datetime.utcnow()
             ).delete()
