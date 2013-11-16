@@ -20,6 +20,10 @@ Cross Talk plugin
 This plugin allows for different instances of the app to communicate.
 """
 
+from datetime import datetime, timedelta
+
+from flask import current_app
+
 from victims_web.config import SUBMISSION_GROUPS
 from victims_web.handlers.task import taskman
 from victims_web.models import Hash, Submission
@@ -71,4 +75,30 @@ class IndexPageMonitor():
         return _CONFIG.front_page_stats
 
 
+class SessionReaper():
+
+    def __init__(self):
+        self.last_reap = _CONFIG.sessions_last_reap
+        if not self.last_reap:
+            self.last_reap = datetime.utcnow()
+
+    @property
+    def last_reap(self):
+        if not _CONFIG.sessions_last_reap:
+            self.last_reap = datetime.utcnow()
+        return _CONFIG.sessions_last_reap
+
+    @last_reap.setter
+    def last_reap(self, value):
+        _CONFIG.sessions_last_reap = value
+
+    def reap(self):
+        if datetime.utcnow() - self.last_reap > timedelta(days=1):
+            current_app.session_interface.cls.objects(
+                expiration__lt=datetime.utcnow()
+            ).delete()
+            self.last_reap = datetime.utcnow()
+
+
 indexmon = IndexPageMonitor()
+session_reaper = SessionReaper()
