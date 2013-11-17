@@ -69,7 +69,9 @@ def index():
 
 @cache.cached()
 def hashes(groups):
-    hashes = Hash.objects(status='RELEASED', group__in=groups)
+    hashes = Hash.objects(
+        status='RELEASED', group__in=groups
+    ).only('name', 'version', 'hashes.sha512.combined')
     return render_template('hashes.html', hashes=hashes)
 
 
