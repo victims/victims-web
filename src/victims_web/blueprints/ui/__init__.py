@@ -33,6 +33,7 @@ from victims_web.handlers.forms import ArchiveSubmit, flash_errors
 from victims_web.models import Hash
 from victims_web.plugin.crosstalk import indexmon
 from victims_web.submissions import submit, upload
+from victims_web.util import groups
 
 
 ui = Blueprint(
@@ -66,19 +67,34 @@ def index():
     return render_template('index.html', **get_data())
 
 
-@ui.route('/hashes/', methods=['GET'])
-@cache.memoize()
-def hashes(format=None):
-    hashes = Hash.objects(status='RELEASED')
-
-    group = request.args.get('group', 'all')
-    if group != 'all':
-        if format not in Hash.objects.distinct('group'):
-            flash('Group of hashes not found', 'error')
-        else:
-            hashes = hashes.filter(group=group)
-
+@cache.cached()
+def hashes(groups):
+    hashes = Hash.objects(status='RELEASED', group__in=groups)
     return render_template('hashes.html', hashes=hashes)
+
+
+@ui.route('/hashes/<group>/', methods=['GET'])
+def hashes_singlegroup(group):
+    if group not in groups():
+        flash(
+            '%s is not a known group. Displaying all hashes.' % (group),
+            'error')
+        return render_template('hashes.html', hashes=[])
+    return hashes([group])
+
+
+@ui.route('/hashes/', methods=['GET'])
+def hashes_multigroup():
+    # expect a comma seperated arg
+    _groups = request.args.get('groups')
+
+    if _groups is None:
+        # default to all groups
+        _groups = groups()
+    else:
+        _groups = [str(g.strip()) for g in _groups.split(',')]
+
+    return hashes(_groups)
 
 
 @ui.route('/hash/<hash>/', methods=['GET'])
