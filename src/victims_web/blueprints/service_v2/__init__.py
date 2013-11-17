@@ -166,13 +166,7 @@ def update_for_group(group, since):
         )
         fields = None
         if request.args.get('fields', None):
-            fields = []
-            for field in request.args.get(
-                    'fields').replace(' ', '').split(','):
-                inmodel = Hash.fieldname(field)
-                if inmodel:
-                    fields.append(inmodel)
-
+            fields = request.args.get('fields').replace(' ', '').split(',')
             items = items.only(*fields)
         return stream_items(items, fields)
     except Exception as e:
