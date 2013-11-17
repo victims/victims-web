@@ -37,23 +37,22 @@
             </tr>
         </table>
 
+        {% set active_alg = 'sha512' %}
         <ul class="nav nav-tabs">
             {% for alg in hash.hashes.keys() %}
-            <li>
+            <li{{ ' class=active' if alg.lower() == active_alg else ''  }}>
                 <a href="#{{ alg }}" data-toggle="tab">{{ alg.upper() }}</a>
             </li>
             {% endfor %}
         </ul>
 
         <div class="tab-content">
-            {% set active=' active' %}
             {% for alg in hash.hashes.keys() %}
-            <div class="tab-pane{{ active }}" id="{{ alg }}">
+            <div class="tab-pane{{ ' active' if alg.lower() == active_alg else ''  }}" id="{{ alg }}">
                 <div class="well well-sm list-group-item-text" style="word-wrap: break-word;">
                     {{ hash.hashes[alg].combined }}
                 </div>
             </div>
-            {% set active = '' %}
             {% endfor %}
         </div>
     </div>
