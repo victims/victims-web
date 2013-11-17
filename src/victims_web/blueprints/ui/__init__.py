@@ -63,6 +63,8 @@ def index():
 
     if indexmon.refreshed_flag:
         cache.delete(_cache_key)
+        # make sure cached hashes for ui.hashes are cleared
+        cache.delete_memoized(hashes)
         indexmon.refreshed_flag = False
     return render_template('index.html', **get_data())
 
