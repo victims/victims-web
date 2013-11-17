@@ -223,6 +223,24 @@ class CVE(JsonifyMixin, EmbeddedDocument):
     addedon = DateTimeField(default=datetime.datetime.utcnow, required=True)
 
 
+class HashContent(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
+    """
+    The contents of a `HashEntry`
+    """
+    combined = StringField(regex='^[a-fA-F0-9]*$', required=True)
+    files = DictField(default=None)
+
+
+class HashEntry(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
+    """
+    A hash entry defining all valid algorithms
+    """
+    md5 = EmbeddedDocumentField(HashContent)
+    sha1 = EmbeddedDocumentField(HashContent)
+    sha256 = EmbeddedDocumentField(HashContent)
+    sha512 = EmbeddedDocumentField(HashContent)
+
+
 class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
     """
     A hash record.
@@ -238,7 +256,7 @@ class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
     version = StringField(default='UNKNOWN')
     group = StringField(choices=group_choices())
     format = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
-    hashes = DictField(default={})
+    hashes = EmbeddedDocumentField(HashEntry)
     vendor = StringField(default='UNKNOWN')
     cves = ListField(EmbeddedDocumentField(CVE), default=[])
     status = StringField(
@@ -278,9 +296,19 @@ class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
         Load from json
         """
         obj = data
+
+        # Extra handling for embedded documents
         if 'cves' in obj:
             self.append_cves(obj['cves'])
             obj.pop('cves', None)
+
+        if 'hashes' in obj:
+            hashes = {
+                alg: HashContent(**obj['hashes'][alg])
+                for alg in obj['hashes'].keys()
+            }
+            self.hashes = HashEntry(**hashes)
+            obj.pop('hashes', None)
 
         JsonifyMixin.mongify(self, obj)
 
