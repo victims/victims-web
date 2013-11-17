@@ -1,50 +1,61 @@
 {% extends "base.html" %}
 
-{% block title %}{{ hash.name }}-{{ hash.version }}{% endblock %}
+{% block title %}Record Details: {{ hash.name }}{% endblock %}
 
 {% block content %}
-<div class="main">
-  <table>
-    <tr>
-      <th><label>Name</label></th>
-      <td>{{ hash.name }}</td>
-    </tr>
-    <tr>
-      <th><label>Version</label></th>
-      <td>{{ hash.version }}</td>
-    </tr>
-    <tr>
-      <th><label>Vendor</label></th>
-      <td>{{ hash.vendor }}</a></td>
-    </tr>
-    <tr>
-      <th><label>Format</label></th>
-      <td>{{ hash.format }}</td>
-    </tr>
-    {% for alg in hash.hashes.keys() %}
-    <tr>
-      <th><label>{{ alg.upper() }}</label></th>
-      <td>{{ hash.hashes[alg].combined }}</td>
-    </tr>
-    {% endfor %}
-    <tr>
-      <th><label>Submitter</label></th>
-      <td>{{ hash.submitter }}</td>
-    </tr>
-    <tr>
-      <th><label>Status</label></th>
-      <td>{{ hash.status }}</td>
-    </tr>
-  </table>
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        <strong>Record Details</strong>
+        <div class="pull-right">
+            <span class="label label-default">{{ hash.format }}</span>
+            <span class="label label-default">{{ hash.status }}</span>
+        </div>
+    </div>
+    <div class="panel-body">
+        <p>
+        {% for cve in hash.cves %}
+        <a class="label label-danger"
+            href="https://cve.mitre.org/cgi-bin/cvename.cgi?name={{ cve['id'] }}"
+            target="_blank">{{ cve['id'] }}</a>
+        {% endfor %}
+        </p>
+
+        <p><i>{{ hash.name }}</i></p>
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Version</th>
+                    <th>Vendor</th>
+                    <th>Submitter</th>
+                </tr>
+            </thead>
+            <tr>
+                <td>{{ hash.version }}</td>
+                <td>{{ hash.vendor }}</td>
+                <td>{{ hash.submitter }}</td>
+            </tr>
+        </table>
+
+        <ul class="nav nav-tabs">
+            {% for alg in hash.hashes.keys() %}
+            <li>
+                <a href="#{{ alg }}" data-toggle="tab">{{ alg.upper() }}</a>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <div class="tab-content">
+            {% set active=' active' %}
+            {% for alg in hash.hashes.keys() %}
+            <div class="tab-pane{{ active }}" id="{{ alg }}">
+                <div class="well well-sm list-group-item-text" style="word-wrap: break-word;">
+                    {{ hash.hashes[alg].combined }}
+                </div>
+            </div>
+            {% set active = '' %}
+            {% endfor %}
+        </div>
+    </div>
 </div>
-{% if hash.cves %}
-<div class="info">
-  <ul>
-    <lh><label class="bold">CVEs</label></lh>
-  {% for cve in hash.cves %}
-    <li><a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name={{ cve['id'] }}" target="_blank">{{ cve['id'] }}</a></li>
-  {% endfor %}
-  </ul>
-</div>
-{% endif %}
 {% endblock %}

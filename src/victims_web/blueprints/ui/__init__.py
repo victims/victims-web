@@ -97,13 +97,14 @@ def hashes_multigroup():
     return hashes(_groups)
 
 
-@ui.route('/hash/<hash>/', methods=['GET'])
-def hash(hash):
-    if _is_hash(hash):
-        a_hash = Hash.objects.get_or_404(hashes__sha512__combined=hash)
+@ui.route('/hash/<value>', methods=['GET'])
+def onehash(value):
+    if _is_hash(value):
+        a_hash = Hash.objects.get_or_404(hashes__sha512__combined=value)
         return render_template('onehash.html', hash=a_hash)
-    flash('Not a valid hash', 'error')
-    return redirect(url_for('ui.hashes'))
+    else:
+        flash('Not a valid hash', 'error')
+    return redirect(url_for('ui.hashes_multigroup'))
 
 
 def process_submission(form):
