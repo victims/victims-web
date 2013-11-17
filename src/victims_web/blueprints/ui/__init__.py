@@ -67,7 +67,7 @@ def index():
     return render_template('index.html', **get_data())
 
 
-@cache.cached()
+@cache.memoize()
 def hashes(groups):
     hashes = Hash.objects(
         status='RELEASED', group__in=groups
