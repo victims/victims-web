@@ -36,7 +36,9 @@ from mongoengine import (
     EmbeddedDocumentField, ListField, EmailField
 )
 
-from victims_web.config import BCRYPT_LOG_ROUNDS, SUBMISSION_GROUPS
+from victims_web.config import (
+    BCRYPT_LOG_ROUNDS, SUBMISSION_GROUPS, HASHING_ALGORITHMS
+)
 
 
 def generate_client_secret(apikey):
@@ -148,12 +150,28 @@ class JsonifyMixin(object):
         return None
 
     @classmethod
+    def fields(cls):
+        """
+        Helper method to get fieldnames available in this document.
+        """
+        return [
+            field for field in cls._db_field_map if not field.startswith('_')
+        ]
+
+    @classmethod
     def jsonname(cls, inmodel):
         """
         Convert a Model fieldname to a JSON fieldname. If no match found, the
         input fieldname is returned.
         """
         return cls._db_field_map.get(inmodel, inmodel)
+
+    def keys(self):
+        fields = []
+        for field in self.fields():
+            if self[field] is not None:
+                fields.append(field)
+        return fields
 
 
 class Account(ValidatedDocument):
@@ -235,10 +253,8 @@ class HashEntry(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
     """
     A hash entry defining all valid algorithms
     """
-    md5 = EmbeddedDocumentField(HashContent)
-    sha1 = EmbeddedDocumentField(HashContent)
-    sha256 = EmbeddedDocumentField(HashContent)
-    sha512 = EmbeddedDocumentField(HashContent)
+    for alg in HASHING_ALGORITHMS:
+        exec('%s = EmbeddedDocumentField(HashContent, default=None)' % (alg))
 
 
 class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):

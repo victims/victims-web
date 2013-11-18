@@ -89,6 +89,9 @@ MAVEN_REPOSITORIES = [
 # WTF Config
 WTF_CSRF_ENABLED = False
 
+# Hashing config
+HASHING_ALGORITHMS = ['md5', 'sha1', 'sha256', 'sha512']
+
 # Hashing commands for each group
 # This will be used as command.format(archive=filename)
 # Eg: 'java': 'victims-java hash {archive!s}'
