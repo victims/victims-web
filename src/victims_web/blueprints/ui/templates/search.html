@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Search{% endblock %}
+
+{% block precontainer %}
+<div class="navbar search-bar">
+    <div class="container">
+        <ul class="nav navbar-nav navbar-right">
+            <li>
+            <form class="form-inline search-input-append" method="POST">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="search" name="query">
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn search-btn">
+                            <i><span class="glyphicon glyphicon-search"></span></i>
+                        </button>
+                    </span>
+                </div>
+            </form>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+{% endblock %}

@@ -14,9 +14,9 @@ body {
 }
 
 #footer {
-    margin-top: 25px; 
+    margin-top: 25px;
     clear: both;
-    text-align: center; 
+    text-align: center;
     height: 60px;
     background-color: #f5f5f5;
 }
@@ -80,4 +80,30 @@ body {
     margin-bottom: 10px;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
+}
+
+/* search forms */
+
+.search-bar {
+    background: #850000;
+    width: 100%;
+    padding-top: 20px;
+}
+
+.search-input-append input[type=text] {
+    background-color: #972826;
+    border-color: transparent;
+    font-size: 14px;
+    color: #eee;
+    border-radius: 0;
+    box-shadow: 0 0;
+    margin-top: 4px;
+    margin-bottom: 5px;
+}
+
+.search-btn {
+    background-color: #222;
+    color: #eee;
+    border-color: #222;
+    border-radius: 0;
 }
