@@ -122,32 +122,20 @@ class JsonifyMixin(object):
     def mongify(self, data):
         """
         Populates this instance from a dictionary loaded from a JSON string.
-        Only known fields are populated. JSON fieldname maps directly to DB
-        field name not model field.
+        Only known fields are populated.
         """
         for field in self._db_field_map:
-            fieldname = self.fieldname(field)
-            if fieldname in data:
-                value = data[field]
-                setattr(self, fieldname, value)
+            if field not in data:
+                continue
 
-    @classmethod
-    def fieldname(cls, injson):
-        """
-        Convert a JSON fieldname to a Model fieldname. JSON fieldname maps
-        directly to the DB fieldname.
+            value = data[field]
 
-        Returns None if no match is found.
-        """
-        if injson in cls._fields:
-            return injson
+            if isinstance(self._fields[field], EmbeddedDocumentField):
+                tmp = self._fields[field].document_type_obj()
+                tmp.mongify(value)
+                value = tmp
 
-        if injson in cls._db_field_map.values():
-            for field in cls._db_field_map.keys():
-                if injson == cls._db_field_map[field]:
-                    return field
-
-        return None
+            setattr(self, field, value)
 
     @classmethod
     def fields(cls):
@@ -313,18 +301,9 @@ class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
         """
         obj = data
 
-        # Extra handling for embedded documents
         if 'cves' in obj:
             self.append_cves(obj['cves'])
             obj.pop('cves', None)
-
-        if 'hashes' in obj:
-            hashes = {
-                alg: HashContent(**obj['hashes'][alg])
-                for alg in obj['hashes'].keys()
-            }
-            self.hashes = HashEntry(**hashes)
-            obj.pop('hashes', None)
 
         JsonifyMixin.mongify(self, obj)
 
