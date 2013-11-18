@@ -105,6 +105,10 @@
             </div>
         </div>
         {%- endblock navbar %}
+
+        {% block precontainer -%}
+        {%- endblock precontainer %}
+
         <div class="container">
             <!-- Display flash messages -->
             {% with messages = get_flashed_messages(with_categories=true) %}
