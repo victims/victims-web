@@ -159,15 +159,21 @@ def update_for_group(group, since):
        - `group`: group to limit items to
     """
     try:
-
         items = Hash.objects(
             date__gt=datetime.datetime.strptime(since, "%Y-%m-%dT%H:%M:%S"),
             group=group
         )
-        fields = None
-        if request.args.get('fields', None):
-            fields = request.args.get('fields').replace(' ', '').split(',')
-            items = items.only(*fields)
+
+        fields = current_app.config['API_UPDATES_DEFAULT_FIELDS']
+
+        fields_arg = request.args.get('fields', None)
+        if fields_arg is not None:
+            fields = [
+                Hash.modelname(field)
+                for field in fields_arg.replace(' ', '').split(',')
+            ]
+
+        items = items.only(*fields)
         return stream_items(items, fields)
     except Exception as e:
         current_app.logger.debug(e)
