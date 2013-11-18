@@ -86,9 +86,6 @@ class TestServiceV2(UserTestCase):
         """
         Ensures the response structure is correct for a GET request.
         """
-        resp = self.app.get('/service/v2/update/1970-01-01T00:00:00/')
-        result = json.loads(resp.data)
-
         expected = {
             'date': basestring,
             'name': basestring,
@@ -102,6 +99,12 @@ class TestServiceV2(UserTestCase):
             'submitter': basestring,
             'submittedon': basestring,
         }
+
+        params = 'fields=%s' % (','.join(expected.keys()))
+        resp = self.app.get(
+            '/service/v2/update/1970-01-01T00:00:00/?%s' % (params)
+        )
+        result = json.loads(resp.data)
         self.verify_data_structure(result, expected)
 
     def test_filtered_updates(self):
