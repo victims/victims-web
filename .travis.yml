@@ -19,3 +19,4 @@ branches:
 notifications:
   email: false
   irc: "irc.freenode.org#victi.ms"
+  skip_join: false
