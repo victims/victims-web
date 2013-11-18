@@ -1,5 +1,16 @@
 {% extends "base.html" %}
 
+{% block precontainer %}
+<div class="hero-unit">
+    <div class="container">
+        <div class="row-fluid">
+            <h1 style="font-size:80px; line-height:100px;">victims</h1>
+            <!--p class="lead"></p-->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     {% for group in groups %}
