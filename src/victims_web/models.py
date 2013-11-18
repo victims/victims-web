@@ -147,6 +147,18 @@ class JsonifyMixin(object):
         ]
 
     @classmethod
+    def modelname(cls, injson):
+        """
+        Convert JSON fieldname (DB name) to Model fieldname. If no match found,
+        the input fieldname is retured.
+        """
+        if injson in cls._db_field_map.values():
+            for field in cls._db_field_map.keys():
+                if injson == cls._db_field_map[field]:
+                    return field
+        return injson
+
+    @classmethod
     def jsonname(cls, inmodel):
         """
         Convert a Model fieldname to a JSON fieldname. If no match found, the
