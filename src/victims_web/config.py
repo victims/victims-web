@@ -81,6 +81,9 @@ SUBMISSION_GROUPS = {
 # API Configuration
 VICTIMS_API_HEADER = 'X-Victims-Api'
 API_REQUEST_EXPIRY_MINS = 3
+API_UPDATES_DEFAULT_FIELDS = [
+    'cves', 'metadata', 'hash', 'hashes.sha512'
+]
 
 # plugin.charon
 MAVEN_REPOSITORIES = [
