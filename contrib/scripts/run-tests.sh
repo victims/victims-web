@@ -28,11 +28,15 @@ fi
 if ! type -p nosetests > /dev/null; then
 	echo "[ERROR] nosetests not found. Cannot run tests."
 else
-    CMD="python $(which nosetests) -v"
+    CMD="python $(which nosetests) --logging-clear-handlers -v"
     if [ $# -gt 0 ]; then
         $CMD $@
     else
-        $CMD --with-coverage --cover-package=victims_web --cover-min-percentage=0 ${TEST_DIR}/*.py
+        $CMD \
+            --with-coverage \
+            --cover-package=victims_web \
+            --cover-min-percentage=0 \
+            ${TEST_DIR}/*.py
     fi
     echo "[INFO] Running pep8 ..."
     pep8 --repeat ${TEST_DIR}/../src/

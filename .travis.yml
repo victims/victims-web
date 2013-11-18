@@ -11,6 +11,12 @@ install:
   - pip install -e . 
 script:
   - pep8 --repeat src/
-  - nosetests --with-coverage --cover-package=victims_web --cover-min-percentage=0 -v test/*.py
+  - nosetests --logging-clear-handlers --with-coverage --cover-package=victims_web --cover-min-percentage=0 -v test/*.py
+notifications:
+  irc: "irc.freenode.org#victi.ms"
+branches:
+  only:
+    - master
+    - deployed
 notifications:
   email: false
