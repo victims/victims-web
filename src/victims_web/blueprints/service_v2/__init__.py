@@ -318,7 +318,7 @@ def submit_hash(group):
         return error()
 
 
-@v2.route('/submit/archive/<group>', methods=['PUT'])
+@v2.route('/submit/archive/<group>/', methods=['PUT'])
 @apiauth
 def submit_archive(group):
     """
