@@ -262,8 +262,9 @@ def cves_algorithm(algorithm, arg):
 @v2.route('/cves/<group>/', methods=['GET'])
 def cves(group):
     """
-    Get cves that match the given coordinates for the specified group. Expectes,
-    coordinates as arguments.
+    Get cves that match the given coordinates for the specified group.
+
+    Expectes coordinates as arguments.
 
     :Parameters:
         - `group`: The group for which to search in
