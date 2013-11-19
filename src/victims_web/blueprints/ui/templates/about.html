@@ -3,7 +3,11 @@
 {% block title %}About{% endblock %}
 
 {% block content %}
+<div class="container" style="text-align: justify;">
 <h1>Why Does This Exist?</h1>
+<p>
+In 2013, OWASP added a new item to the top 10: <a href="https://www.owasp.org/index.php/Top_10_2013-A9-Using_Components_with_Known_Vulnerabilities" target="_blank"><i>"Using Components with Known Vulnerabilities"</i></a>. Java build systems such as maven allow developers to easily incorporate a complex tree of third-party components into their applications, potentially exposing the issue of using components with known vulnerabilities. To address this, the victims project provides a canonical database of known-vulnerable JAR files, along with tools to compare this database to Java applications in development, release and production environments.
+</p>
 <h2>The problem</h2>
 <p>
 Maven is currently the dominant build tool for enterprise Java applications. It has been rapidly adopted by developers, as it offers a powerful solution to the problem of dependency management, coupled with a huge public repository of open source components called maven central. From a developer's perspective, maven makes things very easy: just add a reference to a particular component in pom.xml. For example, to include Spring 2.5.6 in your project, just add:
@@ -42,4 +46,5 @@ Version 1 of victims used SHA checksums of JAR files to identify known vulnerabl
 <p>
 The victims database is primarily maintained by the Red Hat Security Response Team, who populate it for vulnerabilities that affect Java components shipped in Red Hat products. Community contributions to the database are welcome and encouraged.
 </p>
+</div>
 {% endblock %}
