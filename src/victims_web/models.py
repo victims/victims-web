@@ -63,6 +63,15 @@ def group_choices():
     return choices
 
 
+def group_coordinates():
+    keys = []
+    for coords in SUBMISSION_GROUPS.values():
+        for key in coords:
+            if key not in keys:
+                keys.append(key)
+    return keys
+
+
 class ValidatedDocument(Document):
     """
     Extended MongoEngine document which can use custom validators.
@@ -257,6 +266,14 @@ class HashEntry(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
         exec('%s = EmbeddedDocumentField(HashContent, default=None)' % (alg))
 
 
+class Coordinates(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
+    """
+    Group coordinates for hash entry
+    """
+    for key in group_coordinates():
+        exec('%s = StringField(default=None)' % (key))
+
+
 class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
     """
     A hash record.
@@ -270,6 +287,7 @@ class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
     hash = StringField(regex='^[a-fA-F0-9]*$')
     name = StringField()
     version = StringField(default='UNKNOWN')
+    coord = EmbeddedDocumentField(Coordinates, default=None)
     group = StringField(choices=group_choices())
     format = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
     hashes = EmbeddedDocumentField(HashEntry)
