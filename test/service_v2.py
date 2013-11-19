@@ -72,6 +72,17 @@ class TestServiceV2(UserTestCase):
                 assert resp.status_code == 400
                 assert resp.content_type == 'application/json'
 
+    def test_update_all(self):
+        """
+        Verify that update/<group>/all works as expected.
+        """
+        resp = self.app.get('/service/v2/update/java/all')
+        assert resp.status_code == 200
+        assert resp.content_type == 'application/json'
+
+        expected = self.app.get('/service/v2/update/java/1970-01-01T00:00:00/')
+        assert expected.data == resp.data
+
     def verify_data_structure(self, result, expected, two_way=False):
         assert len(result) > 0
         for item in result:
