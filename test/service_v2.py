@@ -134,25 +134,22 @@ class TestServiceV2(UserTestCase):
         }
         self.verify_data_structure(result, expected, True)
 
-    '''
-    # TODO: Need to import a full hash else this test will always fail
     def test_cves_valid(self):
         """
-        Ensures the cve search (/cves) end point works as expected for a
-        valid algorithm
+        Ensure valid cve (hash) search works
         """
         # Test for valid sha512
-        sha512 = ''.join(['0' for i in range(128)])
+        sha512 = "a0a86214ea153fb07ff35ceec0848dd1703eae22de036a825efc8" + \
+            "394e50f65e3044832f3b49cf7e45a39edc470bdf738abc36a3a78c" + \
+            "a7df3a6e73c14eaef94a8"
         resp = self.app.get('/service/v2/cves/%s/%s/' % ('sha512', sha512))
         result = json.loads(resp.data)
         assert isinstance(result, list)
-        assert 'CVE-1969-0001' in result
-    '''
+        assert 'CVE-1969-0001' in result[0]['fields']["cves"]
 
     def test_cves_invalid(self):
         """
-        Ensures the cve search (/cves) end point works as expected for a
-        valid algorithm
+        Ensure invalid cve (hash) search is caught
         """
         # Test for invalid algorithm
         resp = self.app.get('/service/v2/cves/%s/%s/' % ('invalid', 'invalid'))
@@ -167,6 +164,28 @@ class TestServiceV2(UserTestCase):
         assert resp.status_code == 400
         assert isinstance(result, list)
         assert result[0]['error'].find('Invalid checksum length for sha1') >= 0
+
+    def test_cves_coordinates_invalid(self):
+        """
+        Ensure invalid cve (coordinates) is caught
+        """
+        base = '/service/v2/cves/java/'
+        resp = self.app.get(base)
+        assert resp.status_code == 400
+
+    def test_cves_coordinates(self):
+        """
+        Ensure valid cve (coordinates) search works
+        """
+        base = '/service/v2/cves/java/'
+        uri1 = '%s?groupId=fake' % (base)
+        uri2 = '%s&version=1.0' % (uri1)
+        for uri in [uri1, uri2]:
+            resp = self.app.get(uri)
+            assert resp.status_code == 200
+            result = json.loads(resp.data)
+            assert isinstance(result, list)
+            assert 'CVE-1969-0001' in result[0]['fields']["cves"]
 
     def test_status(self):
         """
