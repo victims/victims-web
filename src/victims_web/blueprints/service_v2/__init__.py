@@ -280,8 +280,9 @@ def cves(group):
             raise ValueError('No coordinates given')
 
         kwargs['group'] = group
-        cves = Hash.objects.only('cves').filter(**kwargs)
-        return stream_items(cves, ['cves'])
+        fields = ['cves', 'coordinates']
+        cves = Hash.objects.only(*fields).filter(**kwargs)
+        return stream_items(cves, fields)
     except ValueError as ve:
         return error(ve.message)
     except Exception as e:
