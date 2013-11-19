@@ -233,7 +233,7 @@ def remove(since):
 
 
 @v2.route('/cves/<algorithm>/<arg>/', methods=['GET'])
-def cves(algorithm, arg):
+def cves_algorithm(algorithm, arg):
     """
     Returns any cves that match the given the request.
 
@@ -254,11 +254,37 @@ def cves(algorithm, arg):
 
         kwargs = {("hashes__%s__combined" % (algorithm)): arg}
         cves = Hash.objects.only('cves').filter(**kwargs)
-        results = []
-        for hash in cves:
-            results += hash.cves.keys()
-        return make_response(json.dumps(results))
+        return stream_items(cves, ['cves'])
     except Exception:
+        return error()
+
+
+@v2.route('/cves/<group>/', methods=['GET'])
+def cves(group):
+    """
+    Get cves that match the given coordinates for the specified group. Expectes,
+    coordinates as arguments.
+
+    :Parameters:
+        - `group`: The group for which to search in
+    """
+    try:
+        kwargs = {
+            'coordinates__%s' % (coord): request.args.get(coord).strip()
+            for coord in current_app.config['SUBMISSION_GROUPS'].get(group)
+            if coord in request.args and coord in Coordinates._fields
+        }
+
+        if len(kwargs) == 0:
+            raise ValueError('No coordinates given')
+
+        kwargs['group'] = group
+        cves = Hash.objects.only('cves').filter(**kwargs)
+        return stream_items(cves, ['cves'])
+    except ValueError as ve:
+        return error(ve.message)
+    except Exception as e:
+        current_app.logger.debug(e.message)
         return error()
 
 
