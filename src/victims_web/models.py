@@ -21,6 +21,7 @@ Data models.
 import datetime
 import json
 
+from abc import ABCMeta, abstractproperty
 from copy import deepcopy
 from os import urandom, remove
 from os.path import isfile
@@ -70,6 +71,20 @@ def group_coordinates():
             if key not in keys:
                 keys.append(key)
     return keys
+
+
+class RestrictedDict(dict):
+    __metaclass__ = ABCMeta
+
+    @abstractproperty
+    def validkeys(self):
+        raise NotImplementedError
+
+    def __setitem__(self, key, val):
+        if key not in self.validkeys:
+            raise KeyError
+        print(key)
+        dict.__setitem__(self, key, val)
 
 
 class ValidatedDocument(Document):
@@ -250,6 +265,9 @@ class CVE(JsonifyMixin, EmbeddedDocument):
     addedon = DateTimeField(default=datetime.datetime.utcnow, required=True)
 
 
+# Unused due to Flask-Admin Issues
+# TODO: Look at useful solutions/workarounds
+'''
 class HashContent(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
     """
     The contents of a `HashEntry`
@@ -272,6 +290,21 @@ class Coordinates(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
     """
     for key in group_coordinates():
         exec('%s = StringField(default=None)' % (key))
+'''
+
+
+class CoordinateDict(RestrictedDict):
+
+    @property
+    def validkeys(self):
+        return group_coordinates()
+
+
+class HashesDict(RestrictedDict):
+
+    @property
+    def validkeys(self):
+        return HASHING_ALGORITHMS
 
 
 class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
@@ -287,10 +320,10 @@ class Hash(JsonifyMixin, EmbeddedDocument, ValidatedDocument):
     hash = StringField(regex='^[a-fA-F0-9]*$')
     name = StringField()
     version = StringField(default='UNKNOWN')
-    coordinates = EmbeddedDocumentField(Coordinates, default=None)
+    coordinates = DictField(basecls=CoordinateDict(), default=None)
     group = StringField(choices=group_choices())
     format = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
-    hashes = EmbeddedDocumentField(HashEntry)
+    hashes = DictField(basecls=HashesDict(), default=None)
     vendor = StringField(default='UNKNOWN')
     cves = ListField(EmbeddedDocumentField(CVE), default=[])
     status = StringField(
@@ -370,7 +403,7 @@ class Submission(JsonifyMixin, ValidatedDocument):
     filename = StringField()
     format = StringField(regex='^[a-zA-Z0-9_\-\.]*$')
     metadata = DictField(default={})
-    coordinates = EmbeddedDocumentField(Coordinates, default=None)
+    coordinates = DictField(basecls=CoordinateDict(), default=None)
     cves = ListField(StringField())
     group = StringField(choices=group_choices())
     comment = StringField()

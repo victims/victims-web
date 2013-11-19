@@ -26,7 +26,7 @@ from flask import Blueprint, Response, request, current_app
 from victims_web.cache import cache
 from victims_web.handlers.security import apiauth, api_request_user
 from victims_web.handlers.sslify import ssl_exclude
-from victims_web.models import Hash, Removal, JsonifyMixin, Coordinates
+from victims_web.models import Hash, Removal, JsonifyMixin, CoordinateDict
 from victims_web.submissions import submit, upload
 from victims_web.util import groups
 
@@ -270,10 +270,11 @@ def cves(group):
         - `group`: The group for which to search in
     """
     try:
+        validkeys = CoordinateDict().validkeys
         kwargs = {
             'coordinates__%s' % (coord): request.args.get(coord).strip()
             for coord in current_app.config['SUBMISSION_GROUPS'].get(group)
-            if coord in request.args and coord in Coordinates._fields
+            if coord in request.args and coord in validkeys
         }
 
         if len(kwargs) == 0:
@@ -334,7 +335,7 @@ def submit_archive(group):
 
         cves = [cve.strip() for cve in request.args['cves'].split(',')]
 
-        coordinates = Coordinates(**{
+        coordinates = CoordinateDict({
             coord: request.args.get(coord).strip()
             for coord in current_app.config['SUBMISSION_GROUPS'].get(group)
             if coord in request.args
