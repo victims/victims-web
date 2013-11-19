@@ -26,7 +26,7 @@ from flask import Blueprint, Response, request, current_app
 from victims_web.cache import cache
 from victims_web.handlers.security import apiauth, api_request_user
 from victims_web.handlers.sslify import ssl_exclude
-from victims_web.models import Hash, Removal, JsonifyMixin
+from victims_web.models import Hash, Removal, JsonifyMixin, Coordinates
 from victims_web.submissions import submit, upload
 from victims_web.util import groups
 
@@ -306,17 +306,18 @@ def submit_archive(group):
 
         cves = [cve.strip() for cve in request.args['cves'].split(',')]
 
-        meta = {}
-        for field in current_app.config['SUBMISSION_GROUPS'].get(group):
-            if field in request.args:
-                value = request.args.get(field)
-                if len(value) > 0:
-                    meta[field] = value
-
-        files = upload(group, request.files.get('archive', None), meta)
+        coordinates = Coordinates(**{
+            coord: request.args.get(coord).strip()
+            for coord in current_app.config['SUBMISSION_GROUPS'].get(group)
+            if coord in request.args
+        })
+        files = upload(group, request.files.get('archive', None), coordinates)
 
         for (ondisk, filename, suffix) in files:
-            submit(user, ondisk, group, filename, suffix, cves, meta)
+            submit(
+                user, ondisk, group, filename, suffix, cves,
+                coordinates=coordinates
+            )
 
         return success()
     except ValueError as ve:

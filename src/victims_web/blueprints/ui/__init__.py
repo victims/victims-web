@@ -30,7 +30,7 @@ from victims_web.cache import cache
 from victims_web.config import SUBMISSION_GROUPS
 from victims_web.errors import ValidationError
 from victims_web.handlers.forms import ArchiveSubmit, flash_errors
-from victims_web.models import Hash
+from victims_web.models import Hash, Coordinates
 from victims_web.plugin.crosstalk import indexmon
 from victims_web.submissions import submit, upload
 from victims_web.util import groups
@@ -118,16 +118,18 @@ def process_submission(form):
             cves.append(cve.strip())
 
         group = form.group.data
-        meta = {}
-        for field in SUBMISSION_GROUPS.get(group, []):
-            value = form._fields.get('%s_%s' % (group, field)).data.strip()
-            if len(value) > 0:
-                meta[field] = value
 
-        files = upload(group, request.files.get('archive', None), meta)
+        coordinates = Coordinates(**{
+            coord: form._fields.get('%s_%s' % (group, coord)).data.strip()
+            for coord in SUBMISSION_GROUPS.get(group, [])
+        })
+
+        files = upload(group, request.files.get('archive', None), coordinates)
         for (ondisk, filename, suffix) in files:
-            submit(login.current_user.username, ondisk, group, filename,
-                   suffix, cves, meta)
+            submit(
+                login.current_user.username, ondisk, group, filename, suffix,
+                cves, coordinates=coordinates
+            )
 
         current_app.config['INDEX_REFRESH_FLAG'] = True
 
