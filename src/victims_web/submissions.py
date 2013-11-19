@@ -31,7 +31,7 @@ from victims_web.util import set_hash
 
 
 def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
-           metadata={}, entry=None, approval='REQUESTED'):
+           metadata={}, entry=None, approval='REQUESTED', coordinates=None):
     config.LOGGER.info('Submitting: %s' % (
         ', '.join(['%s:%s' % (k, v) for (k, v) in locals().items()])))
     submission = Submission()
@@ -50,6 +50,8 @@ def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],
     if entry:
         submission.entry = entry
     submission.approval = approval
+    submission.coordinates = coordinates
+
     submission.validate()
     submission.save()
 
@@ -101,18 +103,18 @@ def upload_file(archive):
     return (ondisk, filename, suffix)
 
 
-def upload_from_metadata(group, meta):
+def upload_from_coordinates(group, coordinates):
     """
-    Given only metadata of an archive ask charon to retrive it where possible
+    Given only coordinates of an archive ask charon to retrive it if possible
     """
     if group not in config.SUBMISSION_GROUPS.keys():
         raise ValueError('Invalid group')
-    return download(group, meta)
+    return download(group, coordinates)
 
 
-def upload(group, archive=None, meta=None):
+def upload(group, archive=None, coordinates=None):
     """
-    Helper method to upload files using archive file in request or metadata
+    Helper method to upload files using archive file in request or coordinates
     provided. If no files get uploaded a ValueError is raised.
     """
     files = []
@@ -123,9 +125,8 @@ def upload(group, archive=None, meta=None):
         else:
             raise ValueError('No Archive provided')
     except ValueError as ve:
-        if meta:
-            print(meta)
-            files = upload_from_metadata(group, meta)
+        if coordinates:
+            files = upload_from_coordinates(group, coordinates)
         else:
             raise ve
 
