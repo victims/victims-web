@@ -264,7 +264,7 @@ class TestServiceV2(UserTestCase):
 
     def basicauth_submission(self, username, password, code=201):
         (testfilename, _, data) = self.make_submission_archive()
-        path = '/service/v2/submit/archive/java?cves=CVE-000-000'
+        path = '/service/v2/submit/archive/java/?cves=CVE-000-000'
 
         headers = {
             'Authorization':
@@ -303,7 +303,7 @@ class TestServiceV2(UserTestCase):
                          secret=None):
         (testfilename, filemd5, data) = self.make_submission_archive()
         md5sums = [filemd5]
-        path = '/service/v2/submit/archive/%s' % (group)
+        path = '/service/v2/submit/archive/%s/' % (group)
         if argstr:
             path = '%s?%s' % (path, argstr)
 
