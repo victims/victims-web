@@ -180,6 +180,17 @@ def update_for_group(group, since):
         return error()
 
 
+@v2.route('/update/<group>/all', methods=['GET'])
+def update_all(group):
+    """
+    A convinience call to get all updates from the begining of time.
+
+    :Parameters:
+        - `group`: group to limit items to
+    """
+    return update_for_group(group, '1970-01-01T00:00:00')
+
+
 @v2.route('/update/<since>/', methods=['GET'])
 def update(since):
     """
