@@ -151,7 +151,7 @@ def submit_archive():
     elif request.method == 'POST':
         flash_errors(form)
     return render_template(
-        'submit_archive.html', form=form, groups=SUBMISSION_GROUPS.keys())
+        'submit_archive.html', form=form, groups=SUBMISSION_GROUPS)
 
 
 @ui.route('/<page>.html', methods=['GET'])

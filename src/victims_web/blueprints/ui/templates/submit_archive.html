@@ -9,15 +9,14 @@
     {{ wtf.form_field(form.archive) }}
     {{ wtf.form_field(form.group) }}
 
-    {% for field in form._fields %}
-    {% set group = field.split('_',1)[0] %}
-    {% if group in groups %}
-    {% set f = form._fields[field] %}
+    {% for group in groups %}
+    {% for fname in groups[group] %}
+    {% set f = form._fields['%s_%s' % (group, fname)] %}
     <div class="{{ group }}" style="display: none;">
         {{ wtf.form_field(f) }}
     </div>
-    {% endif %}
-    {% endfor%}
+    {% endfor %}
+    {% endfor %}
     <div class="container" align="right">
         <button type="submit" class="btn btn-success">Submit</button>
     </div>
