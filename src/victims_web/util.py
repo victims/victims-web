@@ -57,14 +57,18 @@ def hash_submission(submission_id):
         for line in output.split('\n'):
             json_data = loads(line)
             json_data['cves'] = submission.cves
+
+            # make sure metadata is a list
             meta = json_data.get('metadata', [])
             if isinstance(meta, dict):
                 meta = [meta]
             json_data['metadata'] = meta
+
             entry = Hash()
             entry.mongify(json_data)
             entry.status = 'SUBMITTED'
             entry.submitter = submission.submitter
+            entry.coordinates = submission.coordinates
             if count > 0:
                 # create a new submission for each embedded entry
                 s = deepcopy(submission)
