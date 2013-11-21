@@ -49,7 +49,7 @@ def make_response(data, code=200):
     )
 
 
-def error(msg='Could not understand request.', code=400):
+def error(msg='Could not understand request.', code=400, **kwargs):
     """
     Returns an error json response.
 
@@ -57,10 +57,11 @@ def error(msg='Could not understand request.', code=400):
         - `msg`: Error message to be returned in json string.
         - `code`: The code to return as status code for the response.
     """
-    return make_response(json.dumps([{'error': msg}]), code)
+    kwargs['error'] = msg
+    return make_response(json.dumps([kwargs]), code)
 
 
-def success(msg='Request successful.', code=201):
+def success(msg='Request successful.', code=201, **kwargs):
     """
     Returns a success json resposne.
 
@@ -68,12 +69,14 @@ def success(msg='Request successful.', code=201):
         - `msg`: Error message to be returned in json string.
         - `code`: The code to return as status code for the response.
     """
-    return make_response(json.dumps([{'success': msg}]), code)
+    kwargs['success'] = msg
+    return make_response(json.dumps([kwargs]), code)
 
 
-@v2.app_errorhandler(404)
-def error_404(e):
-    return error('Invalid API call', 404)
+@v2.route('/', defaults={'path': ''})
+@v2.route('/<path:path>/')
+def invalid_call(path):
+    return error('Invalid API call', 404, path=path)
 
 
 class StreamedSerialResponseValue(object):
