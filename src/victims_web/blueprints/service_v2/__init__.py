@@ -24,6 +24,8 @@ import json
 from flask import Blueprint, Response, request, current_app
 
 from victims_web.cache import cache
+from victims_web.config import \
+    DEFAULT_GROUP, SUBMISSION_GROUPS, API_UPDATES_DEFAULT_FIELDS
 from victims_web.handlers.security import apiauth, api_request_user
 from victims_web.handlers.sslify import ssl_exclude
 from victims_web.models import Hash, Removal, JsonifyMixin, CoordinateDict
@@ -67,6 +69,11 @@ def success(msg='Request successful.', code=201):
         - `code`: The code to return as status code for the response.
     """
     return make_response(json.dumps([{'success': msg}]), code)
+
+
+@v2.app_errorhandler(404)
+def error_404(e):
+    return error('Invalid API call', 404)
 
 
 class StreamedSerialResponseValue(object):
@@ -149,8 +156,16 @@ def status():
     return make_response(data)
 
 
-@v2.route('/update/<group>/<since>/', methods=['GET'])
-def update_for_group(group, since):
+# Routing Regexes
+_SINCE_REGEX = '<regex("[0-9\-]{8,}T[0-9:]{8}"):since>'
+_GROUP_REGEX = '<regex("%s"):group>' % ('|'.join(SUBMISSION_GROUPS.keys()))
+_START_DATE = '1970-01-01T00:00:00'
+
+
+@v2.route('/update/%s/' % (_GROUP_REGEX), defaults={'since': _START_DATE})
+@v2.route('/update/%s/' % (_SINCE_REGEX), defaults={'group': DEFAULT_GROUP})
+@v2.route('/update/%s/<since>/' % (_GROUP_REGEX), methods=['GET'])
+def update(group, since):
     """
     Returns all items updated  past a specific date in utc.
 
@@ -164,7 +179,7 @@ def update_for_group(group, since):
             group=group
         )
 
-        fields = current_app.config['API_UPDATES_DEFAULT_FIELDS']
+        fields = API_UPDATES_DEFAULT_FIELDS
 
         fields_arg = request.args.get('fields', None)
         if fields_arg is not None:
@@ -180,31 +195,10 @@ def update_for_group(group, since):
         return error()
 
 
-@v2.route('/update/<group>/all', methods=['GET'])
-def update_all(group):
-    """
-    A convinience call to get all updates from the begining of time.
-
-    :Parameters:
-        - `group`: group to limit items to
-    """
-    return update_for_group(group, '1970-01-01T00:00:00')
-
-
-@v2.route('/update/<since>/', methods=['GET'])
-def update(since):
-    """
-    Default update service.
-
-    :Parameters:
-       - `since`: a specific date in utc
-    """
-    return update_for_group(current_app.config['DEFAULT_GROUP'], since)
-
-
-@v2.route('/remove/<group>/<since>/')
+@v2.route('/remove/%s/' % (_SINCE_REGEX), defaults={'group': DEFAULT_GROUP})
+@v2.route('/update/%s/<since>/' % (_GROUP_REGEX), methods=['GET'])
 @cache.memoize()
-def remove_for_group(group, since):
+def remove(group, since):
     """
     Returns all items to remove past a specific date in utc.
 
@@ -218,18 +212,6 @@ def remove_for_group(group, since):
         return stream_items(items)
     except:
         return error()
-
-
-@v2.route('/remove/<since>/')
-@cache.memoize()
-def remove(since):
-    """
-    Default remove service.
-
-    :Parameters:
-       - `since`: a specific date in utc
-    """
-    return remove_for_group(current_app.config['DEFAULT_GROUP'], since)
 
 
 @v2.route('/cves/<algorithm>/<arg>/', methods=['GET'])
@@ -273,7 +255,7 @@ def cves(group):
         validkeys = CoordinateDict().validkeys
         kwargs = {
             'coordinates__%s' % (coord): request.args.get(coord).strip()
-            for coord in current_app.config['SUBMISSION_GROUPS'].get(group)
+            for coord in SUBMISSION_GROUPS.get(group)
             if coord in request.args and coord in validkeys
         }
 
@@ -337,7 +319,7 @@ def submit_archive(group):
 
         coordinates = CoordinateDict({
             coord: request.args.get(coord).strip()
-            for coord in current_app.config['SUBMISSION_GROUPS'].get(group)
+            for coord in SUBMISSION_GROUPS.get(group)
             if coord in request.args
         })
         files = upload(group, request.files.get('archive', None), coordinates)

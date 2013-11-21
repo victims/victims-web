@@ -65,23 +65,30 @@ class TestServiceV2(UserTestCase):
             assert resp.status_code == 200
             assert resp.content_type == 'application/json'
 
-        # Anything that is not an int should be a 404
+        # Anything that is not a valid API call should return 404
         for kind in self.points:
             for badtype in [0, 'NotAnInt', 10.436, 0x80, u'bleh']:
                 resp = self.app.get('/service/v2/%s/%s/' % (kind, badtype))
-                assert resp.status_code == 400
+                assert resp.status_code == 404
                 assert resp.content_type == 'application/json'
 
-    def test_update_all(self):
+    def test_update_defaults(self):
         """
-        Verify that update/<group>/all works as expected.
+        Verify that update defaults works as expected.
         """
-        resp = self.app.get('/service/v2/update/java/all')
-        assert resp.status_code == 200
-        assert resp.content_type == 'application/json'
+        FULL_ROUTE = '/service/v2/update/java/1970-01-01T00:00:00/'
+        ROUTES_WITH_DEFAULTS = [
+            '/service/v2/update/java/',
+            '/service/v2/update/1970-01-01T00:00:00/'
+        ]
 
-        expected = self.app.get('/service/v2/update/java/1970-01-01T00:00:00/')
-        assert expected.data == resp.data
+        expected = self.app.get(FULL_ROUTE, follow_redirects=True)
+
+        for route in ROUTES_WITH_DEFAULTS:
+            resp = self.app.get(route, follow_redirects=True)
+            assert resp.status_code == 200
+            assert resp.content_type == 'application/json'
+            assert resp.data == expected.data
 
     def verify_data_structure(self, result, expected, two_way=False):
         assert len(result) > 0
