@@ -2,8 +2,14 @@
 
 {% block title %}{{ header }}{% endblock %}
 
-{% block content %}
-<h1>{{ header }}</h1>
-<br>
-<p>{{ message }}</p>
+{% block precontainer %}
+<div class="hero-unit">
+    <div class="container">
+        <div class="row-fluid">
+            <h3 style="font-size:40px; line-height:100px;"><span class="glyphicon glyphicon-bullhorn"></span> {{ header  }}</h3>
+            <p class="lead"><strong>{{ message }}</strong></p>
+            <a href="{{ url_for('ui.index') }}" class="btn btn-large btn-danger"><i class="glyphicon glyphicon-home"></i> Take Me Home</a>
+        </div>
+    </div>
+</div>
 {% endblock %}
