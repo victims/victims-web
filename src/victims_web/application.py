@@ -109,9 +109,9 @@ def reap_sessions(response):
 def error_403(e):
     return render_template(
         'error.html',
-        header='403 Forbidden',
-        message='Hmm, looking for the bat cave?'
-        + 'Perhaps try logging in as Bruce or Alfred? Unless you are "him"!'
+        header='The box says 403',
+        message='Looking for the bat cave? '
+        'Perhaps try logging in as Bruce or Alfred? Unless you are "him"!'
     ), 403
 
 
@@ -119,7 +119,7 @@ def error_403(e):
 def error_404(e):
     return render_template(
         'error.html',
-        header='Resource not found!',
+        header='404: Nemo is not here',
         message='Oops, think you are lost. Or we are, if so, report a bug!'
     ), 404
 
@@ -128,9 +128,10 @@ def error_404(e):
 def error_500(e):
     return render_template(
         'error.html',
-        title='Be back soon!',
-        message='Victi.ms is undergoing maintenance (or possibly a bug). '
-        + 'We should be back up shortly.'
+        title='Ruh-roh, Raggy',
+        message='We are undergoing maintenance '
+        '(or possibly are being eaten by zombies).'
+        ' We should be back up shortly.'
     ), 500
 
 
