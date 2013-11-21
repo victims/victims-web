@@ -3,8 +3,22 @@
 {% block title %}Bugs{% endblock %}
 
 {% block content %}
-<h1>Reporting Bugs</h1>
-<p>
-Please report bugs or feature requests using the <a href="https://github.com/victims" target="_blank">github issue tracker</a> for the relevant victims component. Please report any security flaws directly by email to the user "security" at the domain "victims.ms", rather than opening a public issue on github.
-</p>
+<div style="text-align: justify;">
+    <h1 id="bugs">Reporting Bugs</h1>
+
+    <h3>Website/API Issues</h3>
+    <p>Feature requests and issues that relate to this website and/or the service API can be reported against the <a href="https://github.com/victims/victims-web" target="_blank">Git Hub victims-web project</a>.
+    </p>
+    <a class="btn btn-primary btn-sm" href="https://github.com/victims/victims-web/issues/new" target="_blank">Create Issue</a>
+    <p>
+
+    <h3>Client Bugs</h3>
+    Please report bugs or feature requests for clients using the <a href="https://github.com/victims" target="_blank">github issue trackers</a> for the relevant victims component. The relevant sites are listed on the <a href="{{ url_for('ui.static_page', page='client') }}">client page</a>.
+    </p>
+
+    <h3>Security Issues</h3>
+    <p>
+    Please report any security flaws directly by email to the user "security" at the domain "victims.ms", rather than opening a public issue on github.
+    </p>
+</div>
 {%  endblock %}
