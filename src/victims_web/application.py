@@ -25,9 +25,14 @@ from flask import Flask, render_template, session
 from flask.ext.mongoengine import MongoEngine, MongoEngineSessionInterface
 from flask.ext.seasurf import SeaSurf
 from flask.ext.bootstrap import Bootstrap
+from flask_reggie import Reggie
+
 
 # Set up the application
 app = Flask('victims_web')
+
+# say hello to reggie
+reggie = Reggie(app)
 
 # CSRF protection
 csrf = SeaSurf(app)
