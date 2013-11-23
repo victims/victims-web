@@ -71,7 +71,7 @@ class TaskManager():
     def __del__(self):
         self._waiter.stop()
 
-    def add_task(self, fn, *args):
+    def add_task(self, fn, *args, **kwargs):
         """
         If the kitchen is still accepting orders place task on waiter's docket.
         Else, a TaskException is raised.
@@ -79,12 +79,19 @@ class TaskManager():
         :Parameters:
             `fn`: Target function to run as a seperate Process
             `args`: The arguments to pass to the target function
+            `kwargs`: Key word arguments to pass to the target function
         """
         if self._waiter.stopped:
             raise TaskException('We are close for business. Go elsewhere!')
-        process = Process(target=fn, args=args)
+        process = Process(target=fn, args=args, kwargs=kwargs)
         process.start()
         self._waiter.waiton(process)
 
 
 taskman = TaskManager()
+
+
+def task(f):
+    def wrapper(*args, **kwargs):
+        taskman.add_task(f, *args, **kwargs)
+    return wrapper
