@@ -7,7 +7,7 @@ from urlparse import urlparse, urljoin
 from flask import request, flash
 
 from victims_web import config
-from victims_web.handlers.task import taskman
+from victims_web.handlers.task import task
 from victims_web.models import Hash, Submission
 
 
@@ -26,6 +26,7 @@ def group_keys(group):
     return groups().get(group, [])
 
 
+@task
 def hash_submission(submission_id):
     """
     Helper method to process an archive at source where possible from a
@@ -96,7 +97,7 @@ def set_hash(submission):
         sid = str(submission)
     else:
         sid = str(submission.id)
-    taskman.add_task(hash_submission, sid)
+    hash_submission(sid)
 
 
 def safe_redirect_url():
