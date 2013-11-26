@@ -126,6 +126,17 @@ def process_submission(form, group=None):
             for coord in SUBMISSION_GROUPS.get(group, [])
         })
 
+        # remove any empty values
+        coordinates = dict(
+            (k, v)
+            for k, v in coordinates.iteritems()
+            if v is not None and len(v) > 0
+        )
+
+        # if no coordinates given, make None
+        if len(coordinates) == 0:
+            coordinates = None
+
         files = upload(group, request.files.get('archive', None), coordinates)
         for (ondisk, filename, suffix) in files:
             submit(
