@@ -44,6 +44,9 @@ ui = Blueprint(
     static_url_path='/static/')  # Last argument needed since we register on /
 
 
+_GROUP_REGEX = '<regex("%s"):group>' % ('|'.join(SUBMISSION_GROUPS.keys()))
+
+
 def _is_hash(data):
     """
     Verifies the hash is a sha1 hash.
@@ -78,7 +81,7 @@ def hashes(groups):
     return render_template('hashes.html', hashes=hashes)
 
 
-@ui.route('/hashes/<group>/', methods=['GET'])
+@ui.route('/hashes/%s/' % (_GROUP_REGEX), methods=['GET'])
 def hashes_singlegroup(group):
     if group not in groups():
         flash(
@@ -156,7 +159,7 @@ def process_submission(form, group=None):
         current_app.logger.debug(oe)
 
 
-@ui.route('/submit/<group>/', methods=['GET', 'POST'])
+@ui.route('/submit/%s/' % (_GROUP_REGEX), methods=['GET', 'POST'])
 @login.login_required
 def submit_artifact(group):
     form = SUBMISSION_FORMS.get(group, ArtifactSubmit)()
