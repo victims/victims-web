@@ -97,35 +97,6 @@ class RequiredIfNoneValid(validators.Required):
         super(RequiredIfNoneValid, self).__call__(form, field)
 
 
-class GroupSelectField(fields.SelectField):
-    """
-    Custom field to handle group selection
-    """
-    DEFAULT_GROUP = '---'
-    VALID_GROUPS = SUBMISSION_GROUPS.keys()
-
-    def __init__(self, validators, *args, **kwargs):
-        super(GroupSelectField, self).__init__('Group', *args, **kwargs)
-        self.choices = [(self.DEFAULT_GROUP, 'unset')]
-        for group in self.VALID_GROUPS:
-            self.choices.append((group, group))
-        self.validators = validators
-
-
-class GroupRequired(validators.Required):
-    """
-    Custom validator for the archive submission form.
-    """
-    def __init__(self, groupfield, *args, **kwargs):
-        self.groupfield = groupfield
-        super(GroupRequired, self).__init__(*args, **kwargs)
-
-    def __call__(self, form, field):
-        group = form._fields.get(self.groupfield).data
-        if field.label.field_id.split('_', 1)[0] == group:
-            super(GroupRequired, self).__call__(form, field)
-
-
 class GroupHashable():
     """
     Custom validator to check if a group is hashable
@@ -197,9 +168,8 @@ class UserName():
             raise ValidationError('Username is not available.')
 
 
-class ArchiveSubmit(Form):
+class ArtifactSubmit(Form):
     """
-    Archive submission form
     """
     cves = fields.StringField('CVE(s)', validators=[
         validators.Regexp(
@@ -209,14 +179,23 @@ class ArchiveSubmit(Form):
         validators.required(),
     ])
     archive = fields.FileField('Archive')
-    group = GroupSelectField([validators.AnyOf(GroupSelectField.VALID_GROUPS)])
-    for (g, fs) in SUBMISSION_GROUPS.items():
-        if len(fs) > 0:
-            for f in fs:
-                validator = RequiredIfNoneValid([
-                    HasFile('archive'), GroupRequired('group')])
-                field = fields.StringField(f, [validator])
-                exec('%s_%s = field' % (g, f))
+
+
+# Dynamic creation of submission forms
+SUBMISSION_FORMS = {}
+
+# Validator of archive vs coordinate based submission
+_validator = RequiredIfNoneValid([HasFile('archive')])
+for (group, coordinates) in SUBMISSION_GROUPS.items():
+    classname = '%sArtifactSubmit' % (group.title())
+    group_fields = []
+    for coord in coordinates:
+        group_fields.append(
+            'exec("%s = fields.StringField(\'%s\', [_validator])")'
+            % (coord, coord)
+        )
+    exec('class %s(ArtifactSubmit): %s' % (classname, ';'.join(group_fields)))
+    SUBMISSION_FORMS[group] = eval(classname)
 
 
 class RegistrationForm(Form):

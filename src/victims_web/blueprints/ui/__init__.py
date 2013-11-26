@@ -29,7 +29,8 @@ from flask.ext import login
 from victims_web.cache import cache
 from victims_web.config import SUBMISSION_GROUPS
 from victims_web.errors import ValidationError
-from victims_web.handlers.forms import ArchiveSubmit, flash_errors
+from victims_web.handlers.forms import \
+    SUBMISSION_FORMS, ArtifactSubmit, flash_errors
 from victims_web.models import Hash, CoordinateDict
 from victims_web.plugin.crosstalk import indexmon
 from victims_web.submissions import submit, upload
@@ -111,16 +112,17 @@ def onehash(value):
     return redirect(url_for('ui.hashes_multigroup'))
 
 
-def process_submission(form):
+def process_submission(form, group=None):
     try:
         cves = []
         for cve in form.cves.data.split(','):
             cves.append(cve.strip())
 
-        group = form.group.data
+        if group is None:
+            group = form.group.data
 
         coordinates = CoordinateDict({
-            coord: form._fields.get('%s_%s' % (group, coord)).data.strip()
+            coord: form._fields.get('%s' % coord).data.strip()
             for coord in SUBMISSION_GROUPS.get(group, [])
         })
 
@@ -143,17 +145,17 @@ def process_submission(form):
         current_app.logger.debug(oe)
 
 
-@ui.route('/submit/archive/', methods=['GET', 'POST'])
+@ui.route('/submit/<group>/', methods=['GET', 'POST'])
 @login.login_required
-def submit_archive():
-    form = ArchiveSubmit()
+def submit_artifact(group):
+    form = SUBMISSION_FORMS.get(group, ArtifactSubmit)()
     if form.validate_on_submit():
-        process_submission(form)
+        process_submission(form, group)
         return redirect(url_for('ui.index'))
     elif request.method == 'POST':
         flash_errors(form)
     return render_template(
-        'submit_archive.html', form=form, groups=SUBMISSION_GROUPS)
+        'submit_artifact.html', form=form, group=group)
 
 
 @ui.route('/<page>.html', methods=['GET'])

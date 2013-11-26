@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content %}
+<form class="form form-vertical" method="POST" enctype="multipart/form-data" action="{{ url_for('ui.submit_artifact', group=group) }}" >
+    {{ form.hidden_tag() }}
+    {{ wtf.form_field(form.cves) }}
+    {{ wtf.form_field(form.archive) }}
+    {% for fname in config['SUBMISSION_GROUPS'][group] %}
+    {% set f = form._fields[fname] %}
+    {{ wtf.form_field(f) }}
+    {% endfor %}
+    <div class="container" align="right">
+        <button type="submit" class="btn btn-success">Submit</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block tail %}
+{{ super() }}
+<script type=text/javascript>
+    $('select').change(function() {
+            var group = "";
+            $('option').each(function() {
+                group = '.' + $(this).text();
+                $(group).hide();
+                });
+            group = '.' + $('select option:selected').text();
+            $(group).show();
+            })
+</script>
+{% endblock tail %}
