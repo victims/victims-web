@@ -25,6 +25,20 @@ body {
     padding: 40px 15px 0;
 }
 
+.site-title {
+	font-size: 80px;
+	font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+	line-height: 1;
+    font-weight: bold;
+	margin: 0;
+	padding: 36px 0 10px;
+}
+
+.site-description {
+	font: bold 21px "Helvetica Neue",Helvetica,Arial,sans-serif;
+	margin: 0;
+}
+
 .page-header {
     padding-bottom: 9px;
     margin: 20px 0 30px;
@@ -33,6 +47,7 @@ body {
 
 .hero-unit {
     padding: 40px 60px 30px 60px;
+    min-height: 230px;
     background:#850000;
     color:#fff;
     text-shadow: 0 1px 3px rgba(0,0,0,.4), 0 0 30px rgba(0,0,0,.075);
