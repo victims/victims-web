@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block navbarcontent %}
+<!-- Left Side of Navigation -->
+<ul class="nav navbar-nav">
+    <li><a href="{{ url_for('ui.index') }}">Home</a></li>
+    <li><a href="{{ url_for('ui.static_page', page='client') }}">Client</a></li>
+    <li><a href="{{ url_for('ui.static_page', page='about') }}">About</a></li>
+    <li><a href="{{ url_for('ui.static_page', page='bugs') }}">Bugs</a></li>
+
+    <!-- Options requiring authenticated session -->
+    {% if current_user and current_user.is_authenticated() %}
+    <li class="dropdown">
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Submit <b class="caret"></b></a>
+    <ul class="dropdown-menu">
+        {% for group in config ['SUBMISSION_GROUPS'].keys() %}
+        <li><a href="{{ url_for('ui.submit_artifact', group=group) }}">{{ group.title().strip()}}</a></li>
+        {% endfor %}
+    </ul>
+    </li>
+    <!-- Administrative Options -->
+    {% if current_user.has_role('moderator')
+    or current_user.has_role('admin') %}
+    <li><a href="{{ url_for('admin.index') }}">Admin</a></li>
+    {% endif %}
+    {% endif %}
+</ul>
+
+<!-- Right Side of Navigation -->
+<ul class="nav navbar-nav navbar-right">
+    <div class="btn-group">
+        {% if current_user and current_user.is_authenticated() %} <!-- Authenticated Session -->
+        <button type="button" class="btn btn-primary navbar-btn dropdown-toggle" data-toggle="dropdown">
+            <span class="glyphicon glyphicon-user"/></span> {{ current_user.username }} <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu">
+            <li><a href="{{ url_for('auth.user_account') }}"><span class="glyphicon glyphicon-wrench"/></span> Account Details</a></li>
+            <li class="divider"></li>
+            <li><a href="{{ url_for('auth.logout_user') }}"><span class="glyphicon glyphicon-off"/></span> Log Out</a></li>
+        </ul>
+        {% else %} <!-- Unauthenticated Session -->
+        <!-- Log In Button -->
+        <a type="button" href="{{ url_for('auth.login_user') }}" class="btn btn-success navbar-btn">Log In</a>
+        <!-- Register Button -->
+        <a type="button" href="{{ url_for('auth.register_user') }}" class="btn btn-info navbar-btn">Register</a>
+        {% endif %}
+    </div>
+</ul>
+{% endblock %}
