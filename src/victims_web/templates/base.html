@@ -50,14 +50,24 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a href="{{ url_for('ui.index') }}" class="navbar-brand">
-                        Victims Project
-                    </a>
+                    <ul class="nav navbar-nav">
+                        <li class="dropdown">
+                        <a href="#" class="dropdown-toggle navbar-brand" data-toggle="dropdown"><span class="glyphicon glyphicon-th-large"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="http://blog.victi.ms">Project Blog</a></li>
+                            <li><a href="https://github.com/victims/victims-cve-db">CVE Database</a></li>
+                            <li><a href="https://victi.ms">Embedded Vulnerability Detection</a></li>
+                        </ul>
+                        </li>
+                    </ul>
                 </div>
 
                 <div class="collapse navbar-collapse" role="navigation">
                     <!-- Left Side of Navigation -->
                     <ul class="nav navbar-nav">
+                        <li>
+                            <a href="{{ url_for('ui.index') }}">Home</a>
+                        </li>
                         <li>
                             <a href="{{ url_for('ui.static_page', page='client') }}">Client</a>
                         </li>
@@ -136,7 +146,7 @@
         <div id="footer">
             <div class="container">
                 <p class="text-muted credit">
-                &copy; 2009-2013 Steve 'Ashcrow' Milner and the Victi.ms team. Server licensed under the <a href="http://www.gnu.org/licenses/agpl-3.0.html">AGPL 3.0 License</a> (<a href="https://github.com/victims/victims-web/">Source</a>) <img src="{{ url_for('ui.static', filename='images/victims-button.png') }}" />
+                &copy; 2009-<script>document.write(new Date().getFullYear())</script> Steve 'Ashcrow' Milner and the Victims Project team.</p><p>Server licensed under the <a href="http://www.gnu.org/licenses/agpl-3.0.html">AGPL 3.0 License</a> (<a href="https://github.com/victims/victims-web/">Source</a>) <img src="{{ url_for('ui.static', filename='images/victims-button.png') }}" />
                 </p>
             </div>
         </div>
