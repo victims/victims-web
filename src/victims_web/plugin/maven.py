@@ -26,10 +26,11 @@ from logging import getLogger
 from os.path import join
 from string import Template
 from time import strptime, mktime
-from urllib2 import urlopen, HTTPError, URLError
+from urllib2 import urlopen, HTTPError
 from xml.etree import ElementTree
 
-from victims_web.plugin.downloader import download, download_string
+from victims_web.plugin.downloader import \
+    download, download_string, DownloadException
 
 USER_AGENT = 'victims-web-plugin/maven'
 BUF_SIZE = 4096
@@ -38,6 +39,7 @@ logger = getLogger('plugin.maven')
 
 
 class Artifact(object):
+
     def __init__(self, group, artifact, version=None):
         self.group = group
         self.artifact = artifact
@@ -111,6 +113,7 @@ class Artifact(object):
 
 
 class MavenRepos(object):
+
     def __init__(self, name, uri):
         self.name = name
         self.uri = uri
@@ -146,6 +149,7 @@ class MavenRepos(object):
 
 
 class MavenHttpRemoteRepos(MavenRepos):
+
     def __init__(self, name, uri):
         MavenRepos.__init__(self, name, uri)
         self.pom_cache = {}
