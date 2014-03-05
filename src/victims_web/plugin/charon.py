@@ -83,12 +83,17 @@ class JavaManager(Manager):
             raise ValueError('Could not identify artifact using provided info')
 
     def download(self, info):
+
+        def is_valid_sha1(value):
+            value = value.strip()
+            return value is not None and len(value) == 40
+
         artifact = self.make_artifact(info)
         queue = {}
         for repo in self.repos:
             uri = repo.get_artifact_uri(artifact, 'jar')
             sha1 = repo.download_check_sum('sha1', uri)
-            if sha1 and sha1 not in queue and sha1.strip != '':
+            if is_valid_sha1(sha1) and sha1 not in queue:
                 queue[sha1] = repo
 
         if len(queue) == 0:
