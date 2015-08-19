@@ -5,7 +5,9 @@ Flask-Bcrypt
 Flask-Bootstrap
 Flask-Cache
 Flask-Login>=0.1.1
-Flask-MongoEngine
+pymongo==2.6.2
+mongoengine==0.8.4
+Flask-MongoEngine==0.7.0
 Flask-Reggie
 Flask-SeaSurf
 Flask-SSLify
