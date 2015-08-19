@@ -41,7 +41,7 @@ class DownloadException(Exception):
 
 
 def download(url, target, async=False, close_target=False, quiet=True):
-    ### download file to target (target is a file-like object)
+    # download file to target (target is a file-like object)
     if async:
         _pool.submit(url, target)
     else:

@@ -32,6 +32,7 @@ from bson.dbref import DBRef
 
 from flask.ext.bcrypt import generate_password_hash
 from flask.ext.mongoengine import Document
+from mongoengine.base import BaseDocument
 from mongoengine import (
     StringField, DateTimeField, DictField, BooleanField, EmbeddedDocument,
     EmbeddedDocumentField, ListField, EmailField
@@ -464,8 +465,8 @@ class Submission(JsonifyMixin, ValidatedDocument):
         ValidatedDocument.save(self)
 
     def valid_entry(self):
-        if (not self.group
-                or len(self.group.strip()) == 0):
+        if (not self.group or
+                len(self.group.strip()) == 0):
             self.add_comment('[auto] no group specified')
             return False
         if len(self.cves) == 0:

@@ -77,9 +77,9 @@ class Artifact(object):
     def __eq__(self, other):
         if isinstance(other, Artifact):
             return (
-                other.group == self.group
-                and other.artifact == self.artifact
-                and other.version == self.version
+                other.group == self.group and
+                other.artifact == self.artifact and
+                other.version == self.version
             )
         else:
             return False
@@ -94,14 +94,14 @@ class Artifact(object):
         return self.version.find('SNAPSHOT') > 0
 
     def is_same_artifact(self, other):
-        ## need to support wildcard
+        # TODO: need to support wildcard
         group_match = True if (
-            self.group == '*'
-            or other.group == '*'
+            self.group == '*' or
+            other.group == '*'
         ) else self.group == other.group
         artif_match = True if (
-            self.artifact == '*'
-            or other.artifact == '*'
+            self.artifact == '*' or
+            other.artifact == '*'
         ) else self.artifact == other.artifact
         return group_match and artif_match
 
@@ -184,7 +184,7 @@ class MavenHttpRemoteRepos(MavenRepos):
         try:
             logger.info('[Checking] pom file %s' % maven_path)
             data = download_string(maven_path)
-            ## cache
+            # cache
             self.pom_cache[artifact] = data
             return data
         except DownloadException:
