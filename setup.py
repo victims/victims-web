@@ -25,7 +25,7 @@ from setuptools import setup
 
 
 def extract_requirements(filename):
-    return [str(r.req) for r in parse_requirements(filename)]
+    return [str(r.req) for r in parse_requirements(filename, session=False)]
 
 
 install_requires = extract_requirements('requirements.txt')
