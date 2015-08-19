@@ -48,7 +48,7 @@ class GitHub():
     def get_commits(self, **kwargs):
         return self._rest('repos', 'commits', **kwargs)
 
-    #/repos/:owner/:repo/commits/:sha
+    # /repos/:owner/:repo/commits/:sha
     def get_commit(self, sha, **kwargs):
         return self._rest('repos', 'commits/%s' % (sha), **kwargs)
 

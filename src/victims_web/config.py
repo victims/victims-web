@@ -58,7 +58,7 @@ REMEMBER_COOKIE_DOMAIN = None
 
 # CSRF Protection
 CSRF_COOKIE_NAME = 'victimsc'
-#CSRF_COOKIE_TIMEOUT = timedelta(1)
+# CSRF_COOKIE_TIMEOUT = timedelta(1)
 CSRF_DISABLED = False
 
 # Captcha
@@ -102,8 +102,9 @@ HASHING_COMMANDS = {
 }
 
 # Optional settings
-## Sentry Configuration
-#SENTRY_DSN = ''
+
+# Sentry Configuration
+# SENTRY_DSN = ''
 
 # Load custom configuration if available, this will override defaults above
 CFG_KEY = 'VICTIMS_CONFIG'
@@ -124,18 +125,18 @@ if CFG_KEY in environ and isfile(environ[CFG_KEY]):
 
 SESSION_COOKIE_SECURE = not DEBUG
 
-## We do not need https when debugging
+# We do not need https when debugging
 if DEBUG:
     PREFERRED_URL_SCHEME = 'http'
 else:
     PREFERRED_URL_SCHEME = 'https'
 
-## Create any required directories
+# Create any required directories
 for folder in [LOG_FOLDER, UPLOAD_FOLDER, DOWNLOAD_FOLDER, CACHE_DIR]:
     if not isdir(folder):
         makedirs(folder)
 
-## Debug Toolbar
+# Debug Toolbar
 if DEBUG:
     DEBUG_TB_HOSTS = '127.0.0.1'
     DEBUG_TB_PROFILER_ENABLED = True

@@ -38,7 +38,7 @@ def hash_submission(submission_id):
         config.LOGGER.debug('Submission %s not found.' % (submission_id))
         return
 
-    if not submission.entry is None:
+    if submission.entry is not None:
         submission.add_comment('Entry alread exits. Skipping hashing.')
         return
 

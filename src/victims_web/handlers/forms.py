@@ -202,7 +202,7 @@ class RegistrationForm(Form):
     """
     Registration Form
     """
-    username = fields.StringField('Username',  [
+    username = fields.StringField('Username', [
         validators.Regexp('^[\w\.]*$', message='Invalid Username'),
         validators.required(),
         UserName(),
