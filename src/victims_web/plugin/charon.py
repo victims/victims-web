@@ -36,7 +36,7 @@ REPOSITORIES = {
 }
 for (name, uri) in config.MAVEN_REPOSITORIES:
     if (name, uri) not in REPOSITORIES:
-        REPOSITORIES['java'].append(name, uri)
+        REPOSITORIES['java'].append([name, uri])
 
 MANAGERS = {}
 
@@ -85,13 +85,13 @@ class JavaManager(Manager):
     def download(self, info):
 
         def is_valid_sha1(value):
-            value = value.strip()
             return value is not None and len(value) == 40
 
         artifact = self.make_artifact(info)
         queue = {}
         for repo in self.repos:
             uri = repo.get_artifact_uri(artifact, 'jar')
+            LOGGER.debug("Downloading from: %s" % uri)
             sha1 = repo.download_check_sum('sha1', uri)
             if is_valid_sha1(sha1) and sha1 not in queue:
                 queue[sha1] = repo

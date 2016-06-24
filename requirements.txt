@@ -4,7 +4,7 @@ Flask-Admin>=1.0.7
 Flask-Bcrypt
 Flask-Bootstrap
 Flask-Cache
-Flask-Login>=0.1.1
+Flask-Login==0.2.11
 pymongo==2.6.2
 mongoengine==0.8.4
 Flask-MongoEngine==0.7.0
