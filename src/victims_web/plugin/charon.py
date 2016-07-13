@@ -105,7 +105,7 @@ class JavaManager(Manager):
             prefix = '%s-%s' % (str(uuid4()), repo.name)
             try:
                 localfile = repo.download_jar(
-                    artifact, DOWNLOADS_DIR, prefix, True)
+                    artifact, DOWNLOADS_DIR, prefix, False)
                 downloaded.append((localfile, artifact.to_jip_name(), 'Jar'))
             except DownloadException as de:
                 LOGGER.debug(
