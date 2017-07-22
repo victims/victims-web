@@ -19,17 +19,16 @@ Module which results with a ready to use wsgi application.
 """
 
 import logging.config
-import os
 
+import os
 from flask import Flask, render_template, session
+from flask.ext.bootstrap import Bootstrap
 from flask.ext.mongoengine import MongoEngine, MongoEngineSessionInterface
 from flask.ext.seasurf import SeaSurf
-from flask.ext.bootstrap import Bootstrap
 from flask_reggie import Reggie
 
-
 # Set up the application
-app = Flask('victims_web')
+app = Flask('victims.web')
 
 # say hello to reggie
 reggie = Reggie(app)
@@ -41,7 +40,7 @@ csrf = SeaSurf(app)
 bootstrap = Bootstrap(app)
 
 # configuration
-app.config.from_object('victims_web.config')
+app.config.from_object('victims.web.config')
 
 # logging
 logging.basicConfig(
@@ -66,19 +65,19 @@ if app.debug and not app.testing:
 app.db = MongoEngine(app)
 app.session_interface = MongoEngineSessionInterface(app.db)
 
-# victims_web setup
+# web setup
 # this happens after basic setup to facilitate database availability
-from victims_web.admin import administration_setup
-from victims_web.blueprints.service_v1 import v1
-from victims_web.blueprints.service_v2 import v2, SUBMISSION_ROUTES
-from victims_web.blueprints.ui import ui
-from victims_web.blueprints.auth import auth
+from victims.web.admin import administration_setup
+from victims.web.blueprints.service_v1 import v1
+from victims.web.blueprints.service_v2 import v2, SUBMISSION_ROUTES
+from victims.web.blueprints.ui import ui
+from victims.web.blueprints.auth import auth
 
-from victims_web.cache import cache
-from victims_web.handlers.security import setup_security
-from victims_web.handlers.sslify import VSSLify
-from victims_web.handlers.task import taskman
-from victims_web.plugin.crosstalk import session_reaper
+from victims.web.cache import cache
+from victims.web.handlers.security import setup_security
+from victims.web.handlers.sslify import VSSLify
+from victims.web.handlers.task import taskman
+from victims.web.plugin.crosstalk import session_reaper
 
 # Custom SSLify
 sslify = VSSLify(app)

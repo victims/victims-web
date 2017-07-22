@@ -19,13 +19,13 @@ Abandon all hope, ye who enter here.
 
 Charon ferries the victims from their repositories to the judge of limbo.
 """
-from abc import ABCMeta, abstractmethod
 from uuid import uuid4
 
-from victims_web import config
-from victims_web.plugin.downloader import DownloadException
-from victims_web.plugin.maven import Artifact, MavenHttpRemoteRepos
+from abc import ABCMeta, abstractmethod
 
+from victims.web import config
+from victims.web.plugin.downloader import DownloadException
+from victims.web.plugin.maven import Artifact, MavenHttpRemoteRepos
 
 DOWNLOADS_DIR = config.DOWNLOAD_FOLDER
 LOGGER = config.LOGGER

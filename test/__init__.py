@@ -19,13 +19,13 @@ Unittesting.
 """
 
 import unittest
-import re
 
+import re
 from flask.ext.bcrypt import generate_password_hash
 
-from victims_web import application
-from victims_web.models import Account
-from victims_web.user import delete_user
+from victims.web import application
+from victims.web.models import Account
+from victims.web.user import delete_user
 
 
 class FlaskTestCase(unittest.TestCase):

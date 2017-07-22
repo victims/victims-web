@@ -15,15 +15,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from urlparse import urljoin
+
 from mongoengine import (
     StringField, URLField, LongField, DateTimeField, ListField)
 from yaml import load
-from urlparse import urljoin
 
-from victims_web.models import Hash, ValidatedDocument, JsonifyMixin
-from victims_web.plugin import PluginConfig
-from victims_web.plugin.github import Repository
-
+from victims.web.models import Hash, ValidatedDocument, JsonifyMixin
+from victims.web.plugin import PluginConfig
+from victims.web.plugin.github import Repository
 
 _CONFIG = PluginConfig('rubysec')
 

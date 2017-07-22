@@ -16,7 +16,7 @@ while true; do
 done
 
 MONGOSH="$SCRIPT_DIR/mongo-db-ctl.sh"
-APP="$SRC_DIR/victims_web/application.py"
+APP="$SRC_DIR/web/application.py"
 
 $MONGOSH stop
 $MONGOSH start

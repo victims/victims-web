@@ -19,8 +19,9 @@ Tests for registration.
 """
 
 from re import search
+
 from test import UserTestCase
-from victims_web.models import Account
+from victims.web.models import Account
 
 
 class TestRegister(UserTestCase):

@@ -34,7 +34,7 @@ else
     else
         $CMD \
             --with-coverage \
-            --cover-package=victims_web \
+            --cover-package=victims.web \
             --cover-min-percentage=0 \
             ${TEST_DIR}/*.py
     fi

@@ -19,23 +19,20 @@ Main web ui.
 """
 
 import re
-
 from flask import (
     Blueprint, current_app, escape, render_template, helpers,
     url_for, request, redirect, flash)
-
 from flask.ext import login
 
-from victims_web.cache import cache
-from victims_web.config import SUBMISSION_GROUPS
-from victims_web.errors import ValidationError
-from victims_web.handlers.forms import \
+from victims.web.cache import cache
+from victims.web.config import SUBMISSION_GROUPS
+from victims.web.errors import ValidationError
+from victims.web.handlers.forms import \
     SUBMISSION_FORMS, ArtifactSubmit, flash_errors
-from victims_web.models import Hash, CoordinateDict
-from victims_web.plugin.crosstalk import indexmon
-from victims_web.submissions import submit, upload
-from victims_web.util import groups
-
+from victims.web.models import Hash, CoordinateDict
+from victims.web.plugin.crosstalk import indexmon
+from victims.web.submissions import submit, upload
+from victims.web.util import groups
 
 ui = Blueprint(
     'ui', __name__,

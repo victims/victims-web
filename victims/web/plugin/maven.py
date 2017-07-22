@@ -23,13 +23,14 @@
 #
 
 from logging import getLogger
-from os.path import join
 from string import Template
 from time import strptime, mktime
 from urllib2 import urlopen, HTTPError
 from xml.etree import ElementTree
 
-from victims_web.plugin.downloader import \
+from os.path import join
+
+from victims.web.plugin.downloader import \
     download, download_string, DownloadException
 
 USER_AGENT = 'victims-web-plugin/maven'

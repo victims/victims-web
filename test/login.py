@@ -18,10 +18,10 @@
 Tests for logins.
 """
 
-from test import UserTestCase
 from datetime import datetime
 
-from victims_web.user import get_account
+from test import UserTestCase
+from victims.web.user import get_account
 
 
 class TestLogin(UserTestCase):

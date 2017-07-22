@@ -20,25 +20,23 @@ Data models.
 
 import datetime
 import json
-
-from abc import ABCMeta, abstractproperty
 from copy import deepcopy
-from os import urandom, remove
-from os.path import isfile
 from hashlib import sha1
 from hmac import HMAC
 from uuid import uuid4
-from bson.dbref import DBRef
 
+from abc import ABCMeta, abstractproperty
+from bson.dbref import DBRef
 from flask.ext.bcrypt import generate_password_hash
 from flask.ext.mongoengine import Document
-from mongoengine.base import BaseDocument
 from mongoengine import (
     StringField, DateTimeField, DictField, BooleanField, EmbeddedDocument,
     EmbeddedDocumentField, ListField, EmailField
 )
+from os import urandom, remove
+from os.path import isfile
 
-from victims_web.config import (
+from victims.web.config import (
     BCRYPT_LOG_ROUNDS, SUBMISSION_GROUPS, HASHING_ALGORITHMS
 )
 

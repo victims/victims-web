@@ -19,7 +19,7 @@ Tests for registration.
 """
 
 from test import UserTestCase
-from victims_web.user import get_account
+from victims.web.user import get_account
 
 
 class TestAccountInfo(UserTestCase):

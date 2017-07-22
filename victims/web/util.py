@@ -1,14 +1,14 @@
 from copy import deepcopy
 from json import loads
-from os.path import isfile
 from subprocess import check_output, CalledProcessError
 from urlparse import urlparse, urljoin
 
 from flask import request, flash
+from os.path import isfile
 
-from victims_web import config
-from victims_web.handlers.task import task
-from victims_web.models import Hash, Submission
+from victims.web import config
+from victims.web.handlers.task import task
+from victims.web.models import Hash, Submission
 
 
 def groups():

@@ -17,17 +17,17 @@
 """
 Submission module. Handle submission related logic.
 """
-from os import makedirs
-from os.path import isdir, join
 from uuid import uuid4
 
-from werkzeug import secure_filename
+from os import makedirs
+from os.path import isdir, join
+from werkzeug.utils import secure_filename
 
-from victims_web import config
-from victims_web.models import Submission
-from victims_web.plugin.charon import download
-from victims_web.plugin.crosstalk import indexmon
-from victims_web.util import set_hash
+from victims.web import config
+from victims.web.models import Submission
+from victims.web.plugin.charon import download
+from victims.web.plugin.crosstalk import indexmon
+from victims.web.util import set_hash
 
 
 def submit(submitter, source, group=None, filename=None, suffix=None, cves=[],

@@ -19,19 +19,19 @@ Service version 2 testing.
 """
 
 import json
+from StringIO import StringIO
 from base64 import b64encode
 from datetime import datetime
 from hashlib import md5
-from StringIO import StringIO
-from os import listdir
 from shutil import rmtree
+
+from os import listdir
 from os.path import isdir
 
 from test import UserTestCase
-
-from victims_web.config import DEFAULT_GROUP, UPLOAD_FOLDER, VICTIMS_API_HEADER
-from victims_web.models import Removal, Submission
-from victims_web.handlers.security import generate_signature
+from victims.web.config import DEFAULT_GROUP, UPLOAD_FOLDER, VICTIMS_API_HEADER
+from victims.web.handlers.security import generate_signature
+from victims.web.models import Removal, Submission
 
 
 class TestServiceV2(UserTestCase):

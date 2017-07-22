@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from victims_web.models import Plugin
+from victims.web.models import Plugin
 
 
 class PluginConfig(object):

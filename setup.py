@@ -33,7 +33,7 @@ test_require = extract_requirements('test-requirements.txt')
 
 
 setup(
-    name='victims_web',
+    name='victims-web',
     version='2.0.1',
     description='Victims Web Service',
     author='Steve Milner',

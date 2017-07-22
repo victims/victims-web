@@ -20,7 +20,7 @@ User related functions.
 
 from flask.ext.login import UserMixin, AnonymousUserMixin
 
-from victims_web.models import Account
+from victims.web.models import Account
 
 
 # Helpers

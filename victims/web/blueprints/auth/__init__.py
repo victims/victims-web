@@ -21,14 +21,13 @@ Authentication related views.
 from flask import (
     Blueprint, current_app, escape, flash, render_template, request,
     url_for, redirect)
-
 from flask.ext.login import fresh_login_required, login_required, current_user
 from mongoengine import ValidationError
 
-from victims_web.handlers.forms import (
+from victims.web.handlers.forms import (
     RegistrationForm, flash_errors, validate_password_strength)
-from victims_web.handlers.security import login, logout, safe_redirect_url
-from victims_web.user import create_user, get_account
+from victims.web.handlers.security import login, logout, safe_redirect_url
+from victims.web.user import create_user, get_account
 
 auth = Blueprint('auth', __name__, template_folder='templates')
 

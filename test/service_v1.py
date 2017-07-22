@@ -89,7 +89,7 @@ class TestServiceV1(FlaskTestCase):
         result = json.loads(resp.data)
 
         import datetime
-        from victims_web.blueprints.service_v1 import EOL
+        from victims.web.blueprints.service_v1 import EOL
 
         assert result['version'] == '1'
         assert result['recommended'] is False

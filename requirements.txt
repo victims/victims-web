@@ -14,6 +14,9 @@ Flask-SSLify
 Flask-Views
 Flask-WTF>=0.9.1
 
+# sentry
+raven[flask]
+
 # other requirements
 blinker
 PyYAML

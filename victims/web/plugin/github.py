@@ -18,16 +18,16 @@
 GitHub plugin
 """
 
+from shutil import rmtree
+from subprocess import check_output
+from urlparse import urljoin
+
 from os import walk, sep
 from os.path import join, isdir
-from shutil import rmtree
-from urlparse import urljoin
 from re import search
 from requests import get
-from subprocess import check_output
 
-from victims_web.config import DOWNLOAD_FOLDER
-
+from victims.web.config import DOWNLOAD_FOLDER
 
 BASE_URI = 'https://github.com/'
 API_URI = 'https://api.github.com/'

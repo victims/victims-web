@@ -17,11 +17,11 @@
 """
 Identity handlers.
 """
-from hmac import HMAC
-from hashlib import md5, sha512
-from time import strptime, mktime
 from datetime import datetime, timedelta
 from functools import wraps
+from hashlib import md5, sha512
+from hmac import HMAC
+from time import strptime, mktime
 from urlparse import urlparse, urljoin
 
 from flask import Response, request, flash
@@ -29,8 +29,8 @@ from flask.ext.bcrypt import check_password_hash
 from flask.ext.login import (
     LoginManager, current_user, login_user, logout_user, user_logged_in)
 
-from victims_web import config
-from victims_web.user import (AnonymousUser, User, get_account)
+from victims.web import config
+from victims.web.user import AnonymousUser, User, get_account
 
 
 def safe_redirect_url():
