@@ -22,9 +22,9 @@ import logging.config
 
 import os
 from flask import Flask, render_template, session
-from flask.ext.bootstrap import Bootstrap
-from flask.ext.mongoengine import MongoEngine, MongoEngineSessionInterface
-from flask.ext.seasurf import SeaSurf
+from flask_bootstrap import Bootstrap
+from flask_mongoengine import MongoEngine, MongoEngineSessionInterface
+from flask_seasurf import SeaSurf
 from flask_reggie import Reggie
 
 # Set up the application

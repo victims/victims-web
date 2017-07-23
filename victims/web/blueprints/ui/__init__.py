@@ -18,11 +18,11 @@
 Main web ui.
 """
 
+import flask_login as login
 import re
 from flask import (
     Blueprint, current_app, escape, render_template, helpers,
     url_for, request, redirect, flash)
-from flask.ext import login
 
 from victims.web.cache import cache
 from victims.web.config import SUBMISSION_GROUPS

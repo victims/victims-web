@@ -25,8 +25,8 @@ from time import strptime, mktime
 from urlparse import urlparse, urljoin
 
 from flask import Response, request, flash
-from flask.ext.bcrypt import check_password_hash
-from flask.ext.login import (
+from flask_bcrypt import check_password_hash
+from flask_login import (
     LoginManager, current_user, login_user, logout_user, user_logged_in)
 
 from victims.web import config

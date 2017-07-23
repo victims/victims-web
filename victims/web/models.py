@@ -27,8 +27,8 @@ from uuid import uuid4
 
 from abc import ABCMeta, abstractproperty
 from bson.dbref import DBRef
-from flask.ext.bcrypt import generate_password_hash
-from flask.ext.mongoengine import Document
+from flask_bcrypt import generate_password_hash
+from flask_mongoengine import Document
 from mongoengine import (
     StringField, DateTimeField, DictField, BooleanField, EmbeddedDocument,
     EmbeddedDocumentField, ListField, EmailField

@@ -19,7 +19,7 @@ Victims Forms Handler
 """
 
 from flask import flash
-from flask_wtf import Form, RecaptchaField
+from flask_wtf import FlaskForm as Form, RecaptchaField
 from wtforms import fields, validators, ValidationError
 
 from victims.web.config import (

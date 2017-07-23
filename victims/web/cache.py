@@ -18,6 +18,6 @@
 Cache related items.
 """
 
-from flask.ext.cache import Cache
+from flask_cache import Cache
 
 cache = Cache()

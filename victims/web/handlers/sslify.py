@@ -19,7 +19,7 @@ Custom SSLify Wrapper module
 """
 
 from flask import request, current_app
-from flask.ext.sslify import SSLify
+from flask_sslify import SSLify
 
 
 SSL_EXCLUDE = []

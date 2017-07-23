@@ -20,14 +20,14 @@ Administration interface.
 
 import datetime
 
+import flask_login as login
 from flask import flash, redirect, url_for
-from flask.ext import login
-from flask.ext.admin.actions import action
-from flask.ext.admin.babel import lazy_gettext
-from flask.ext.admin.base import (
+from flask_admin.actions import action
+from flask_admin.babel import lazy_gettext
+from flask_admin.base import (
     Admin, AdminIndexView, MenuLink, BaseView, expose)
-from flask.ext.admin.contrib.fileadmin import FileAdmin
-from flask.ext.admin.contrib.mongoengine import ModelView
+from flask_admin.contrib.fileadmin import FileAdmin
+from flask_admin.contrib.mongoengine import ModelView
 from wtforms import fields, validators
 
 from victims.web.cache import cache
