@@ -2,7 +2,7 @@ from os import environ, makedirs
 from os.path import isfile, isdir, join
 from datetime import timedelta
 from imp import load_source
-from logging import getLogger, DEBUG
+from logging import getLogger, DEBUG as LOG_LEVEL_DEBUG
 
 _ENFORCE = True
 _ENFORCE_KEYS = ['SECRET_KEY', 'DEBUG', 'TESTING']
@@ -12,10 +12,13 @@ VICTIMS_BASE_DIR = environ.get('VICTIMS_BASE_DIR', './victims-web-runtime')
 
 LOGGER = getLogger()
 LOG_FOLDER = environ.get('VICTIMS_LOG_DIR', join(VICTIMS_BASE_DIR, 'logs'))
-LOG_LEVEL = DEBUG
+LOG_LEVEL = LOG_LEVEL_DEBUG
 
-DEBUG = True
-TESTING = True
+FLASK_HOST = environ.get('FLASK_HOST', '127.0.0.1')
+FLASK_PORT = int(environ.get('FLASK_PORT', 5000))
+
+DEBUG = 'VICTIMS_DEBUG' in environ
+TESTING = 'VICTIMS_TESTING' in environ
 SECRET_KEY = b'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 PERMANENT_SESSION_LIFETIME = timedelta(1)
 
@@ -35,9 +38,9 @@ CACHE_THRESHOLD = 20
 
 # MongoDB Configuration
 MONGODB_SETTINGS = {
-    'DB': 'victims',
-    'HOST': '127.0.0.1',
-    'PORT': 27017,
+    'DB': environ.get('VICTIMS_DB', 'victims'),
+    'HOST': environ.get('MONGODB_DB_HOST', 'localhost'),
+    'PORT': int(environ.get('MONGODB_DB_PORT', 27017)),
 }
 
 # Available roles
