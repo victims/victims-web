@@ -35,6 +35,7 @@ nosetests.xml
 # developer files
 .project
 .pydevproject
+.idea/*
 
 # developer environment
 dev-env*
