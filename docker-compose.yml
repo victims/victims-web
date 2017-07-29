@@ -1,0 +1,69 @@
+version: '2.1'
+
+services:
+  mongo:
+    image: mongo:2.4
+    healthcheck:
+      test: ["CMD", "mongo", "--quiet", "-d", "127.0.0.1",
+      "--eval", "'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+  mongo-seed:
+    image: mongo:2.4
+    command: >
+      bash -c
+      'mongoimport --host mongo --upsert -d victims
+      -c hashes "/data/mongo_test_hash.json"
+      && mongoimport --host mongo --upsert -d victims
+      -c users "/data/mongo_test_user.json"'
+    links:
+      - mongo
+    depends_on:
+      - mongo
+    volumes:
+      - ./test/data:/data
+    restart: "no"
+
+  test:
+    build: .
+    environment:
+      VICTIMS_DEBUG: "True"
+      VICTIMS_TESTING: "True"
+      MONGODB_DB_HOST: mongo
+    entrypoint: sh
+    command: >
+     -c 'nosetests --logging-clear-handlers -v --with-coverage \
+        --cover-package=victims.web \
+        --cover-min-percentage=0 test/*.py \
+     && pep8 --repeat ./victims'
+    volumes:
+      - .:/opt/source
+    links:
+      - mongo
+    depends_on:
+      - mongo
+      - mongo-seed
+    restart: "no"
+
+  server:
+    build: .
+    environment:
+      VICTIMS_DEBUG: "True"
+      VICTIMS_TESTING: "True"
+      FLASK_HOST: 0.0.0.0
+      FLASK_PORT: 5000
+      MONGODB_DB_HOST: mongo
+    entrypoint: sh
+    command: -c 'sleep 3 && python -m victims.web'
+    volumes:
+      - .:/opt/source
+    links:
+      - mongo
+    depends_on:
+      - mongo
+      - mongo-seed
+    ports:
+      - 5000:5000
+    restart: "always"
