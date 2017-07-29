@@ -20,5 +20,8 @@ The victims-web module.
 
 if __name__ == '__main__':
     from victims.web.application import app
-    # If we are called locally run with debug on
-    app.run(debug=True)
+    app.run(
+        host=app.config['FLASK_HOST'],
+        port=app.config['FLASK_PORT'],
+        debug=app.config['DEBUG']
+    )
