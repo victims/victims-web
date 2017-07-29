@@ -40,7 +40,8 @@ csrf = SeaSurf(app)
 bootstrap = Bootstrap(app)
 
 # configuration
-app.config.from_object('victims.web.config')
+from victims.web import config
+app.config.from_object(config)
 
 # logging
 logging.basicConfig(
