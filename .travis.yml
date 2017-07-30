@@ -10,7 +10,7 @@ before_script:
 install:
   - pip install -e . 
 script:
-  - pep8 --repeat src/
+  - pep8 --repeat victims test
   - nosetests --logging-clear-handlers --with-coverage --cover-package=victims_web --cover-min-percentage=0 -v test/*.py
 branches:
   only:
