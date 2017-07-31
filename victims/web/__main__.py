@@ -18,10 +18,15 @@
 The __main__ module for the victims.web package to allow it to be executable.
 """
 
-if __name__ == '__main__':
+
+def main():
     from victims.web.application import app
     app.run(
         host=app.config['FLASK_HOST'],
         port=app.config['FLASK_PORT'],
         debug=app.config['DEBUG']
     )
+
+
+if __name__ == '__main__':
+    main()

@@ -19,18 +19,36 @@
 """
 Source build and installation script.
 """
-
+from os import path, sep, walk
+from pip.download import PipSession
 from pip.req import parse_requirements
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def extract_requirements(filename):
-    return [str(r.req) for r in parse_requirements(filename, session=False)]
+    return [
+        str(r.req)
+        for r in parse_requirements(filename, session=PipSession)
+    ]
 
+
+def find_package_data(source, strip=''):
+    pkg_data = []
+    for root, dirs, files in walk(source):
+        pkg_data += map(
+            lambda f: path.join(root.replace(strip, '').lstrip(sep), f),
+            files
+        )
+    return pkg_data
+
+
+base_dir = path.dirname(__file__)
+
+with open(path.join(base_dir, 'README.md')) as f:
+    long_description = f.read()
 
 install_requires = extract_requirements('requirements.txt')
 test_require = extract_requirements('test-requirements.txt')
-
 
 setup(
     name='victims-web',
@@ -38,7 +56,38 @@ setup(
     description='Victims Web Service',
     author='Steve Milner',
     url='http://victi.ms',
-
+    long_description=long_description,
+    license='AGPLv3',
+    classifiers=[
+        'License :: OSI Approved :: GNU Affero General Public License v3',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Framework :: Flask',
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+        'Topic :: Internet :: WWW/HTTP :: WSGI :: Server',
+        'Topic :: Security'
+    ],
+    packages=find_packages(
+        exclude=['*.tests', '*.tests.*', 'tests.*', 'tests', 'test']
+    ),
+    include_package_data=True,
+    package_data={
+        'victims.web':
+            find_package_data(
+                'victims/web/templates', 'victims/web')
+            + find_package_data(
+                'victims/web/static', 'victims/web')
+            + find_package_data(
+                'victims/web/blueprints/ui/templates', 'victims/web')
+            + find_package_data(
+                'victims/web/blueprints/ui/static', 'victims/web')
+    },
     install_requires=install_requires,
     tests_require=test_require,
+    entry_points={
+        'console_scripts': [
+            'victims-web-server = victims.web.__main__:main',
+        ],
+    }
 )
