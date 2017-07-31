@@ -19,6 +19,7 @@ install:
 script:
   - pep8 --repeat victims test
   - nosetests --logging-clear-handlers --with-coverage --cover-package=victims.web --cover-min-percentage=0 -v test/*.py
+  - sonar-scanner
 branches:
   only:
     - master
