@@ -1,4 +1,4 @@
-victims-web [![Build Status](https://travis-ci.org/victims/victims-web.png)](https://travis-ci.org/victims/victims-web)
+Victims Web Service [![Build Status](https://travis-ci.org/victims/victims-web.png)](https://travis-ci.org/victims/victims-web) [![PyPI version](https://badge.fury.io/py/victims-web.svg)](https://badge.fury.io/py/victims-web)
 ===========
 The victims web application.
 ## Report an Issue
