@@ -3,6 +3,13 @@ python:
   - "2.7"
 services:
   - mongodb
+addons:
+  sonarcloud:
+    organization: "victims-web"
+    token:
+        secure: "WMSmv/3TBBYz5jVQD5JSDJU+2Vzj/kFLYSAqf25CWJQWu9Kw8y/9CL5f8ZWNx8G8Qj9GlLvGEcVKTeeZPu3bcllqVsvQfSowYUeEC/o29Pg2cXHeRAIouc+4d6sNtrdE7oMFMU+cjSXqB6ORLzrsDeJUDcQqXMUdhI1xEllCvVA="
+    branches:
+      - master
 before_script:
   - mongoimport -d victims -c hashes test/data/mongo_test_hash.json
   - mongoimport -d victims -c users test/data/mongo_test_user.json
@@ -16,6 +23,15 @@ branches:
   only:
     - master
     - deployed
+deploy:
+  provider: pypi
+  user: abn
+  password:
+    secure: "blLxQxPRtqacdQmvzjvzL+gNtKphMP0Dm42hgZqEGyR2wBwfKzovac1jlPgENapFVNHT707fMHgJfSuTS61vLARACxPJh35Fx5EMWzbLDGl9m69Hrl1zc/tYHfcMnsUSfcJJi291KYINyf4ycS6VHCCMftZiv1AmP12f62oiWc0="
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: victims/victims-web
 notifications:
   email: false
   irc: "irc.freenode.org#victi.ms"
