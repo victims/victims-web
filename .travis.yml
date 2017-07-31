@@ -5,7 +5,7 @@ services:
   - mongodb
 addons:
   sonarcloud:
-    organization: "victims-web"
+    organization: "victims-project"
     token:
         secure: "WMSmv/3TBBYz5jVQD5JSDJU+2Vzj/kFLYSAqf25CWJQWu9Kw8y/9CL5f8ZWNx8G8Qj9GlLvGEcVKTeeZPu3bcllqVsvQfSowYUeEC/o29Pg2cXHeRAIouc+4d6sNtrdE7oMFMU+cjSXqB6ORLzrsDeJUDcQqXMUdhI1xEllCvVA="
     branches:
