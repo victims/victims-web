@@ -24,6 +24,7 @@ branches:
   only:
     - master
     - deployed
+    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 deploy:
   provider: pypi
   user: abn
