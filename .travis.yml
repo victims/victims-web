@@ -30,9 +30,9 @@ deploy:
   user: abn
   password:
     secure: "blLxQxPRtqacdQmvzjvzL+gNtKphMP0Dm42hgZqEGyR2wBwfKzovac1jlPgENapFVNHT707fMHgJfSuTS61vLARACxPJh35Fx5EMWzbLDGl9m69Hrl1zc/tYHfcMnsUSfcJJi291KYINyf4ycS6VHCCMftZiv1AmP12f62oiWc0="
+  distributions: "sdist bdist_wheel"
   on:
     tags: true
-    distributions: "sdist bdist_wheel"
 notifications:
   email: false
   irc: "irc.freenode.org#victi.ms"
