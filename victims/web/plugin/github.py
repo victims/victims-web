@@ -105,9 +105,9 @@ class Repository():
         filtered = []
         for f in files:
             f = f.strip()
-            if f.startswith(path):
-                if not pattern or search(pattern, f):
-                    filtered.append(f)
+            if f.startswith(path) \
+                    and (pattern is not None or search(pattern, f)):
+                filtered.append(f)
 
         return filtered
 

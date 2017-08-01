@@ -137,8 +137,7 @@ class JsonifyMixin(object):
 
         for key in data.keys():
             if key.startswith('_') or (fields and key not in fields):
-                if key in data:
-                    del data[key]
+                del data[key]
 
         return json.dumps(data, default=handle_special_objs)
 
@@ -478,14 +477,15 @@ class Submission(JsonifyMixin, ValidatedDocument):
         return True
 
     def rule_check(self):
-        if self.approval in ['REQUESTED', 'PENDING_APPROVAL']:
-            if self.entry is not None and self.submitter:
-                user = Account.objects(username=self.submitter).first()
-                if user:
-                    for role in ['admin', 'moderator', 'trusted_submitter']:
-                        if role in user.roles:
-                            self.add_comment('[auto] trusted user')
-                            return True
+        if self.approval in ['REQUESTED', 'PENDING_APPROVAL'] \
+                and self.entry is not None \
+                and self.submitter:
+            user = Account.objects(username=self.submitter).first()
+            roles = set() if user is None else set(user.roles)
+            trusted = {'admin', 'moderator', 'trusted_submitter'}
+            if roles & trusted:
+                self.add_comment('[auto] trusted user')
+                return True
         return False
 
     def pre_save_hook(self):

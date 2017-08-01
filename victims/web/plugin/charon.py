@@ -75,10 +75,10 @@ class JavaManager(Manager):
 
     def make_artifact(self, info):
         try:
-            groupId = info['groupId']
-            artifactId = info['artifactId']
-            versionId = info['version']
-            return Artifact(groupId, artifactId, versionId)
+            group_id = info['groupId']
+            artifact_id = info['artifactId']
+            version_id = info['version']
+            return Artifact(group_id, artifact_id, version_id)
         except:
             raise ValueError('Could not identify artifact using provided info')
 

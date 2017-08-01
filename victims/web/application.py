@@ -60,7 +60,6 @@ if app.debug and not app.testing:
     except Exception as e:
         # Helpful for debugging but not needed
         app.logger.debug('Skipping Debug Toolbar')
-        pass
 
 # mongodb and sessions
 app.db = MongoEngine(app)

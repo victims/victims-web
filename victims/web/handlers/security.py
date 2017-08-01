@@ -48,10 +48,7 @@ def safe_redirect_url():
 
 def authenticate(username, password):
     user = get_account(str(username))
-    if user:
-        if check_password_hash(user.password, password):
-            return True
-    return False
+    return user and check_password_hash(user.password, password)
 
 
 def generate_signature(apikey, method, path, date, md5sums):

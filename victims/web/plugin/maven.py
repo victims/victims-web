@@ -41,9 +41,9 @@ logger = getLogger('plugin.maven')
 
 class Artifact(object):
 
-    def __init__(self, group, artifact, version=None):
-        self.group = group
-        self.artifact = artifact
+    def __init__(self, group_id, artifact_id, version=None):
+        self.group_id = group_id
+        self.artifact_id = artifact_id
         self.version = version
         self.timestamp = None
         self.build_number = None
@@ -53,40 +53,40 @@ class Artifact(object):
     def to_jip_name(self, pattern="$artifact-$version.$ext", ext="jar"):
         template = Template(pattern)
         filename = template.substitute({
-            'group': self.group,
-            'artifact': self.artifact,
+            'group': self.group_id,
+            'artifact': self.artifact_id,
             'version': self.version,
             'ext': ext
         })
         return filename
 
     def to_maven_name(self, ext):
-        group = self.group.replace('.', '/')
+        group = self.group_id.replace('.', '/')
         return "%s/%s/%s/%s-%s.%s" % (
-            group, self.artifact, self.version, self.artifact, self.version,
-            ext
+            group, self.artifact_id, self.version,
+            self.artifact_id, self.version, ext
         )
 
     def to_maven_snapshot_name(self, ext):
-        group = self.group.replace('.', '/')
+        group = self.group_id.replace('.', '/')
         version_wo_snapshot = self.version.replace('-SNAPSHOT', '')
         return "%s/%s/%s/%s-%s-%s-%s.%s" % (
-            group, self.artifact, self.version, self.artifact,
+            group, self.artifact_id, self.version, self.artifact_id,
             version_wo_snapshot, self.timestamp, self.build_number, ext
         )
 
     def __eq__(self, other):
         if isinstance(other, Artifact):
             return (
-                other.group == self.group and
-                other.artifact == self.artifact and
+                other.group_id == self.group_id and
+                other.artifact_id == self.artifact_id and
                 other.version == self.version
             )
         else:
             return False
 
     def __str__(self):
-        return "%s:%s:%s" % (self.group, self.artifact, self.version)
+        return "%s:%s:%s" % (self.group_id, self.artifact_id, self.version)
 
     def __repr__(self):
         return self.__str__()
@@ -97,13 +97,13 @@ class Artifact(object):
     def is_same_artifact(self, other):
         # TODO: need to support wildcard
         group_match = True if (
-            self.group == '*' or
-            other.group == '*'
-        ) else self.group == other.group
+            self.group_id == '*' or
+            other.group_id == '*'
+        ) else self.group_id == other.group_id
         artif_match = True if (
-            self.artifact == '*' or
-            other.artifact == '*'
-        ) else self.artifact == other.artifact
+            self.artifact_id == '*' or
+            other.artifact_id == '*'
+        ) else self.artifact_id == other.artifact_id
         return group_match and artif_match
 
     @classmethod
@@ -220,9 +220,9 @@ class MavenHttpRemoteRepos(MavenRepos):
             return None
 
     def get_metadata_path(self, artifact):
-        group = artifact.group.replace('.', '/')
+        group_id = artifact.group_id.replace('.', '/')
         metadata_path = "%s/%s/%s/%s/maven-metadata.xml" % (
-            self.uri, group, artifact.artifact, artifact.version
+            self.uri, group_id, artifact.artifact_id, artifact.version
         )
         return metadata_path
 
