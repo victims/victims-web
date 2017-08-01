@@ -44,7 +44,7 @@ def find_package_data(source, strip=''):
 
 base_dir = path.dirname(__file__)
 
-with open(path.join(base_dir, 'README.md')) as f:
+with open(path.join(base_dir, 'README.rst')) as f:
     long_description = f.read()
 
 install_requires = extract_requirements('requirements.txt')
