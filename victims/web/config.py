@@ -61,7 +61,6 @@ REMEMBER_COOKIE_DOMAIN = None
 
 # CSRF Protection
 CSRF_COOKIE_NAME = 'victimsc'
-# CSRF_COOKIE_TIMEOUT = timedelta(1)
 CSRF_DISABLED = False
 
 # Captcha
