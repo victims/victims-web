@@ -116,7 +116,7 @@ class AccountView(SafeModelView):
 
     def on_model_change(self, form, model, is_created):
         if len(form.plaintext_password.data) > 0:
-            model.password.set_password(form.plaintext_password.data)
+            model.set_password(form.plaintext_password.data)
         super(AccountView, self).on_model_change(form, model, is_created)
 
 
