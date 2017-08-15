@@ -1,38 +1,49 @@
 language: python
+
 python:
   - "2.7"
-services:
-  - mongodb
-addons:
-  sonarcloud:
-    organization: "victims-project"
-    token:
-        secure: "WMSmv/3TBBYz5jVQD5JSDJU+2Vzj/kFLYSAqf25CWJQWu9Kw8y/9CL5f8ZWNx8G8Qj9GlLvGEcVKTeeZPu3bcllqVsvQfSowYUeEC/o29Pg2cXHeRAIouc+4d6sNtrdE7oMFMU+cjSXqB6ORLzrsDeJUDcQqXMUdhI1xEllCvVA="
-    branches:
-      - master
-before_script:
-  - mongoimport -d victims -c hashes test/data/mongo_test_hash.json
-  - mongoimport -d victims -c users test/data/mongo_test_user.json
-  - pip install coverage pep8
-install:
-  - pip install -e . 
-script:
-  - pep8 --repeat victims test
-  - nosetests --logging-clear-handlers --with-coverage --cover-package=victims.web --cover-min-percentage=0 -v test/*.py
-  - sonar-scanner
-branches:
-  only:
-    - master
-    - deployed
-    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
-deploy:
-  provider: pypi
-  user: abn
-  password:
-    secure: "blLxQxPRtqacdQmvzjvzL+gNtKphMP0Dm42hgZqEGyR2wBwfKzovac1jlPgENapFVNHT707fMHgJfSuTS61vLARACxPJh35Fx5EMWzbLDGl9m69Hrl1zc/tYHfcMnsUSfcJJi291KYINyf4ycS6VHCCMftZiv1AmP12f62oiWc0="
-  distributions: "sdist bdist_wheel"
-  on:
-    tags: true
+
+jobs:
+  include:
+    - stage: test
+      services:
+        - mongodb
+      before_script:
+        - mongoimport -d victims -c hashes test/data/mongo_test_hash.json
+        - mongoimport -d victims -c users test/data/mongo_test_user.json
+        - pip install coverage pep8
+      install:
+        - pip install -e .
+      script:
+        - pep8 --repeat victims test
+        - nosetests --logging-clear-handlers --with-coverage --cover-package=victims.web --cover-min-percentage=0 -v test/*.py
+    - stage: sonar
+      dist: trusty
+      language: java
+      addons:
+        sonarcloud:
+          organization: "victims-project"
+          token:
+            secure: "WMSmv/3TBBYz5jVQD5JSDJU+2Vzj/kFLYSAqf25CWJQWu9Kw8y/9CL5f8ZWNx8G8Qj9GlLvGEcVKTeeZPu3bcllqVsvQfSowYUeEC/o29Pg2cXHeRAIouc+4d6sNtrdE7oMFMU+cjSXqB6ORLzrsDeJUDcQqXMUdhI1xEllCvVA="
+          branches:
+            - master
+      script:
+        - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then sonar-scanner; fi'
+      branches:
+        only:
+          - master
+    - stage: deploy
+      python: 2.7
+      script: ignore
+      deploy:
+        provider: pypi
+        user: abn
+        password:
+          secure: "blLxQxPRtqacdQmvzjvzL+gNtKphMP0Dm42hgZqEGyR2wBwfKzovac1jlPgENapFVNHT707fMHgJfSuTS61vLARACxPJh35Fx5EMWzbLDGl9m69Hrl1zc/tYHfcMnsUSfcJJi291KYINyf4ycS6VHCCMftZiv1AmP12f62oiWc0="
+        distributions: "sdist bdist_wheel"
+        on:
+          tags: true
+
 notifications:
   email: false
   irc: "irc.freenode.org#victi.ms"
